@@ -19,7 +19,12 @@ export default function Navbar() {
         </Link>
 
         <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl shadow-lg hover:scale-105 transition">
-          Login
+         <Link
+           href="/login"
+          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl"
+          >
+            Login
+          </Link>
         </button>
       </div>
     </nav>
