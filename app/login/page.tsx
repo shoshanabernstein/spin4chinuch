@@ -2,83 +2,94 @@
 
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { useRouter } from "next/navigation";
+
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const router = useRouter();
 
-async function signUp() {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+    async function signUp() {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
 
-  if (data.user) {
-    await supabase.from("profiles").insert({
-      id: data.user.id,
-      email: data.user.email,
-      spins: 0,
-    });
-  }
+        if (error) {
+            alert(error.message);
+            return;
+        }
 
-  alert("Account created!");
-}
+        if (data.user) {
+            const { error: profileError } = await supabase
+                .from("profiles")
+                .insert({
+                    id: data.user.id,
+                    email: data.user.email,
+                    spins: 0,
+                    spins_remaining: 0,
+                });
 
-  async function signIn() {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+            if (profileError) {
+                console.log(profileError);
+            }
+        }
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Logged in!");
+        alert("Account created!");
     }
-  }
 
-  return (
-    <main className="min-h-screen flex items-center justify-center bg-blue-50">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          Login
-        </h1>
+    async function signIn() {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full p-3 border rounded-lg mb-4"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        if (error) {
+            alert(error.message);
+        } else {
+            router.push("/dashboard");
+        }
+    }
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full p-3 border rounded-lg mb-4"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+    return (
+        <main className="min-h-screen flex items-center justify-center bg-blue-50">
+            <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
+                <h1 className="text-3xl font-bold text-center mb-6">
+                    Login
+                </h1>
 
-        <button
-          onClick={signIn}
-          className="w-full bg-blue-600 text-white p-3 rounded-lg mb-3"
-        >
-          Login
-        </button>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    className="w-full p-3 border rounded-lg mb-4"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
 
-        <button
-          onClick={signUp}
-          className="w-full bg-purple-600 text-white p-3 rounded-lg"
-        >
-          Create Account
-        </button>
-      </div>
-    </main>
-  );
+                <input
+                    type="password"
+                    placeholder="Password"
+                    className="w-full p-3 border rounded-lg mb-4"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+
+                <button
+                    onClick={signIn}
+                    className="w-full bg-blue-600 text-white p-3 rounded-lg mb-3"
+                >
+                    Login
+                </button>
+
+                <button
+                    onClick={signUp}
+                    className="w-full bg-purple-600 text-white p-3 rounded-lg"
+                >
+                    Create Account
+                </button>
+            </div>
+        </main>
+    );
 }

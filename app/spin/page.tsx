@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../../lib/supabase";
 
 const prizes = [
   "🎁 Free Spin",
@@ -16,12 +17,56 @@ export default function SpinPage() {
 
   async function spinWheel() {
     setSpinning(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      alert("Please log in");
+      setSpinning(false);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("spins_remaining")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || profile.spins_remaining <= 0) {
+      alert("No spins remaining!");
+      setSpinning(false);
+      return;
+    }
+
     setResult("");
 
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     const prize =
       prizes[Math.floor(Math.random() * prizes.length)];
+
+    await supabase
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({
+        spins_remaining: profile.spins_remaining - 1,
+      })
+      .eq("id", user.id);
+
+    console.log("UPDATE ERROR:", updateError);
+
+
+    const { error: winError } = await supabase
+      .from("wins")
+      .insert({
+        user_id: user.id,
+        prize: prize,
+      });
+
+    console.log("WIN ERROR:", winError);
 
     setResult(prize);
     setSpinning(false);
@@ -36,9 +81,8 @@ export default function SpinPage() {
         </h1>
 
         <div
-          className={`w-72 h-72 rounded-full border-8 border-blue-600 flex items-center justify-center text-7xl bg-white shadow-2xl ${
-            spinning ? "animate-spin" : ""
-          }`}
+          className={`w-72 h-72 rounded-full border-8 border-blue-600 flex items-center justify-center text-7xl bg-white shadow-2xl ${spinning ? "animate-spin" : ""
+            }`}
         >
           🎡
         </div>

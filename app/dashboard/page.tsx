@@ -7,6 +7,8 @@ import { supabase } from "../../lib/supabase";
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [spins, setSpins] = useState(0);
+  const [wins, setWins] = useState<any[]>([]);
+
 
   useEffect(() => {
 
@@ -27,6 +29,17 @@ export default function DashboardPage() {
 
       if (profile) {
         setSpins(profile.spins_remaining);
+      }
+
+      const { data: winsData } = await supabase
+        .from("wins")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (winsData) {
+        setWins(winsData);
       }
     }
 
@@ -78,6 +91,21 @@ export default function DashboardPage() {
                 Spin Wheel
               </Link>
             </button>
+            
+            <div className="mt-10">
+              <h2 className="text-2xl font-bold mb-4">
+                Recent Wins
+              </h2>
+
+              {wins.map((win) => (
+                <div
+                  key={win.id}
+                  className="bg-gray-100 p-3 rounded-lg mb-2"
+                >
+                  {win.prize}
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
