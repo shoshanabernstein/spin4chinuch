@@ -1,15 +1,23 @@
 export default function SpinPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-yellow-50">
+    <main className="min-h-screen flex items-center justify-center">
+
       <div className="text-center">
-        <h1 className="text-5xl font-bold text-yellow-600">
-          Spin Wheel Coming Soon
+
+        <h1 className="text-5xl font-bold mb-8">
+          Spin The Wheel
         </h1>
 
-        <p className="mt-4 text-gray-600">
-          This is where users will spin to win prizes.
-        </p>
+        <div className="w-80 h-80 rounded-full border-8 border-blue-600 flex items-center justify-center text-3xl font-bold">
+          🎡
+        </div>
+
+        <button className="mt-8 bg-blue-600 text-white px-8 py-4 rounded-xl">
+          SPIN
+        </button>
+
       </div>
+
     </main>
   );
 }
