@@ -1,32 +1,106 @@
 import Link from "next/link";
 
-export default function Navbar() {
-  return (
-    <nav className="flex items-center justify-between px-8 py-5 bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
-      <Link
-        href="/"
-        className="text-2xl font-extrabold text-blue-700"
-      >
-        Spin4Chinuch
-      </Link>
 
-      <div className="flex items-center gap-6">
-        <Link
-          href="/spin"
-          className="text-gray-700 hover:text-blue-600 transition"
-        >
-          Spin
-        </Link>
+export default function Navbar(){
 
-        <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl shadow-lg hover:scale-105 transition">
-         <Link
-           href="/login"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-2 rounded-xl"
-          >
-            Login
-          </Link>
-        </button>
-      </div>
-    </nav>
-  );
+return (
+
+<nav className="
+sticky top-0 z-50
+bg-[#faf7f0]/80
+backdrop-blur-xl
+border-b border-yellow-200
+">
+
+
+<div className="
+max-w-7xl
+mx-auto
+px-8
+py-4
+flex
+justify-between
+items-center
+">
+
+
+<Link href="/">
+
+<img
+
+src="/logo.png"
+
+className="
+h-16
+w-auto
+"
+
+/>
+
+</Link>
+
+
+
+<div className="
+flex
+gap-8
+items-center
+">
+
+
+<Link
+href="/spin"
+className="
+font-bold
+text-[#142A52]
+hover:text-yellow-600
+"
+>
+Spin
+</Link>
+
+
+
+<Link
+href="/prizes"
+className="
+font-bold
+text-[#142A52]
+hover:text-yellow-600
+"
+>
+Prizes
+</Link>
+
+
+
+
+<Link
+
+href="/login"
+
+className="
+btn-main
+py-3
+px-7
+"
+
+>
+
+Login
+
+</Link>
+
+
+
+</div>
+
+
+</div>
+
+
+</nav>
+
+)
+
 }

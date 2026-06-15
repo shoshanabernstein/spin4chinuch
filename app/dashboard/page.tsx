@@ -35,8 +35,7 @@ export default function DashboardPage() {
         .from("wins")
         .select("*")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
 
       if (winsData) {
         setWins(winsData);
@@ -91,7 +90,7 @@ export default function DashboardPage() {
                 Spin Wheel
               </Link>
             </button>
-            
+
             <div className="mt-10">
               <h2 className="text-2xl font-bold mb-4">
                 Recent Wins

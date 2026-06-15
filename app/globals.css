@@ -1,26 +1,109 @@
 @import "tailwindcss";
 
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+
+  --background:#faf7f0;
+  --foreground:#142A52;
+
+  --navy:#142A52;
+  --gold:#C9A44D;
+  --cream:#faf7f0;
+  --blue:#4267a8;
+
 }
+
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+--color-background:var(--background);
+--color-foreground:var(--foreground);
+
+--color-navy:var(--navy);
+--color-gold:var(--gold);
+--color-cream:var(--cream);
+
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+
+background:
+radial-gradient(
+circle at top,
+#ffffff,
+#faf7f0 60%
+);
+
+color:var(--foreground);
+
+font-family:
+Arial,
+Helvetica,
+sans-serif;
+
+}
+
+
+
+.glass {
+
+background:
+rgba(255,255,255,.65);
+
+backdrop-filter:
+blur(14px);
+
+border:
+1px solid rgba(201,164,77,.25);
+
+box-shadow:
+0 20px 50px rgba(20,42,82,.12);
+
+}
+
+
+
+.gold-glow {
+
+box-shadow:
+0 0 50px rgba(201,164,77,.45);
+
+}
+
+
+
+.btn-main {
+
+background:
+linear-gradient(
+135deg,
+#C9A44D,
+#E7C96D
+);
+
+color:#142A52;
+
+font-weight:800;
+
+border-radius:999px;
+
+padding:
+16px 40px;
+
+transition:.25s;
+
+}
+
+
+
+.btn-main:hover {
+
+transform:
+translateY(-3px)
+scale(1.03);
+
+box-shadow:
+0 20px 40px rgba(201,164,77,.35);
+
 }
