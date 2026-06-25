@@ -11,15 +11,15 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   try {
-    const { spins } = await req.json();
+    const body = await req.json();
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    console.log("BODY:", body);
 
-    if (!user) {
+    const { spins, userId } = body;
+
+    if (!userId) {
       return NextResponse.json(
-        { error: "Not logged in" },
+        { error: "Missing user" },
         { status: 401 }
       );
     }
@@ -59,14 +59,15 @@ export async function POST(req: Request) {
 
         mode: "payment",
 
+
         success_url:
-          "http://localhost:3000/success",
+          `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
 
         cancel_url:
           "http://localhost:3000/buy-spins",
 
         metadata: {
-          userId: user.id,
+          userId,
           spins: spins.toString(),
         },
       });

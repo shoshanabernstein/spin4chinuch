@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
 export default function AdminPage() {
   const [prizes, setPrizes] = useState<any[]>([]);
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
+
+  const [authorized, setAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function addPrize() {
     if (!name) return;
@@ -44,26 +48,60 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    loadPrizes();
+    async function checkAdmin() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        window.location.href = "/";
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role !== "admin") {
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      setAuthorized(true);
+      loadPrizes();
+      setLoading(false);
+    }
+
+    checkAdmin();
   }, []);
 
   async function loadPrizes() {
     const { data, error } = await supabase
       .from("prizes")
       .select("*")
-      .eq("active", false)
-      .gt("quantity", 0);
-        
-      console.log("DATA:", data);
-      console.log("ERROR:", error);
+      .order("id");
 
+    console.log("DATA:", data);
+    console.log("ERROR:", error);
+    console.log("Loaded prizes:", data?.length);
+    console.log(data);
 
     setPrizes(data || []);
   }
 
   const activeCount = prizes.filter(
-    (p) => !p.active
+    (p) => p.active
   ).length;
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-blue-50 p-10">
@@ -72,6 +110,14 @@ export default function AdminPage() {
         <h1 className="text-5xl font-bold mb-8">
           Admin Dashboard
         </h1>
+        <div className="flex gap-4 mb-8">
+          <Link
+            href="/admin/winners"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg"
+          >
+            View Winners
+          </Link>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-10">
 
@@ -106,6 +152,7 @@ export default function AdminPage() {
             Add Prize
           </h2>
 
+
           <div className="flex gap-4">
 
             <input
@@ -137,6 +184,7 @@ export default function AdminPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
+          <p>Total Loaded: {prizes.length}</p>
 
           {prizes.map((prize) => (
             <div
@@ -151,8 +199,8 @@ export default function AdminPage() {
 
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${prize.active
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
                     }`}
                 >
                   {prize.active

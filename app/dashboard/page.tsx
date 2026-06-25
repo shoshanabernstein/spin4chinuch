@@ -8,106 +8,168 @@ export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [spins, setSpins] = useState(0);
   const [wins, setWins] = useState<any[]>([]);
+  const [role, setRole] = useState("");
 
+async function loadUser() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  useEffect(() => {
+  if (!user) return;
 
-    async function loadUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  setEmail(user.email || "");
 
-      if (!user) return;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("spins_remaining, role")
+    .eq("id", user.id)
+    .single();
 
-      setEmail(user.email || "");
+  if (profile) {
+    setSpins(profile.spins_remaining);
+    setRole(profile.role);
+  }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("spins_remaining")
-        .eq("id", user.id)
-        .single();
+  const { data: winsData } = await supabase
+    .from("wins")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
-      if (profile) {
-        setSpins(profile.spins_remaining);
-      }
+  if (winsData) {
+    setWins(winsData);
+  }
+}
 
-      const { data: winsData } = await supabase
-        .from("wins")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (winsData) {
-        setWins(winsData);
-      }
-    }
-
-    loadUser();
-  }, []);
+useEffect(() => {
+  loadUser();
+}, []);
 
   return (
-    <main className="min-h-screen bg-blue-50 p-10">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+      <div className="max-w-6xl mx-auto">
 
-        <h1 className="text-5xl font-bold mb-8">
-          Dashboard
-        </h1>
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-5xl font-bold text-gray-900">
+            Dashboard
+          </h1>
 
-        <div className="bg-white rounded-3xl p-8 shadow-lg">
+          <p className="text-gray-600 mt-2">
+            Welcome back, {email}
+          </p>
+        </div>
 
-          <h2 className="text-2xl font-bold">
-            Welcome
+        {/* Stats */}
+        <div className="grid md:grid-cols-3 gap-6 mb-10">
+
+          <div className="bg-white rounded-3xl shadow-lg p-8">
+            <p className="text-gray-500 mb-2">
+              Available Spins
+            </p>
+
+            <h2 className="text-6xl font-bold text-blue-600">
+              {spins}
+            </h2>
+          </div>
+
+          <div className="bg-green-500 text-white rounded-3xl shadow-lg p-8">
+            <p className="opacity-90">
+              Support Jewish Education
+            </p>
+
+            <h2 className="text-3xl font-bold mt-2">
+              Every Spin Helps
+            </h2>
+          </div>
+
+          <div className="bg-purple-500 text-white rounded-3xl shadow-lg p-8">
+            <p className="opacity-90">
+              Your Prizes Won
+            </p>
+
+            <h2 className="text-5xl font-bold mt-2">
+              {wins.length}
+            </h2>
+          </div>
+
+        </div>
+
+        {/* Action Buttons */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+
+          <Link
+            href="/buy-spins"
+            className="bg-green-600 hover:bg-green-700 text-white rounded-3xl p-8 shadow-lg transition"
+          >
+            <h2 className="text-3xl font-bold">
+              🎟 Buy Spins
+            </h2>
+
+            <p className="mt-2 opacity-90">
+              Purchase more chances to win prizes.
+            </p>
+          </Link>
+
+          <Link
+            href="/spin"
+            className="bg-purple-600 hover:bg-purple-700 text-white rounded-3xl p-8 shadow-lg transition"
+          >
+            <h2 className="text-3xl font-bold">
+              🎡 Spin The Wheel
+            </h2>
+
+            <p className="mt-2 opacity-90">
+              Try your luck and win instantly.
+            </p>
+          </Link>
+
+        </div>
+
+        {/* Recent Wins */}
+        <div className="bg-white rounded-3xl shadow-lg p-8 mb-10">
+
+          <h2 className="text-3xl font-bold mb-6">
+            🏆 Recent Wins
           </h2>
 
-          <p className="mt-2 text-gray-600">
-            {email}
-          </p>
-
-          <p className="mt-6 text-gray-600">
-            Available Spins
-          </p>
-
-          <p className="text-6xl font-bold text-blue-600">
-            {spins}
-          </p>
-
-          <div className="flex gap-4 mt-8">
-            <button className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700">
-              <Link
-                href="/buy-spins"
-                className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700"
-              >
-                Buy 10 Spins - $10
-              </Link>
-            </button>
-
-            <button className="bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700">
-
-              <Link
-                href="/spin"
-                className="bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700"
-              >
-                Spin Wheel
-              </Link>
-            </button>
-
-            <div className="mt-10">
-              <h2 className="text-2xl font-bold mb-4">
-                Recent Wins
-              </h2>
-
+          {wins.length === 0 ? (
+            <p className="text-gray-500">
+              No prizes won yet.
+            </p>
+          ) : (
+            <div className="space-y-3">
               {wins.map((win) => (
                 <div
                   key={win.id}
-                  className="bg-gray-100 p-3 rounded-lg mb-2"
+                  className="bg-gray-100 rounded-xl p-4"
                 >
                   {win.prize}
                 </div>
               ))}
             </div>
-          </div>
-
+          )}
         </div>
+
+        {/* Admin */}
+        {role === "admin" && (
+          <div className="bg-red-600 text-white rounded-3xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold">
+              Admin Controls
+            </h2>
+
+            <p className="mt-2 opacity-90">
+              Manage prizes, inventory, and winners.
+            </p>
+
+            <Link
+              href="/admin"
+              className="inline-block mt-6 bg-white text-red-600 font-bold px-6 py-3 rounded-xl"
+            >
+              Open Admin Panel
+            </Link>
+          </div>
+        )}
 
       </div>
     </main>

@@ -98,6 +98,28 @@ export default function SpinPage() {
                 prize,
             });
 
+        await fetch("/api/send-win-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: user.email,
+                prize,
+            }),
+        });
+
+        await fetch("/api/send-win-email", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                email: user.email,
+                prize,
+            }),
+        });
+
         await supabase
             .from("prizes")
             .update({
