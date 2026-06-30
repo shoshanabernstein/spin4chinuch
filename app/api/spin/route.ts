@@ -32,13 +32,13 @@ export async function POST(req: Request) {
         }
 
         // Get active prizes
-        const { data: prizes, error: prizeError } = await supabase
-            .from("prizes")
+        const { data: wheel_outcomes, error: prizeError } = await supabase
+            .from("wheel_outcomes")
             .select("*")
             .eq("active", true)
             .gt("quantity", 0);
 
-        if (prizeError || !prizes || prizes.length === 0) {
+        if (prizeError || !wheel_outcomes || wheel_outcomes.length === 0) {
             return NextResponse.json(
                 { error: "No prizes available" },
                 { status: 400 }
@@ -46,20 +46,20 @@ export async function POST(req: Request) {
         }
 
         // Weighted prize  selection
-        const total = prizes.reduce(
-            (sum, prize) => sum + prize.probability,
+        const total = wheel_outcomes.reduce(
+            (sum, outcome) => sum + outcome.probability,
             0
         );
 
         let random = Math.random() * total;
 
-        let winningPrize = prizes[0];
+        let winningPrize = wheel_outcomes[0];
 
-        for (const prize of prizes) {
-            random -= prize.probability;
+        for (const outcome of wheel_outcomes) {
+            random -= outcome.probability;
 
             if (random <= 0) {
-                winningPrize = prize;
+                winningPrize = outcome;
                 break;
             }
         }
@@ -76,9 +76,9 @@ export async function POST(req: Request) {
             throw spinError;
         }
 
-        // Reduce prize quantity
+        // Reduce wheel outcome quantity
         await supabase
-            .from("prizes")
+            .from("wheel_outcomes")
             .update({
                 quantity: winningPrize.quantity - 1,
             })

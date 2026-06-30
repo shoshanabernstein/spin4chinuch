@@ -11,7 +11,7 @@ import CenterButton from "./CenterButton";
 type PrizeWheelProps = {
     rotation: number;
     spinning: boolean;
-    prizes: any[];
+    wheel_outcomes: any[];
 };
 
 const SIZE = 900;
@@ -21,9 +21,9 @@ const RADIUS = 405;
 export default function PrizeWheel({
     rotation,
     spinning,
-    prizes,
+    wheel_outcomes,
 }: PrizeWheelProps) {
-    const slices = Math.max(prizes.length, 8);
+    const slices = Math.max(wheel_outcomes.length, 8);
     const angle = 360 / slices;
 
     return (
