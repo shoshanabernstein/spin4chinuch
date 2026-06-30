@@ -23,12 +23,12 @@ export default function WinnersPage() {
   }, [loadWins]);
 
   return (
-    <main className="min-h-screen bg-blue-50 p-10">
+    <main className="min-h-screen cy-page p-10">
       <h1 className="text-5xl font-bold mb-8">
         Winners
       </h1>
 
-      <div className="bg-white rounded-2xl shadow p-6">
+      <div className="cy-card rounded-2xl p-6">
         {wins.map((win) => (
           <div
             key={win.id}

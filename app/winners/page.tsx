@@ -49,28 +49,28 @@ export default function WinnersPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#1E3A8A_0%,#0F172A_55%,#020617_100%)] pt-28 text-white">
+      <main className="min-h-screen cy-dark-page text-white">
         <section className="px-6 py-14">
           <div className="max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
               <div>
-                <p className="font-bold uppercase tracking-[0.2em] text-yellow-300">
+                <p className="font-bold uppercase tracking-[0.2em] text-[#8fe5ef]">
                   Recent winners
                 </p>
                 <h1 className="mt-4 text-5xl md:text-6xl font-black">
                   Mazel tov to our supporters
                 </h1>
-                <p className="mt-5 max-w-2xl text-lg text-gray-300">
+                <p className="mt-5 max-w-2xl text-lg text-[#dff5f8]">
                   A live look at recent prize wins from the Spin4Chinuch wheel.
                 </p>
               </div>
 
-              <Link href="/spin" className="rounded-full bg-yellow-400 px-8 py-4 font-black text-[#142A52] shadow-xl transition hover:scale-105">
+              <Link href="/spin" className="rounded-full bg-[#d6a84f] px-8 py-4 font-black text-[#12304a] shadow-xl transition hover:scale-105">
                 Spin Now
               </Link>
             </div>
 
-            <div className="mt-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
+            <div className="mt-12 overflow-hidden rounded-2xl cy-card-dark shadow-2xl">
               {loading ? (
                 <div className="p-8 text-center text-gray-200">Loading winners...</div>
               ) : wins.length === 0 ? (
@@ -80,16 +80,16 @@ export default function WinnersPage() {
                   {wins.map((win) => (
                     <div key={win.id} className="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-center">
                       <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 text-[#142A52]">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#d6a84f] text-[#12304a]">
                           <Trophy className="h-6 w-6" />
                         </div>
                         <div>
                           <h2 className="text-xl font-black">{win.prize}</h2>
-                          <p className="text-sm text-gray-300">{maskEmail(win.user_email)}</p>
+                          <p className="text-sm text-[#dff5f8]">{maskEmail(win.user_email)}</p>
                         </div>
                       </div>
 
-                      <p className="text-gray-300">
+                      <p className="text-[#dff5f8]">
                         {new Date(win.created_at).toLocaleDateString()}
                       </p>
                     </div>

@@ -54,7 +54,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen pt-24 bg-[radial-gradient(circle_at_top,#1E3A8A_0%,#0F172A_55%,#020617_100%)]">
+      <main className="min-h-screen pt-24 cy-dark-page">
 
         <div className="max-w-7xl mx-auto px-8 py-12">
 
@@ -67,7 +67,7 @@ export default function DashboardPage() {
                 Dashboard
               </h1>
 
-              <p className="text-yellow-300 mt-3 text-lg">
+              <p className="text-[#8fe5ef] mt-3 text-lg">
                 Welcome back
               </p>
 
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
             <Link
               href="/spin"
-              className="mt-8 md:mt-0 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 px-10 py-5 font-black text-[#142A52] shadow-2xl hover:scale-105 transition"
+              className="mt-8 md:mt-0 rounded-full bg-gradient-to-r from-[#0f8db3] via-[#16a6b8] to-[#d6a84f] px-10 py-5 font-black text-white shadow-2xl hover:scale-105 transition"
             >
               🎡 Spin Now
             </Link>
@@ -89,21 +89,21 @@ export default function DashboardPage() {
 
           <div className="grid lg:grid-cols-3 gap-8 mb-12">
 
-            <div className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl p-8 shadow-2xl">
+            <div className="rounded-3xl cy-card-dark p-8 shadow-2xl">
 
               <p className="text-gray-300 uppercase tracking-widest">
                 Spins Remaining
               </p>
 
-              <h2 className="text-7xl font-black text-yellow-400 mt-3">
+              <h2 className="text-7xl font-black text-[#d6a84f] mt-3">
                 {spins}
               </h2>
 
             </div>
 
-            <div className="rounded-3xl border border-yellow-400/20 bg-gradient-to-br from-yellow-500/20 to-yellow-700/10 backdrop-blur-xl p-8 shadow-2xl">
+            <div className="rounded-3xl cy-card-dark bg-gradient-to-br from-[#0f8db3]/20 to-[#d6a84f]/10 p-8 shadow-2xl">
 
-              <p className="uppercase tracking-widest text-yellow-200">
+              <p className="uppercase tracking-widest text-[#8fe5ef]">
                 Your Impact
               </p>
 
@@ -117,7 +117,7 @@ export default function DashboardPage() {
 
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl p-8 shadow-2xl">
+            <div className="rounded-3xl cy-card-dark p-8 shadow-2xl">
 
               <p className="uppercase tracking-widest text-gray-300">
                 Total Wins
@@ -195,7 +195,7 @@ export default function DashboardPage() {
 
                   <div
                     key={win.id}
-                    className="rounded-2xl bg-black/20 border border-yellow-500/20 p-6 flex justify-between items-center"
+                    className="rounded-2xl bg-black/20 border border-[#d6a84f]/20 p-6 flex justify-between items-center"
                   >
 
                     <div>
