@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +13,7 @@ const packages = [
 ];
 
 export default function BuySpinsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function buySpins(spins: number) {
@@ -42,7 +45,7 @@ export default function BuySpinsPage() {
       const data = await res.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        router.push(data.url);
       } else {
         console.error(data);
         alert("Unable to start checkout");
@@ -59,16 +62,16 @@ export default function BuySpinsPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#faf7f0] pt-24">
+      <main className="min-h-screen cy-page">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center">
-            <img src="/logo.png" alt="Spin4Chinuch" className="h-24 mx-auto" />
+            <Image src="/logo.png" alt="Spin4Chinuch logo" width={180} height={96} className="mx-auto h-24 w-auto" />
 
-            <h1 className="mt-8 text-5xl md:text-6xl font-black text-[#142A52]">
+            <h1 className="mt-8 text-5xl md:text-6xl font-black text-[#12304a]">
               Buy Spins
             </h1>
 
-            <p className="mt-4 text-xl text-gray-600">
+            <p className="mt-4 text-xl text-slate-600">
               Every spin helps strengthen Jewish education.
             </p>
           </div>
@@ -77,29 +80,29 @@ export default function BuySpinsPage() {
             {packages.map((pkg) => (
               <div
                 key={pkg.spins}
-                className={`relative bg-white rounded-2xl shadow-xl p-8 border-4 border-[#C9A44D] ${pkg.featured ? "md:scale-105 shadow-2xl" : ""}`}
+                className={`relative cy-card rounded-2xl p-8 border-2 border-[#0f8db3]/20 ${pkg.featured ? "md:scale-105 shadow-2xl" : ""}`}
               >
                 {pkg.featured && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#C9A44D] text-white px-5 py-2 rounded-full font-bold text-sm">
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#0f8db3] text-white px-5 py-2 rounded-full font-bold text-sm">
                     MOST POPULAR
                   </div>
                 )}
 
                 <div className="text-center">
-                  <h2 className="text-3xl font-black text-[#142A52]">
+                  <h2 className="text-3xl font-black text-[#12304a]">
                     {pkg.spins} Spins
                   </h2>
 
-                  <p className="text-6xl font-black text-[#C9A44D] mt-4">
+                  <p className="text-6xl font-black text-[#0f8db3] mt-4">
                     {pkg.price}
                   </p>
 
-                  <p className="mt-4 text-gray-600">{pkg.note}</p>
+                  <p className="mt-4 text-slate-600">{pkg.note}</p>
 
                   <button
                     disabled={loading}
                     onClick={() => buySpins(pkg.spins)}
-                    className={`w-full mt-8 py-4 rounded-xl text-xl font-bold transition disabled:opacity-50 ${pkg.featured ? "bg-[#C9A44D] text-white hover:opacity-90" : "bg-[#142A52] text-white hover:bg-[#1d3d77]"}`}
+                    className={`w-full mt-8 py-4 rounded-xl text-xl font-bold transition disabled:opacity-50 ${pkg.featured ? "bg-[#0f8db3] text-white hover:opacity-90" : "bg-[#12304a] text-white hover:bg-[#0f8db3]"}`}
                   >
                     {loading ? "Loading..." : "Buy Now"}
                   </button>
@@ -108,12 +111,12 @@ export default function BuySpinsPage() {
             ))}
           </div>
 
-          <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 text-center">
-            <h3 className="text-2xl font-bold text-[#142A52]">
+          <div className="mt-16 cy-card rounded-2xl p-8 text-center">
+            <h3 className="text-2xl font-bold text-[#12304a]">
               Spin. Support. Strengthen.
             </h3>
 
-            <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
+            <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
               Every spin supports Jewish education while giving you the opportunity to win exciting prizes. Thank you for being part of our mission.
             </p>
           </div>

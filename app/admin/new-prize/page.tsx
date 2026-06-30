@@ -43,10 +43,10 @@ export default function NewPrizePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-8">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10">
+    <main className="min-h-screen cy-page flex items-center justify-center p-8">
+      <div className="cy-card w-full max-w-xl rounded-3xl p-10">
 
-        <h1 className="text-4xl font-bold text-blue-700 mb-8">
+        <h1 className="text-4xl font-bold text-[#12304a] mb-8">
           🎁 Add Prize
         </h1>
 
@@ -60,7 +60,7 @@ export default function NewPrizePage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border rounded-xl p-4"
+              className="cy-input"
               placeholder="Amazon Gift Card"
             />
           </div>
@@ -74,7 +74,7 @@ export default function NewPrizePage() {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-full border rounded-xl p-4"
+              className="cy-input"
             />
           </div>
 
@@ -87,7 +87,7 @@ export default function NewPrizePage() {
               type="number"
               value={probability}
               onChange={(e) => setProbability(Number(e.target.value))}
-              className="w-full border rounded-xl p-4"
+              className="cy-input"
             />
           </div>
 
@@ -104,7 +104,7 @@ export default function NewPrizePage() {
           <button
             onClick={savePrize}
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl text-xl font-bold hover:scale-105 transition"
+            className="w-full bg-gradient-to-r from-[#0f8db3] to-[#12304a] text-white py-4 rounded-xl text-xl font-bold hover:scale-105 transition"
           >
             {loading ? "Saving..." : "Save Prize"}
           </button>

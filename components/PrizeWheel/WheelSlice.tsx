@@ -27,7 +27,6 @@ export default function WheelSlice({
   startAngle,
   endAngle,
   radius,
-  color,
   gradientIndex,
 }: WheelSliceProps)
 {

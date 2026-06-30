@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const supabaseAuth = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export async function POST(req: Request) {
     try {
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !serviceKey || !anonKey) {
+            return NextResponse.json({ error: "Spin service is not configured" }, { status: 500 });
+        }
+
+        const supabaseAdmin = createClient(supabaseUrl, serviceKey);
+        const supabaseAuth = createClient(supabaseUrl, anonKey);
+
         const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
         if (!token) {

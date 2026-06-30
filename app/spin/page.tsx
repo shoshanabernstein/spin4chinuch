@@ -135,7 +135,7 @@ export default function SpinPage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen pt-24 bg-[radial-gradient(circle_at_center,#1E3A8A_0%,#0F172A_60%,#020617_100%)] flex items-center justify-center overflow-hidden">
+      <main className="min-h-screen pt-24 cy-dark-page flex items-center justify-center overflow-hidden">
         {showConfetti && <Confetti recycle={false} numberOfPieces={400} />}
 
         <div className="max-w-7xl mx-auto px-8 py-12 flex flex-col items-center">
@@ -143,7 +143,7 @@ export default function SpinPage() {
             Spin to Win
           </h1>
 
-          <p className="text-yellow-300 text-xl md:text-2xl mt-5 text-center">
+          <p className="text-[#8fe5ef] text-xl md:text-2xl mt-5 text-center">
             Every spin supports Jewish education
           </p>
 
@@ -154,32 +154,32 @@ export default function SpinPage() {
           <button
             onClick={spin}
             disabled={spinning || loadingPrizes || prizes.length === 0}
-            className="mt-14 px-8 md:px-16 py-5 md:py-6 rounded-2xl text-2xl md:text-3xl font-black bg-gradient-to-r from-yellow-400 to-yellow-600 text-[#142A52] shadow-[0_0_40px_rgba(255,215,0,.6)] hover:scale-105 hover:shadow-[0_0_70px_rgba(255,215,0,.8)] transition disabled:opacity-50 disabled:hover:scale-100"
+            className="mt-14 px-8 md:px-16 py-5 md:py-6 rounded-2xl text-2xl md:text-3xl font-black bg-gradient-to-r from-[#d6a84f] to-[#16a6b8] text-white shadow-[0_0_40px_rgba(15,141,179,.45)] hover:scale-105 hover:shadow-[0_0_70px_rgba(214,168,79,.35)] transition disabled:opacity-50 disabled:hover:scale-100"
           >
             {loadingPrizes ? "LOADING PRIZES..." : spinning ? "SPINNING..." : "SPIN THE WHEEL"}
           </button>
 
           {!loadingPrizes && prizes.length === 0 && (
-            <p className="mt-6 max-w-xl text-center text-yellow-100">
+            <p className="mt-6 max-w-xl text-center text-[#dff5f8]">
               Prizes are being restocked. Please check back soon.
             </p>
           )}
 
           {winner && (
-            <div className="mt-14 bg-white/10 backdrop-blur-xl border border-yellow-400 rounded-3xl px-8 md:px-12 py-10 shadow-2xl text-center animate-pulse text-white">
-              <h2 className="text-4xl md:text-5xl font-black text-yellow-300">
+            <div className="mt-14 bg-white/10 backdrop-blur-xl border border-[#d6a84f] rounded-3xl px-8 md:px-12 py-10 shadow-2xl text-center animate-pulse text-white">
+              <h2 className="text-4xl md:text-5xl font-black text-[#8fe5ef]">
                 Congratulations!
               </h2>
 
               <p className="mt-6 text-2xl md:text-3xl font-bold">You won:</p>
 
-              <p className="mt-4 text-4xl md:text-5xl font-black text-yellow-400">
+              <p className="mt-4 text-4xl md:text-5xl font-black text-[#d6a84f]">
                 {winner}
               </p>
 
               <Link
                 href="/dashboard"
-                className="inline-block mt-8 bg-yellow-400 text-[#142A52] font-bold px-8 py-4 rounded-xl hover:scale-105 transition"
+                className="inline-block mt-8 bg-[#d6a84f] text-[#12304a] font-bold px-8 py-4 rounded-xl hover:scale-105 transition"
               >
                 Return to Dashboard
               </Link>

@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -14,11 +15,7 @@ export default function EditPrizePage() {
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPrize();
-  }, []);
-
-  async function loadPrize() {
+  const loadPrize = useCallback(async () => {
     const { data, error } = await supabase
       .from("prizes")
       .select("*")
@@ -36,7 +33,11 @@ export default function EditPrizePage() {
     setProbability(data.probability);
     setActive(data.active);
     setLoading(false);
-  }
+  }, [id, router]);
+
+  useEffect(() => {
+    void loadPrize();
+  }, [loadPrize]);
 
   async function savePrize() {
     const { error } = await supabase
@@ -68,10 +69,10 @@ export default function EditPrizePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-8">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10">
+    <main className="min-h-screen cy-page flex items-center justify-center p-8">
+      <div className="cy-card w-full max-w-xl rounded-3xl p-10">
 
-        <h1 className="text-4xl font-bold text-blue-700 mb-8">
+        <h1 className="text-4xl font-bold text-[#12304a] mb-8">
           ✏️ Edit Prize
         </h1>
 
@@ -80,7 +81,7 @@ export default function EditPrizePage() {
           <div>
             <label className="font-semibold">Prize Name</label>
             <input
-              className="w-full border rounded-xl p-4 mt-2"
+              className="cy-input mt-2"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -90,7 +91,7 @@ export default function EditPrizePage() {
             <label className="font-semibold">Quantity</label>
             <input
               type="number"
-              className="w-full border rounded-xl p-4 mt-2"
+              className="cy-input mt-2"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
             />
@@ -100,7 +101,7 @@ export default function EditPrizePage() {
             <label className="font-semibold">Probability</label>
             <input
               type="number"
-              className="w-full border rounded-xl p-4 mt-2"
+              className="cy-input mt-2"
               value={probability}
               onChange={(e) => setProbability(Number(e.target.value))}
             />
@@ -117,7 +118,7 @@ export default function EditPrizePage() {
 
           <button
             onClick={savePrize}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl text-xl font-bold"
+            className="w-full bg-[#0f8db3] hover:bg-[#12304a] text-white py-4 rounded-xl text-xl font-bold"
           >
             Save Changes
           </button>

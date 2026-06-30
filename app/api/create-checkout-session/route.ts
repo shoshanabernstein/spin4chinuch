@@ -2,16 +2,21 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-const supabaseAuth = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export async function POST(req: Request) {
   try {
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!stripeKey || !supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: "Checkout is not configured" }, { status: 500 });
+    }
+
+    const stripe = new Stripe(stripeKey);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+
     const { spins } = await req.json();
     const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
