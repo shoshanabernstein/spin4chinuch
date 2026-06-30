@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -14,11 +15,7 @@ export default function EditPrizePage() {
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPrize();
-  }, []);
-
-  async function loadPrize() {
+  const loadPrize = useCallback(async () => {
     const { data, error } = await supabase
       .from("prizes")
       .select("*")
@@ -36,7 +33,11 @@ export default function EditPrizePage() {
     setProbability(data.probability);
     setActive(data.active);
     setLoading(false);
-  }
+  }, [id, router]);
+
+  useEffect(() => {
+    void loadPrize();
+  }, [loadPrize]);
 
   async function savePrize() {
     const { error } = await supabase

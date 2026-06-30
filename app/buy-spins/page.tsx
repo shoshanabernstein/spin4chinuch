@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +13,7 @@ const packages = [
 ];
 
 export default function BuySpinsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function buySpins(spins: number) {
@@ -42,7 +45,7 @@ export default function BuySpinsPage() {
       const data = await res.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        router.push(data.url);
       } else {
         console.error(data);
         alert("Unable to start checkout");
@@ -62,7 +65,7 @@ export default function BuySpinsPage() {
       <main className="min-h-screen bg-[#faf7f0] pt-24">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center">
-            <img src="/logo.png" alt="Spin4Chinuch" className="h-24 mx-auto" />
+            <Image src="/logo.png" alt="Spin4Chinuch logo" width={180} height={96} className="mx-auto h-24 w-auto" />
 
             <h1 className="mt-8 text-5xl md:text-6xl font-black text-[#142A52]">
               Buy Spins
