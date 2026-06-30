@@ -1,109 +1,148 @@
 @import "tailwindcss";
 
-
 :root {
-
-  --background:#faf7f0;
-  --foreground:#142A52;
-
-  --navy:#142A52;
-  --gold:#C9A44D;
-  --cream:#faf7f0;
-  --blue:#4267a8;
-
+  --background: #f4fbfc;
+  --foreground: #12304a;
+  --cy-navy: #12304a;
+  --cy-blue: #0f8db3;
+  --cy-sky: #dff5f8;
+  --cy-teal: #16a6b8;
+  --cy-gold: #d6a84f;
+  --cy-cream: #fffaf0;
+  --cy-ink: #092033;
 }
-
 
 @theme inline {
-
---color-background:var(--background);
---color-foreground:var(--foreground);
-
---color-navy:var(--navy);
---color-gold:var(--gold);
---color-cream:var(--cream);
-
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-navy: var(--cy-navy);
+  --color-gold: var(--cy-gold);
+  --color-cream: var(--cy-cream);
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
 
 body {
-
-background:
-radial-gradient(
-circle at top,
-#ffffff,
-#faf7f0 60%
-);
-
-color:var(--foreground);
-
-font-family:
-Arial,
-Helvetica,
-sans-serif;
-
+  background:
+    radial-gradient(circle at 15% 10%, rgba(22, 166, 184, 0.16), transparent 28rem),
+    radial-gradient(circle at 85% 5%, rgba(214, 168, 79, 0.14), transparent 24rem),
+    linear-gradient(180deg, #f4fbfc 0%, #fffaf0 58%, #eef8fa 100%);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
+.cy-page {
+  min-height: 100vh;
+  padding-top: 6rem;
+  background:
+    radial-gradient(circle at top left, rgba(22, 166, 184, 0.16), transparent 30rem),
+    radial-gradient(circle at bottom right, rgba(214, 168, 79, 0.16), transparent 28rem),
+    linear-gradient(180deg, #f4fbfc 0%, #fffaf0 100%);
+}
 
+.cy-dark-page {
+  min-height: 100vh;
+  padding-top: 6rem;
+  color: white;
+  background:
+    radial-gradient(circle at top left, rgba(22, 166, 184, 0.45), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(214, 168, 79, 0.22), transparent 26rem),
+    linear-gradient(135deg, #092033 0%, #12304a 58%, #0a4661 100%);
+}
 
+.cy-container {
+  width: min(100% - 3rem, 80rem);
+  margin-inline: auto;
+}
+
+.cy-card,
 .glass {
-
-background:
-rgba(255,255,255,.65);
-
-backdrop-filter:
-blur(14px);
-
-border:
-1px solid rgba(201,164,77,.25);
-
-box-shadow:
-0 20px 50px rgba(20,42,82,.12);
-
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 141, 179, 0.16);
+  box-shadow: 0 24px 70px rgba(18, 48, 74, 0.12);
 }
 
+.cy-card-dark {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+}
 
+.cy-kicker {
+  color: var(--cy-blue);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.cy-heading {
+  color: var(--cy-navy);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.cy-input {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid rgba(18, 48, 74, 0.14);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+  color: var(--cy-navy);
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.cy-input:focus {
+  border-color: var(--cy-blue);
+  box-shadow: 0 0 0 4px rgba(15, 141, 179, 0.14);
+}
+
+.btn-main,
+.cy-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  background: linear-gradient(135deg, #0f8db3, #16a6b8 52%, #d6a84f);
+  color: white;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 1rem 2.5rem;
+  transition: 0.25s ease;
+  box-shadow: 0 18px 40px rgba(15, 141, 179, 0.25);
+}
+
+.btn-main:hover,
+.cy-button-primary:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 24px 50px rgba(15, 141, 179, 0.32);
+}
+
+.cy-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2px solid rgba(18, 48, 74, 0.82);
+  color: var(--cy-navy);
+  font-weight: 900;
+  padding: 1rem 2rem;
+  transition: 0.25s ease;
+}
+
+.cy-button-secondary:hover {
+  background: white;
+  transform: translateY(-2px);
+}
 
 .gold-glow {
-
-box-shadow:
-0 0 50px rgba(201,164,77,.45);
-
-}
-
-
-
-.btn-main {
-
-background:
-linear-gradient(
-135deg,
-#C9A44D,
-#E7C96D
-);
-
-color:#142A52;
-
-font-weight:800;
-
-border-radius:999px;
-
-padding:
-16px 40px;
-
-transition:.25s;
-
-}
-
-
-
-.btn-main:hover {
-
-transform:
-translateY(-3px)
-scale(1.03);
-
-box-shadow:
-0 20px 40px rgba(201,164,77,.35);
-
+  box-shadow: 0 0 50px rgba(214, 168, 79, 0.45);
 }

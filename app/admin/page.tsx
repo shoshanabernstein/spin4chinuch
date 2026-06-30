@@ -37,23 +37,23 @@ export default function AdminPage() {
   }, [loadPrizes]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-10">
+    <main className="min-h-screen cy-page p-10">
       <div className="max-w-7xl mx-auto">
 
         <div className="flex justify-between items-center mb-10">
           <div>
-            <h1 className="text-5xl font-extrabold text-blue-700">
+            <h1 className="text-5xl font-extrabold text-[#12304a]">
               Admin Dashboard
             </h1>
 
-            <p className="text-gray-500 mt-2">
+            <p className="text-slate-500 mt-2">
               Manage your Spin4Chinuch prizes
             </p>
           </div>
 
           <Link
             href="/dashboard"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
+            className="bg-[#0f8db3] hover:bg-[#12304a] text-white px-6 py-3 rounded-xl"
           >
             Dashboard
           </Link>
@@ -61,22 +61,22 @@ export default function AdminPage() {
 
         <div className="grid md:grid-cols-4 gap-6 mb-10">
 
-          <div className="bg-white rounded-3xl shadow-lg p-6">
+          <div className="cy-card rounded-3xl p-6">
             <div className="text-4xl">🎁</div>
 
-            <p className="text-gray-500 mt-4">
+            <p className="text-slate-500 mt-4">
               Total Prizes
             </p>
 
-            <h2 className="text-4xl font-bold text-blue-600">
+            <h2 className="text-4xl font-bold text-[#0f8db3]">
               {prizes.length}
             </h2>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-lg p-6">
+          <div className="cy-card rounded-3xl p-6">
             <div className="text-4xl">🏆</div>
 
-            <p className="text-gray-500 mt-4">
+            <p className="text-slate-500 mt-4">
               Active
             </p>
 
@@ -85,10 +85,10 @@ export default function AdminPage() {
             </h2>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-lg p-6">
+          <div className="cy-card rounded-3xl p-6">
             <div className="text-4xl">❌</div>
 
-            <p className="text-gray-500 mt-4">
+            <p className="text-slate-500 mt-4">
               Disabled
             </p>
 
@@ -97,10 +97,10 @@ export default function AdminPage() {
             </h2>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-lg p-6">
+          <div className="cy-card rounded-3xl p-6">
             <Link
               href="/admin/new-prize"
-              className="flex items-center justify-center h-full text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-5 hover:scale-105 transition"
+              className="flex items-center justify-center h-full text-xl font-bold bg-gradient-to-r from-[#0f8db3] to-[#12304a] text-white rounded-2xl p-5 hover:scale-105 transition"
             >
               ➕ Add Prize
             </Link>
@@ -118,12 +118,12 @@ export default function AdminPage() {
             {prizes.map((prize) => (
               <div
                 key={prize.id}
-                className="bg-white rounded-3xl shadow-xl p-6 hover:shadow-2xl transition"
+                className="cy-card rounded-3xl p-6 hover:shadow-2xl transition"
               >
                 <div className="flex justify-between items-start">
 
                   <div>
-                    <h2 className="text-2xl font-bold text-blue-700">
+                    <h2 className="text-2xl font-bold text-[#12304a]">
                       {prize.name}
                     </h2>
 
