@@ -7,11 +7,10 @@ import Lights from "./Lights";
 import Pointer from "./Pointer";
 import CenterButton from "./CenterButton";
 
-
 type PrizeWheelProps = {
     rotation: number;
     spinning: boolean;
-    wheel_outcomes: any[];
+    prizes: { name: string }[];
 };
 
 const SIZE = 900;
@@ -21,18 +20,15 @@ const RADIUS = 405;
 export default function PrizeWheel({
     rotation,
     spinning,
-    wheel_outcomes,
+    prizes,
 }: PrizeWheelProps) {
-    const slices = Math.max(wheel_outcomes.length, 8);
+    const slices = prizes.length || 8;
     const angle = 360 / slices;
 
     return (
-        <div className="relative drop-shadow-[0_30px_80px_rgba(0,0,0,.45)]"
->
+        <div className="relative w-[min(86vw,620px)] drop-shadow-[0_30px_80px_rgba(0,0,0,.45)]">
             <Pointer spinning={spinning} />
 
-
-            {/* Background Glow */}
             <motion.div
                 animate={{
                     scale: [1, 1.08, 1],
@@ -42,10 +38,9 @@ export default function PrizeWheel({
                     repeat: Infinity,
                     duration: 3,
                 }}
-                className="absolute w-[900px] h-[900px] rounded-full bg-yellow-400/20 blur-3xl"
+                className="absolute inset-0 rounded-full bg-yellow-400/20 blur-3xl"
             />
 
-            {/* Wheel */}
             <motion.div
                 animate={{
                     rotate: rotation,
@@ -59,6 +54,9 @@ export default function PrizeWheel({
                     width={SIZE}
                     height={SIZE}
                     viewBox={`0 0 ${SIZE} ${SIZE}`}
+                    className="h-auto w-full"
+                    role="img"
+                    aria-label="Prize wheel"
                 >
                     <defs>
                         <radialGradient id="centerGlow">
@@ -88,7 +86,7 @@ export default function PrizeWheel({
                             </linearGradient>
                         ))}
 
-                        <filter id="shadow">
+                        <filter id="wheelShadow">
                             <feDropShadow
                                 dx="0"
                                 dy="10"
@@ -96,12 +94,7 @@ export default function PrizeWheel({
                                 floodOpacity="0.35"
                             />
                         </filter>
-                    </defs>
-                    {/* Marquee Lights */}
-                    <Lights />
-                    <defs>
 
-                        {/* Outer Gold Ring */}
                         <linearGradient id="metalGold" x1="0" y1="0" x2="1" y2="1">
                             <stop offset="0%" stopColor="#FFF8D6" />
                             <stop offset="15%" stopColor="#F6D46A" />
@@ -117,22 +110,16 @@ export default function PrizeWheel({
                         </radialGradient>
                     </defs>
 
+                    <Lights />
+
                     <circle
                         cx={CENTER}
                         cy={CENTER}
                         r={360}
                         fill="url(#metalGold)"
-                        filter="url(#shadow)"
+                        filter="url(#wheelShadow)"
                     />
 
-                    <circle
-                        cx={CENTER}
-                        cy={CENTER}
-                        r={347}
-                        fill="#111827"
-                    />
-
-                    {/* Black Ring */}
                     <circle
                         cx={CENTER}
                         cy={CENTER}
@@ -160,10 +147,7 @@ export default function PrizeWheel({
                         }}
                     />
 
-                    {/* Colored Slices */}
-
                     {Array.from({ length: slices }).map((_, i) => (
-
                         <WheelSlice
                             key={i}
                             radius={RADIUS}
@@ -196,6 +180,26 @@ export default function PrizeWheel({
                         );
                     })}
 
+                    {Array.from({ length: slices }).map((_, i) => {
+                        const label = prizes[i]?.name || "Prize";
+                        const textAngle = i * angle + angle / 2;
+
+                        return (
+                            <text
+                                key={`label-${i}`}
+                                x={CENTER}
+                                y={CENTER - 250}
+                                fill="white"
+                                fontSize="24"
+                                fontWeight="900"
+                                textAnchor="middle"
+                                transform={`rotate(${textAngle} ${CENTER} ${CENTER})`}
+                            >
+                                {label.length > 18 ? `${label.slice(0, 15)}...` : label}
+                            </text>
+                        );
+                    })}
+
                     <circle
                         cx={CENTER}
                         cy={CENTER}
@@ -203,7 +207,6 @@ export default function PrizeWheel({
                         fill="url(#innerShadow)"
                     />
 
-                    {/* Inner Gold Ring */}
                     <circle
                         cx={CENTER}
                         cy={CENTER}
@@ -213,7 +216,6 @@ export default function PrizeWheel({
                         strokeWidth="8"
                     />
 
-                    {/* Gloss */}
                     <ellipse
                         cx={CENTER}
                         cy={220}
@@ -232,9 +234,8 @@ export default function PrizeWheel({
                     />
 
                     <CenterButton spinning={spinning} />
-
                 </svg>
             </motion.div>
-        </div >
+        </div>
     );
 }

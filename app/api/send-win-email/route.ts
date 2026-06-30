@@ -7,31 +7,30 @@ export async function GET() {
   });
 }
 
-
-
 export async function POST(req: Request) {
   const { email, prize } = await req.json();
-  
 
-  
-const result = await resend.emails.send({
-  from: "onboarding@resend.dev",
-  to: "shoshanbernstein@gmail.com",
-  subject: "🎉 Congratulations! You Won",
-  html: `
-    <h1>Congratulations!</h1>
-    <p>You won:</p>
-    <h2>${prize}</h2>
-  `,
-});
+  if (!email || !prize) {
+    return NextResponse.json(
+      { error: "Missing email or prize" },
+      { status: 400 }
+    );
+  }
 
-console.log("RESEND RESULT:", result);
+  const result = await resend.emails.send({
+    from: "Spin4Chinuch <onboarding@resend.dev>",
+    to: email,
+    subject: "Congratulations! You won",
+    html: `
+      <h1>Congratulations!</h1>
+      <p>You won:</p>
+      <h2>${prize}</h2>
+      <p>Thank you for supporting Jewish education.</p>
+    `,
+  });
 
-  
-
-  
-return NextResponse.json({
-  success: true,
-  result,
-});
+  return NextResponse.json({
+    success: true,
+    result,
+  });
 }

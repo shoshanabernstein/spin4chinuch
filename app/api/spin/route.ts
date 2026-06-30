@@ -1,20 +1,43 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const supabaseAuth = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export async function POST(req: Request) {
     try {
-        const { userId } = await req.json();
+        const token = req.headers.get("authorization")?.replace("Bearer ", "");
 
-        // Get user
-        const { data: profile, error: profileError } = await supabase
+        if (!token) {
+            return NextResponse.json(
+                { error: "Please log in." },
+                { status: 401 }
+            );
+        }
+
+        const {
+            data: { user },
+            error: authError,
+        } = await supabaseAuth.auth.getUser(token);
+
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: "Please log in." },
+                { status: 401 }
+            );
+        }
+
+        const { data: profile, error: profileError } = await supabaseAdmin
             .from("profiles")
             .select("email, spins_remaining")
-            .eq("id", userId)
+            .eq("id", user.id)
             .single();
 
         if (profileError || !profile) {
@@ -31,31 +54,35 @@ export async function POST(req: Request) {
             );
         }
 
-        // Get active prizes
-        const { data: wheel_outcomes, error: prizeError } = await supabase
-            .from("wheel_outcomes")
+        const { data: prizes, error: prizeError } = await supabaseAdmin
+            .from("prizes")
             .select("*")
             .eq("active", true)
             .gt("quantity", 0);
 
-        if (prizeError || !wheel_outcomes || wheel_outcomes.length === 0) {
+        if (prizeError || !prizes || prizes.length === 0) {
             return NextResponse.json(
                 { error: "No prizes available" },
                 { status: 400 }
             );
         }
 
-        // Weighted prize  selection
-        const total = wheel_outcomes.reduce(
+        const total = prizes.reduce(
             (sum, outcome) => sum + outcome.probability,
             0
         );
 
+        if (total <= 0) {
+            return NextResponse.json(
+                { error: "No prizes available" },
+                { status: 400 }
+            );
+        }
+
         let random = Math.random() * total;
+        let winningPrize = prizes[0];
 
-        let winningPrize = wheel_outcomes[0];
-
-        for (const outcome of wheel_outcomes) {
+        for (const outcome of prizes) {
             random -= outcome.probability;
 
             if (random <= 0) {
@@ -64,31 +91,28 @@ export async function POST(req: Request) {
             }
         }
 
-        // Deduct one spin
-        const { error: spinError } = await supabase
+        const { error: spinError } = await supabaseAdmin
             .from("profiles")
             .update({
                 spins_remaining: profile.spins_remaining - 1,
             })
-            .eq("id", userId);
+            .eq("id", user.id);
 
         if (spinError) {
             throw spinError;
         }
 
-        // Reduce wheel outcome quantity
-        await supabase
-            .from("wheel_outcomes")
+        await supabaseAdmin
+            .from("prizes")
             .update({
                 quantity: winningPrize.quantity - 1,
             })
             .eq("id", winningPrize.id);
 
-        // Save win
-        await supabase
+        await supabaseAdmin
             .from("wins")
             .insert({
-                user_id: userId,
+                user_id: user.id,
                 prize: winningPrize.name,
                 user_email: profile.email,
             });
@@ -98,7 +122,6 @@ export async function POST(req: Request) {
             prize: winningPrize.name,
             prizeId: winningPrize.id,
         });
-
     } catch (err) {
         console.error(err);
 
