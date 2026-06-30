@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Navbar() {
@@ -8,9 +9,11 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto h-24 px-8 flex items-center justify-between">
 
         <Link href="/" className="flex items-center gap-4">
-          <img
+          <Image
             src="/logo.png"
-            alt="Logo"
+            alt="Spin4Chinuch logo"
+            width={112}
+            height={56}
             className="h-14 w-auto"
           />
 

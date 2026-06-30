@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resend } from "@/lib/resend";
+import { getResendClient } from "@/lib/resend";
 
 export async function GET() {
   return Response.json({
@@ -16,6 +16,8 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+
+  const resend = getResendClient();
 
   const result = await resend.emails.send({
     from: "Spin4Chinuch <onboarding@resend.dev>",

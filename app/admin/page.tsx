@@ -1,15 +1,17 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+type Prize = { id: string; name: string; quantity: number; probability: number; active: boolean; created_at: string; };
+
 export default function AdminPage() {
-  const [prizes, setPrizes] = useState<any[]>([]);
+  const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadPrizes() {
-    setLoading(true);
+  const loadPrizes = useCallback(async () => {
 
     const { data } = await supabase
       .from("prizes")
@@ -18,7 +20,7 @@ export default function AdminPage() {
 
     setPrizes(data || []);
     setLoading(false);
-  }
+  }, []);
 
   async function deletePrize(id: string) {
     const confirmed = confirm("Delete this prize?");
@@ -27,12 +29,12 @@ export default function AdminPage() {
 
     await supabase.from("prizes").delete().eq("id", id);
 
-    loadPrizes();
+    void loadPrizes();
   }
 
   useEffect(() => {
-    loadPrizes();
-  }, []);
+    void loadPrizes();
+  }, [loadPrizes]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-10">

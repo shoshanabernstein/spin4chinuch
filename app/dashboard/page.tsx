@@ -1,18 +1,21 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import Navbar from "@/components/Navbar";
 
 
+type Win = { id: string; prize: string; created_at: string; };
+
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
   const [spins, setSpins] = useState(0);
-  const [wins, setWins] = useState<any[]>([]);
+  const [wins, setWins] = useState<Win[]>([]);
   const [role, setRole] = useState("");
 
-  async function loadUser() {
+  const loadUser = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -41,11 +44,11 @@ export default function DashboardPage() {
     if (winsData) {
       setWins(winsData);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    loadUser();
-  }, []);
+    void loadUser();
+  }, [loadUser]);
 
   return (
     <>
@@ -179,7 +182,7 @@ export default function DashboardPage() {
                 </div>
 
                 <p className="text-gray-400 text-xl">
-                  You haven't won any prizes yet.
+                  You haven&apos;t won any prizes yet.
                 </p>
 
               </div>
