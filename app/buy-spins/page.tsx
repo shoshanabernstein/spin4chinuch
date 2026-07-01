@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
 const packages = [
@@ -60,8 +59,6 @@ export default function BuySpinsPage() {
 
   return (
     <>
-      <Navbar />
-
       <main className="min-h-screen cy-page">
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center">

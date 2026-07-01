@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
 type Win = {
@@ -47,8 +46,6 @@ export default function WinnersPage() {
 
   return (
     <>
-      <Navbar />
-
       <main className="min-h-screen cy-dark-page text-white">
         <section className="px-6 py-14">
           <div className="max-w-5xl mx-auto">

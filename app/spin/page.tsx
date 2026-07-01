@@ -5,7 +5,6 @@ import Link from "next/link";
 import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
 import { supabase } from "@/lib/supabase";
 import Confetti from "react-confetti";
-import Navbar from "@/components/Navbar";
 
 type Prize = {
   id: string;
@@ -133,8 +132,6 @@ export default function SpinPage() {
 
   return (
     <>
-      <Navbar />
-
       <main className="min-h-screen pt-24 cy-dark-page flex items-center justify-center overflow-hidden">
         {showConfetti && <Confetti recycle={false} numberOfPieces={400} />}
 

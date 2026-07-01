@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import Navbar from "../components/Navbar";
 import { BookOpen, Gift, GraduationCap, HeartHandshake, Lightbulb, Sparkles, Ticket, UsersRound } from "lucide-react";
 
 const stats = [
@@ -36,8 +35,6 @@ const steps = [
 export default function Home() {
   return (
     <>
-      <Navbar />
-
       <main className="cy-page overflow-hidden">
         <section className="relative px-6 py-20 md:py-28">
           <div className="absolute -right-32 top-0 h-[34rem] w-[34rem] rounded-full bg-[#dff5f8] blur-3xl" />

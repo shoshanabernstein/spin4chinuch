@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import Navbar from "@/components/Navbar";
 import { supabase } from "../../lib/supabase";
 
 export default function LoginPage() {
@@ -47,7 +46,6 @@ export default function LoginPage() {
 
   return (
     <>
-      <Navbar />
       <main className="cy-page flex items-center justify-center px-6 py-14">
         <div className="cy-card w-full max-w-md rounded-[2rem] p-8 md:p-10">
           <Image src="/logo.png" alt="Spin4Chinuch logo" width={180} height={96} className="mx-auto h-20 w-auto" />
