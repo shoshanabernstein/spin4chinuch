@@ -4,7 +4,6 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import Navbar from "@/components/Navbar";
 
 
 type Win = { id: string; prize: string; created_at: string; };
@@ -52,8 +51,6 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Navbar />
-
       <main className="min-h-screen pt-24 cy-dark-page">
 
         <div className="max-w-7xl mx-auto px-8 py-12">

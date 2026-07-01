@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Gift, Ticket } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
 type Prize = {
@@ -40,8 +39,6 @@ export default function PrizesPage() {
 
   return (
     <>
-      <Navbar />
-
       <main className="min-h-screen cy-page">
         <section className="px-6 py-14">
           <div className="max-w-6xl mx-auto">

@@ -1,10 +1,8 @@
-import Navbar from "@/components/Navbar";
 import { Trophy } from "lucide-react";
 
 export default function LeaderboardPage() {
   return (
     <>
-      <Navbar />
       <main className="cy-page px-6 py-16">
         <section className="cy-container">
           <div className="cy-card rounded-[2rem] p-10 text-center">
