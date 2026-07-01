@@ -2,22 +2,37 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    console.log("BODY:", body);
+    if (!stripeKey || !supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: "Checkout is not configured" }, { status: 500 });
+    }
 
-    const { spins, userId } = body;
+    const stripe = new Stripe(stripeKey);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
 
-    if (!userId) {
+    const { spins } = await req.json();
+    const token = req.headers.get("authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "Missing user" },
+        { status: 401 }
+      );
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAuth.auth.getUser(token);
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: "Missing user" },
         { status: 401 }
@@ -37,40 +52,28 @@ export async function POST(req: Request) {
       );
     }
 
-    const session =
-      await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-
-              product_data: {
-                name: `${spins} Spin Package`,
-              },
-
-              unit_amount: amount,
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${spins} Spin Package`,
             },
-
-            quantity: 1,
+            unit_amount: amount,
           },
-        ],
-
-        mode: "payment",
-
-
-        success_url:
-          `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-
-        cancel_url:
-          "http://localhost:3000/buy-spins",
-
-        metadata: {
-          userId,
-          spins: spins.toString(),
+          quantity: 1,
         },
-      });
+      ],
+      mode: "payment",
+      success_url: `${siteUrl}/success`,
+      cancel_url: `${siteUrl}/buy-spins`,
+      metadata: {
+        userId: user.id,
+        spins: spins.toString(),
+      },
+    });
 
     return NextResponse.json({
       url: session.url,
@@ -79,12 +82,8 @@ export async function POST(req: Request) {
     console.error(error);
 
     return NextResponse.json(
-      {
-        error: "Checkout creation failed",
-      },
-      {
-        status: 500,
-      }
+      { error: "Checkout creation failed" },
+      { status: 500 }
     );
   }
 }

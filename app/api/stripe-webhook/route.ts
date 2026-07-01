@@ -2,15 +2,17 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function POST(req: Request) {
-  console.log("🔥 WEBHOOK HIT");
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!stripeKey || !supabaseUrl || !serviceKey) {
+    return new NextResponse("Webhook is not configured", { status: 500 });
+  }
+
+  const stripe = new Stripe(stripeKey);
+  const supabase = createClient(supabaseUrl, serviceKey);
 
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
@@ -37,28 +39,19 @@ export async function POST(req: Request) {
     });
   }
 
-  console.log("EVENT:", event.type);
-
   if (event.type === "checkout.session.completed") {
-    console.log("WEBHOOK FIRED");
-
     const session = event.data.object as Stripe.Checkout.Session;
 
     const userId = session.metadata?.userId;
     const spins = Number(session.metadata?.spins || 0);
 
-    console.log("USERID:", userId);
-    console.log("SPINS:", spins);
-
     if (!userId || spins <= 0) {
-      console.log("Missing metadata");
-
-      return NextResponse.json({
-        error: "Missing metadata",
-      });
+      return NextResponse.json(
+        { error: "Missing metadata" },
+        { status: 400 }
+      );
     }
 
-    // Get current spins
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("spins_remaining")
@@ -68,29 +61,28 @@ export async function POST(req: Request) {
     if (profileError || !profile) {
       console.error("Profile Error:", profileError);
 
-      return NextResponse.json({
-        error: "Profile not found",
-      });
+      return NextResponse.json(
+        { error: "Profile not found" },
+        { status: 404 }
+      );
     }
 
     const currentSpins = profile.spins_remaining ?? 0;
 
-    // Update spins
-    const { data: updatedProfile, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("profiles")
       .update({
         spins_remaining: currentSpins + spins,
       })
-      .eq("id", userId)
-      .select();
-
-    console.log("UPDATED PROFILE:", updatedProfile);
-    console.log("UPDATE ERROR:", updateError);
+      .eq("id", userId);
 
     if (updateError) {
       console.error("Update Error:", updateError);
-    } else {
-      console.log(`✅ Added ${spins} spins to ${userId}`);
+
+      return NextResponse.json(
+        { error: "Unable to add spins" },
+        { status: 500 }
+      );
     }
   }
 
