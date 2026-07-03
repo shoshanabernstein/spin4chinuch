@@ -1,42 +1,60 @@
 import Link from "next/link";
+import { ReactNode } from "react";
 
-type Props = {
+type Variant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "gold"
+  | "danger";
+
+interface ButtonProps {
+  children: ReactNode;
   href?: string;
-  children: React.ReactNode;
-  variant?: "primary" | "gold" | "green" | "ghost";
-  className?: string;
   onClick?: () => void;
-};
+  variant?: Variant;
+  className?: string;
+}
 
 export default function Button({
-  href,
   children,
+  href,
+  onClick,
   variant = "primary",
   className = "",
-  onClick,
-}: Props) {
+}: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center rounded-full px-6 py-3 font-bold transition hover:scale-105 shadow-xl";
+    "inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold transition-all duration-300 shadow-lg hover:scale-105";
 
-  const styles = {
-    primary: "bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] text-white",
-    gold: "bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 text-[#142A52]",
-    green: "bg-gradient-to-r from-green-500 to-emerald-700 text-white",
-    ghost: "bg-white/10 text-white border border-white/10",
+  const variants: Record<Variant, string> = {
+    primary:
+      "bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white hover:brightness-110",
+
+    secondary:
+      "bg-[var(--card)] border border-[var(--border)] text-white hover:bg-[var(--surface)]",
+
+    outline:
+      "border border-[var(--primary)] text-[var(--primary-light)] bg-transparent hover:bg-[var(--primary)]/10",
+
+    gold:
+      "bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] text-[#142A52]",
+
+    danger:
+      "bg-gradient-to-r from-red-600 to-red-700 text-white",
   };
 
-  const cls = `${base} ${styles[variant]} ${className}`;
+  const classes = `${base} ${variants[variant]} ${className}`;
 
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={classes}>
         {children}
       </Link>
     );
   }
 
   return (
-    <button onClick={onClick} className={cls}>
+    <button onClick={onClick} className={classes}>
       {children}
     </button>
   );

@@ -1,16 +1,38 @@
+import { ReactNode } from "react";
+import Card from "./Card";
+
+interface PanelProps {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  action?: ReactNode;
+}
+
 export default function Panel({
   title,
+  subtitle,
   children,
-}: {
-  title?: string;
-  children: React.ReactNode;
-}) {
+  action,
+}: PanelProps) {
   return (
-    <div className="rounded-3xl bg-white/10 border border-white/10 backdrop-blur-xl p-10 shadow-2xl">
-      {title && (
-        <h2 className="text-3xl font-black mb-6">{title}</h2>
-      )}
+    <Card className="p-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-white">
+            {title}
+          </h2>
+
+          {subtitle && (
+            <p className="mt-2 text-[var(--text-muted)]">
+              {subtitle}
+            </p>
+          )}
+        </div>
+
+        {action}
+      </div>
+
       {children}
-    </div>
+    </Card>
   );
 }
