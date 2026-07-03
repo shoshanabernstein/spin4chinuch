@@ -6,6 +6,7 @@ import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
 import { supabase } from "@/lib/supabase";
 import Confetti from "react-confetti";
 import Navbar from "@/components/Navbar";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 type Prize = {
   id: string;
@@ -132,7 +133,9 @@ export default function SpinPage() {
   }
 
   return (
+    <ProtectedRoute>
     <>
+    
       <Navbar />
 
       <main className="min-h-screen pt-24 bg-[radial-gradient(circle_at_center,#1E3A8A_0%,#0F172A_60%,#020617_100%)] flex items-center justify-center overflow-hidden">
@@ -190,6 +193,9 @@ export default function SpinPage() {
         <audio ref={spinSound} src="/sounds/spin.mp3" preload="auto" />
         <audio ref={winSound} src="/sounds/win.mp3" preload="auto" />
       </main>
+      
     </>
+    </ProtectedRoute>
+
   );
 }

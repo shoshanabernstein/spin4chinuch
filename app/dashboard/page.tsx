@@ -3,16 +3,31 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import Navbar from "@/components/Navbar";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
+import Card from "@/components/ui/Card";
+import StatCard from "@/components/ui/StatCard";
+import Button from "@/components/ui/Button";
+import Panel from "@/components/ui/Panel";
+
+type Win = {
+  id: string;
+  prize: string;
+  created_at: string;
+};
 
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
-  const [spins, setSpins] = useState(0);
-  const [wins, setWins] = useState<any[]>([]);
+  const [spinsLeft, setSpinsLeft] = useState(0);
+  const [spinsPurchased, setSpinsPurchased] = useState(0);
+  const [donations, setDonations] = useState(0);
+  const [wins, setWins] = useState<Win[]>([]);
   const [role, setRole] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function loadUser() {
+    setLoading(true);
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -21,26 +36,33 @@ export default function DashboardPage() {
 
     setEmail(user.email || "");
 
-    const { data: profile } = await supabase
+    const profileReq = supabase
       .from("profiles")
-      .select("spins_remaining, role")
+      .select("spins_remaining, role, spins_purchased, total_donations")
       .eq("id", user.id)
       .single();
 
-    if (profile) {
-      setSpins(profile.spins_remaining);
-      setRole(profile.role);
-    }
-
-    const { data: winsData } = await supabase
+    const winsReq = supabase
       .from("wins")
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (winsData) {
-      setWins(winsData);
+    const [{ data: profile }, { data: winsData }] = await Promise.all([
+      profileReq,
+      winsReq,
+    ]);
+
+    if (profile) {
+      setSpinsLeft(profile.spins_remaining || 0);
+      setSpinsPurchased(profile.spins_purchased || 0);
+      setDonations(profile.total_donations || 0);
+      setRole(profile.role || "");
     }
+
+    if (winsData) setWins(winsData);
+
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -48,207 +70,86 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <>
-      <Navbar />
+    <ProtectedRoute>
+      <main className="min-h-screen pt-24 px-8">
 
-      <main className="min-h-screen pt-24 bg-[radial-gradient(circle_at_top,#1E3A8A_0%,#0F172A_55%,#020617_100%)]">
+        <div className="max-w-7xl mx-auto">
 
-        <div className="max-w-7xl mx-auto px-8 py-12">
-
-          {/* Header */}
-
-          <div className="flex flex-col md:flex-row justify-between items-center mb-12">
-
+          {/* HEADER */}
+          <div className="flex justify-between items-center mb-12">
             <div>
-              <h1 className="text-6xl font-black">
-                Dashboard
-              </h1>
-
-              <p className="text-yellow-300 mt-3 text-lg">
-                Welcome back
-              </p>
-
-              <p className="text-gray-300">
-                {email}
-              </p>
+              <h1 className="text-5xl font-black">Dashboard</h1>
+              <p className="text-white/60">{email}</p>
             </div>
 
-            <Link
-              href="/spin"
-              className="mt-8 md:mt-0 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-600 px-10 py-5 font-black text-[#142A52] shadow-2xl hover:scale-105 transition"
-            >
-              🎡 Spin Now
-            </Link>
+            <div className="flex gap-4">
+              <Button href="/buy-spins" variant="green">
+                Buy Spins
+              </Button>
 
+              <Button href="/spin" variant="gold">
+                Spin Now
+              </Button>
+            </div>
           </div>
 
-          {/* Stats */}
-
-          <div className="grid lg:grid-cols-3 gap-8 mb-12">
-
-            <div className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl p-8 shadow-2xl">
-
-              <p className="text-gray-300 uppercase tracking-widest">
-                Spins Remaining
-              </p>
-
-              <h2 className="text-7xl font-black text-yellow-400 mt-3">
-                {spins}
-              </h2>
-
-            </div>
-
-            <div className="rounded-3xl border border-yellow-400/20 bg-gradient-to-br from-yellow-500/20 to-yellow-700/10 backdrop-blur-xl p-8 shadow-2xl">
-
-              <p className="uppercase tracking-widest text-yellow-200">
-                Your Impact
-              </p>
-
-              <h2 className="text-4xl font-black mt-4">
-                Supporting Jewish Education
-              </h2>
-
-              <p className="mt-4 text-gray-300">
-                Every spin helps strengthen Chinuch.
-              </p>
-
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl p-8 shadow-2xl">
-
-              <p className="uppercase tracking-widest text-gray-300">
-                Total Wins
-              </p>
-
-              <h2 className="text-7xl font-black text-green-400 mt-3">
-                {wins.length}
-              </h2>
-
-            </div>
-
+          {/* TOP STATS */}
+          <div className="grid md:grid-cols-4 gap-6 mb-10">
+            <StatCard label="Total Donations" value={`$${donations}`} color="text-green-400" />
+            <StatCard label="Spins Purchased" value={spinsPurchased} color="text-blue-300" />
+            <StatCard label="Spins Left" value={spinsLeft} color="text-yellow-400" />
+            <StatCard label="Wins" value={wins.length} color="text-purple-400" />
           </div>
 
-          {/* Actions */}
+          {/* ACTIONS */}
+          <div className="grid md:grid-cols-2 gap-8 mb-10">
+            <Button href="/buy-spins" variant="green" className="p-10 text-left">
+              🎟 Buy Spins
+            </Button>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-
-            <Link
-              href="/buy-spins"
-              className="rounded-3xl bg-gradient-to-r from-green-500 to-emerald-700 p-10 shadow-2xl hover:scale-[1.02] transition"
-            >
-              <h2 className="text-4xl font-black">
-                🎟 Buy Spins
-              </h2>
-
-              <p className="mt-4 text-green-100 text-lg">
-                Purchase more chances to win premium prizes.
-              </p>
-
-            </Link>
-
-            <Link
-              href="/spin"
-              className="rounded-3xl bg-gradient-to-r from-purple-600 to-indigo-700 p-10 shadow-2xl hover:scale-[1.02] transition"
-            >
-              <h2 className="text-4xl font-black">
-                🎡 Spin the Wheel
-              </h2>
-
-              <p className="mt-4 text-purple-100 text-lg">
-                Spin instantly for amazing prizes.
-              </p>
-
-            </Link>
-
+            <Button href="/spin" variant="primary" className="p-10 text-left">
+              🎡 Spin the Wheel
+            </Button>
           </div>
 
-          {/* Recent Wins */}
-
-          <div className="rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl p-10 mb-12">
-
-            <h2 className="text-4xl font-black mb-8">
-              🏆 Recent Wins
-            </h2>
-
+          {/* WIN HISTORY */}
+          <Panel title="🏆 Win History">
             {wins.length === 0 ? (
-
-              <div className="text-center py-16">
-
-                <div className="text-6xl mb-5">
-                  🎁
-                </div>
-
-                <p className="text-gray-400 text-xl">
-                  You haven't won any prizes yet.
-                </p>
-
-              </div>
-
+              <p className="text-white/50">No wins yet — start spinning 🎡</p>
             ) : (
-
-              <div className="space-y-5">
-
+              <div className="space-y-4">
                 {wins.map((win) => (
-
-                  <div
-                    key={win.id}
-                    className="rounded-2xl bg-black/20 border border-yellow-500/20 p-6 flex justify-between items-center"
-                  >
-
+                  <Card key={win.id} className="p-5 flex justify-between">
                     <div>
-
-                      <h3 className="font-bold text-2xl">
-                        {win.prize}
-                      </h3>
-
-                      <p className="text-gray-400">
+                      <p className="text-xl font-bold">{win.prize}</p>
+                      <p className="text-white/50 text-sm">
                         {new Date(win.created_at).toLocaleDateString()}
                       </p>
-
                     </div>
-
-                    <div className="text-4xl">
-                      🏆
-                    </div>
-
-                  </div>
-
+                    <div className="text-2xl">🏆</div>
+                  </Card>
                 ))}
-
               </div>
-
             )}
+          </Panel>
 
-          </div>
-
-          {/* Admin */}
-
+          {/* ADMIN */}
           {role === "admin" && (
+            <div className="mt-10">
+              <Panel title="👑 Admin Panel">
+                <p className="text-white/70 mb-6">
+                  Manage users, prizes, and system settings.
+                </p>
 
-            <div className="rounded-3xl bg-gradient-to-r from-red-700 to-red-900 p-10 shadow-2xl border border-red-500">
-
-              <h2 className="text-4xl font-black">
-                👑 Admin Panel
-              </h2>
-
-              <p className="mt-4 text-red-100 text-lg">
-                Manage prizes, inventory, users, and winners.
-              </p>
-
-              <Link
-                href="/admin"
-                className="inline-block mt-8 rounded-full bg-white px-8 py-4 font-black text-red-700 hover:scale-105 transition"
-              >
-                Open Dashboard
-              </Link>
-
+                <Button href="/admin" variant="primary">
+                  Open Admin Dashboard
+                </Button>
+              </Panel>
             </div>
-
           )}
 
         </div>
-
       </main>
-    </>
+    </ProtectedRoute>
   );
 }
