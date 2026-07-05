@@ -24,23 +24,23 @@ export default function Button({
   className = "",
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold transition-all duration-300 shadow-lg hover:scale-105";
+    "inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50";
 
   const variants: Record<Variant, string> = {
     primary:
-      "bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white hover:brightness-110",
+      "bg-gradient-to-r from-[var(--primary)] to-[var(--primary-light)] text-white shadow-md hover:shadow-lg hover:brightness-110",
 
     secondary:
-      "bg-[var(--card)] border border-[var(--border)] text-white hover:bg-[var(--surface)]",
+      "border border-white/25 bg-white/15 text-white backdrop-blur hover:bg-white/25",
 
     outline:
-      "border border-[var(--primary)] text-[var(--primary-light)] bg-transparent hover:bg-[var(--primary)]/10",
+      "border border-[var(--primary)] bg-transparent text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white",
 
     gold:
-      "bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] text-[#142A52]",
+      "bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] text-[#142A52] shadow-md hover:shadow-lg",
 
     danger:
-      "bg-gradient-to-r from-red-600 to-red-700 text-white",
+      "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-md hover:shadow-lg",
   };
 
   const classes = `${base} ${variants[variant]} ${className}`;

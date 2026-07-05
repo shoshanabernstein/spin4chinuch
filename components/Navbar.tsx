@@ -31,19 +31,16 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-blue-200/10 bg-[#071628]/90 backdrop-blur-xl shadow-xl">
       <div className="mx-auto flex h-28 max-w-7xl items-center justify-between px-8">
-
-        {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center flex-shrink-0">
           <Image
             src="/navbar_logo.png"
             alt="Spin4Chinuch"
-            width={500}
-            height={120}
+            width={700}
+            height={170}
             priority
-            className="h-20 w-auto"
+            className="w-[340px] h-auto"
           />
         </Link>
-
         {/* Navigation */}
         <div className="flex items-center gap-10 text-lg">
 

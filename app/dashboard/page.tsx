@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-import Card from "@/components/ui/Card";
 import StatCard from "@/components/ui/StatCard";
 import ActionCard from "@/components/ui/ActionCard";
 import Panel from "@/components/ui/Panel";
@@ -43,9 +42,7 @@ export default function DashboardPage() {
 
     const profileReq = supabase
       .from("profiles")
-      .select(
-        "spins_remaining, spins_purchased, total_donations, role"
-      )
+      .select("spins_remaining, spins_purchased, total_donations, role")
       .eq("id", user.id)
       .single();
 
@@ -76,219 +73,148 @@ export default function DashboardPage() {
     <ProtectedRoute>
       <div className="relative min-h-screen overflow-hidden">
 
-        {/* Background blobs */}
-
+        {/* Background */}
         <div className="pointer-events-none absolute inset-0">
-
           <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
-
           <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
-
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-8 py-10 space-y-10">
+        {/* ✅ UNIFIED SPACING SYSTEM */}
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-8">
+          {/* Hero */}
+          <section className="relative overflow-hidden rounded-[28px] border border-blue-100 bg-white p-5 sm:p-6 lg:p-8 shadow-lg">
+            <div className="absolute right-0 top-0 h-full w-1/2 bg-[url('/wheel-watermark.png')] bg-contain bg-right bg-no-repeat opacity-10" />
 
-          {/* HERO */}
-
-          <Card className="overflow-hidden bg-gradient-to-r from-[#142A52] via-[#28457B] to-[#4267A8] text-white">
-
-            <div className="flex flex-col gap-10 p-10 lg:flex-row lg:items-center lg:justify-between">
+            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 
               <div>
-
-                <p className="text-sm uppercase tracking-[0.35em] text-blue-200">
+                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#4267A8]">
                   Welcome Back
                 </p>
 
-                <h1 className="mt-2 text-6xl font-black">
+                <h1 className="mt-1 text-3xl sm:text-4xl font-black text-[#142A52]">
                   Dashboard
                 </h1>
 
-                <p className="mt-3 text-blue-100">
-                  {email}
+                <p className="mt-2 max-w-xl text-sm sm:text-base text-slate-500">
+                  Thanks for supporting Chinuch Yehudi!
                 </p>
-
-                <p className="mt-6 max-w-xl text-lg text-blue-100">
-                  Supporting Chinuch Yehudi one spin at a time.
-                </p>
-
               </div>
 
-              <Button href="/spin" variant="gold">
-               Spin Now
+              <Button href="/spin" variant="primary">
+                Spin Now
               </Button>
 
             </div>
+          </section>
 
-          </Card>
+          {/* Stats */}
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
-          {/* STATS */}
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-            <StatCard
-              label="Total Donations"
-              value={`$${donations}`}
-              icon={<DollarSign size={24} />}
-            />
-
-            <StatCard
-              label="Spins Purchased"
-              value={spinsPurchased}
-              icon={<Ticket size={24} />}
-            />
-
-            <StatCard
-              label="Spins Left"
-              value={spinsLeft}
-              icon={<CircleDashed size={24} />}
-            />
-
-            <StatCard
-              label="Wins"
-              value={wins.length}
-              icon={<Trophy size={24} />}
-            />
+            <StatCard label="Total Donations" value={`$${donations}`} icon={<DollarSign />} />
+            <StatCard label="Spins Purchased" value={spinsPurchased} icon={<Ticket />} />
+            <StatCard label="Spins Left" value={spinsLeft} icon={<CircleDashed />} />
+            <StatCard label="Wins" value={wins.length} icon={<Trophy />} />
 
           </div>
 
-          {/* ACTIONS */}
-
-          <div className="grid gap-8 lg:grid-cols-2">
-
-            <ActionCard
-              title="Spin the Wheel"
-              description="Use one of your available spins for a chance to win exciting prizes."
-              href="/spin"
-              buttonText="Spin Now"
-              icon={<CircleDashed size={30} />}
-            />
+          {/* Primary Actions */}
+          <div className="grid gap-5 lg:grid-cols-2">
 
             <ActionCard
-              title="Buy More Spins"
+              title="Buy Spins"
+              description="Purchase spins and increase your chances of winning amazing prizes."
               buttonText="Buy Spins"
-              description="Support Chinuch and increase your chances of winning premium prizes."
               href="/buy-spins"
-              icon={<Ticket size={30} />}
+              icon={<Ticket size={28} />}
+            />
+
+            <ActionCard
+              title="Spin Now"
+              description="Use your available spins for a chance to win incredible prizes."
+              buttonText="Spin Now"
+              href="/spin"
+              icon={<CircleDashed size={28} />}
             />
 
           </div>
 
-          {/* RECENT WINS */}
+          {/* WIN HISTORY (FULL WIDTH) */}
+          <div className="mt-8">
+            <Panel
+              title="Win History"
+              subtitle="Your latest prizes"
+            >
+              {wins.length === 0 ? (
+                <div className="rounded-3xl border-2 border-dashed border-slate-200 py-16 text-center">
+                  <div className="text-5xl">🎁</div>
 
-          <Panel
-            title="🏆 Recent Wins"
-            subtitle="Your latest prizes"
-          >
+                  <h3 className="mt-5 text-2xl font-bold text-[#142A52]">
+                    No wins yet
+                  </h3>
 
-            {wins.length === 0 ? (
+                  <p className="mt-2 text-slate-500">
+                    Purchase some spins and try your luck!
+                  </p>
 
-              <div className="rounded-3xl border border-dashed border-slate-300 py-16 text-center">
-
-                <div className="text-6xl">
-                  🎁
+                  <div className="mt-8">
+                    <Button href="/buy-spins" variant="primary">
+                      Buy Spins
+                    </Button>
+                  </div>
                 </div>
+              ) : (
+                <div className="overflow-hidden rounded-2xl border border-slate-200 w-full">
 
-                <h3 className="mt-6 text-2xl font-bold text-[#142A52]">
-                  No wins yet
-                </h3>
-
-                <p className="mt-3 text-slate-500">
-                  Start spinning to win amazing prizes.
-                </p>
-
-              </div>
-
-            ) : (
-
-              <div className="space-y-5">
-
-                {wins.map((win) => (
-
-                  <div
-                    key={win.id}
-                    className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                  >
-
-                    <div>
-
-                      <h3 className="text-xl font-bold text-[#142A52]">
-                        {win.prize}
-                      </h3>
-
-                      <p className="mt-1 text-slate-500">
-                        {new Date(
-                          win.created_at
-                        ).toLocaleDateString()}
-                      </p>
-
-                    </div>
-
-                    <div className="rounded-full bg-[#EEF4FF] px-5 py-2 font-semibold text-[#4267A8]">
-                      🏆 Won
-                    </div>
-
+                  <div className="grid grid-cols-[1fr_auto_auto] border-b border-slate-200 bg-slate-50 px-4 sm:px-6 py-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    <div>Prize</div>
+                    <div>Date</div>
+                    <div>Status</div>
                   </div>
 
-                ))}
+                  {wins.map((win) => (
+                    <div
+                      key={win.id}
+                      className="grid grid-cols-[1fr_auto_auto] items-center border-b border-slate-100 px-4 sm:px-6 py-5 hover:bg-slate-50 last:border-b-0"
+                    >
+                      <div className="font-semibold text-[#142A52]">
+                        {win.prize}
+                      </div>
 
-              </div>
+                      <div className="text-sm text-slate-500 mr-6">
+                        {new Date(win.created_at).toLocaleDateString()}
+                      </div>
 
-            )}
-
-          </Panel>
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+                        Won
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Panel>
+          </div>
 
           {/* ADMIN */}
-
           {role === "admin" && (
-
             <Panel
               title="👑 Admin Tools"
               subtitle="Administrative actions"
             >
-
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-                <ActionCard
-                  title="Users"
-                  description="Manage registered users"
-                  buttonText="Manage Users"
-                  href="/admin/users"
-                  icon={<Shield size={24} />}
-                />
+                <ActionCard title="Users" description="Manage registered users" buttonText="Manage Users" href="/admin/users" icon={<Shield size={24} />} />
 
-                <ActionCard
-                  title="Prizes"
-                  description="Manage available prizes"
-                  buttonText="Manage Prizes"
-                  href="/admin/prizes"
-                  icon={<Trophy size={24} />}
-                />
+                <ActionCard title="Prizes" description="Manage available prizes" buttonText="Manage Prizes" href="/admin/prizes" icon={<Trophy size={24} />} />
 
-                <ActionCard
-                  title="Winners"
-                  description="View winning history"
-                  buttonText="View Winners"
-                  href="/admin/winners"
-                  icon={<Ticket size={24} />}
-                />
+                <ActionCard title="Winners" description="View winning history" buttonText="View Winners" href="/admin/winners" icon={<Ticket size={24} />} />
 
-                <ActionCard
-                  title="Dashboard"
-                  description="Open admin dashboard"
-                  buttonText="Admin Dashboard"
-                  href="/admin"
-                  icon={<DollarSign size={24} />}
-                />
+                <ActionCard title="Dashboard" description="Open admin dashboard" buttonText="Admin Dashboard" href="/admin" icon={<DollarSign size={24} />} />
 
               </div>
-
             </Panel>
-
           )}
-
         </div>
-
       </div>
     </ProtectedRoute>
   );
