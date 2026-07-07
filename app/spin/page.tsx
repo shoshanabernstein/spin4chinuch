@@ -38,21 +38,13 @@ export default function SpinPage() {
 
 
   useEffect(() => {
-
     loadOutcomes();
-
     loadRemainingSpins();
-
   }, []);
-
-
-
-
 
   async function loadOutcomes() {
 
     setLoadingPrizes(true);
-
 
     const { data, error } =
       await supabase

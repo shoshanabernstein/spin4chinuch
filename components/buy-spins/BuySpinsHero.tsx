@@ -9,9 +9,8 @@ export default function BuySpinsHero() {
 
       {/* Wheel Watermark */}
       <div
-        className="absolute right-[-60px] top-0 h-full w-[55%] bg-contain bg-right bg-no-repeat opacity-[0.05]"
-        style={{
-          backgroundImage: "url('/wheel-watermark.svg')",
+        className="absolute right-[-60px] top-0 h-full w-[55%] bg-contain bg-right bg-no-repeat opacity-30" style={{
+          backgroundImage: "url('/wheel-watermark.png')",
         }}
       />
 
@@ -107,7 +106,7 @@ export default function BuySpinsHero() {
           </div>
 
         </div>
-        </div>
+      </div>
     </section>
   );
 }

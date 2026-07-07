@@ -11,7 +11,7 @@ import CenterButton from "./CenterButton";
 type PrizeWheelProps = {
     rotation: number;
     spinning: boolean;
-    prizes: {
+    prizes: { 
         id: number;
         label: string;
         prize_id: number | null;

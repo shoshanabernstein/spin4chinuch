@@ -5,9 +5,10 @@ import Button from "./Button";
 interface ActionCardProps {
   title: string;
   description: string;
-  buttonText: string;
-  href: string;
   icon: ReactNode;
+
+  buttonText?: string;
+  href?: string;
 }
 
 export default function ActionCard({
@@ -55,39 +56,27 @@ export default function ActionCard({
             {icon}
           </div>
 
-
           <div>
-
             <h2 className="text-3xl font-bold leading-tight">
               {title}
             </h2>
 
-
-            <p
-              className="
-                mt-1
-                max-w-sm
-                text-sm
-                leading-6
-                text-blue-100
-              "
-            >
+            <p className="mt-1 max-w-sm text-sm leading-6 text-blue-100">
               {description}
             </p>
-
           </div>
 
         </div>
 
-
-        <Button
-          href={href}
-          variant="secondary"
-          className="shrink-0"
-        >
-          {buttonText}
-        </Button>
-
+        {buttonText && href && (
+          <Button
+            href={href}
+            variant="secondary"
+            className="shrink-0"
+          >
+            {buttonText}
+          </Button>
+        )}
 
       </div>
     </Card>

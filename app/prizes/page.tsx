@@ -5,6 +5,7 @@ import { Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import PrizeCard from "@/components/buy-spins/PrizeCard";
 import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 
 type Prize = {
   id: string;
@@ -47,11 +48,13 @@ export default function PrizesPage() {
         {/* Hero */}
         <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-xl">
 
+
+
           {/* Wheel Watermark */}
           <div
-            className="absolute right-[-80px] top-0 h-full w-[50%] bg-contain bg-right bg-no-repeat opacity-[0.025]"
+            className="absolute right-[-80px] top-0 h-full w-[50%] bg-contain bg-right bg-no-repeat opacity-[0.025] pointer-events-none"
             style={{
-              backgroundImage: "url('/wheel-watermark.svg')",
+              backgroundImage: "url('/wheel-watermark.png')",
             }}
           />
 

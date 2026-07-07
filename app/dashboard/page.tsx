@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
     const profileReq = supabase
       .from("profiles")
-      .select("remaining_spins, total_spins, role")
+      .select("remaining_spins,total_spins,role")
       .eq("id", user.id)
       .single();
 
@@ -52,42 +52,51 @@ export default function DashboardPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    const paymentsReq = supabase
-      .from("payments")
+    const paymentLogsReq = supabase
+      .from("payment_logs")
       .select("amount")
-      .eq("user_id", user.id)
-      .eq("payment_status", "succeeded");
+      .eq("user_id", user.id);
 
     const [
       { data: profile },
       { data: winsData },
-      { data: paymentsData },
+      { data: paymentLogsData },
     ] = await Promise.all([
       profileReq,
       winsReq,
-      paymentsReq,
+      paymentLogsReq,
     ]);
+
+    console.log("Logged in user:", user.id);
+    console.log("Payment Logs:", paymentLogsData);
 
     if (profile) {
       setSpinsLeft(profile.remaining_spins ?? 0);
       setSpinsPurchased(profile.total_spins ?? 0);
       setRole(profile.role ?? "");
-
-      if (paymentsData) {
-        const total = paymentsData.reduce(
-          (sum, payment) => sum + Number(payment.amount || 0),
-          0
-        );
-
-        setDonations(total / 100);
-      }
     }
 
-    if (winsData) setWins(winsData);
+    if (winsData) {
+      setWins(winsData);
+    }
+
+    const totalDonations = (paymentLogsData ?? []).reduce(
+      (sum, payment) => sum + Number(payment.amount ?? 0),
+      0
+    );
+
+    console.log("Total Donations:", totalDonations);
+    setDonations(totalDonations / 100);
   }
 
   useEffect(() => {
     loadUser();
+
+    const onFocus = () => loadUser();
+
+    window.addEventListener("focus", onFocus);
+
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   return (
