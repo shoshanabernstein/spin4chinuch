@@ -1,105 +1,172 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Trophy } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabase";
 
-type Win = {
-  id: string;
+import Panel from "@/components/ui/Panel";
+import StatCard from "@/components/ui/StatCard";
+
+import { Trophy, MapPin, Gift } from "lucide-react";
+
+type Winner = {
+  id: number;
   prize: string;
-  user_email: string | null;
   created_at: string;
+  city: string;
+  initials: string;
 };
 
-function maskEmail(email: string | null) {
-  if (!email || !email.includes("@")) return "Supporter";
-
-  const [name, domain] = email.split("@");
-  return `${name.slice(0, 2)}***@${domain}`;
-}
-
 export default function WinnersPage() {
-  const [wins, setWins] = useState<Win[]>([]);
+  const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadWins() {
+    async function loadWinners() {
       const { data, error } = await supabase
         .from("wins")
-        .select("id, prize, user_email, created_at")
+        .select(`
+          id,
+          created_at,
+          prizes ( name ),
+          profiles ( first_name, last_name, city )
+        `)
         .order("created_at", { ascending: false })
-        .limit(25);
+        .limit(50);
 
       if (error) {
-        console.error(error);
-        setWins([]);
-      } else {
-        setWins(data || []);
+        console.error("Error loading winners:", error);
+        setLoading(false);
+        return;
       }
 
+      const formatted: Winner[] = (data || []).map((w: any) => {
+        const first = w.profiles?.first_name ?? "";
+        const last = w.profiles?.last_name ?? "";
+
+        const initials =
+          ((first?.[0] ?? "") + (last?.[0] ?? "")).toUpperCase() || "??";
+
+        return {
+          id: w.id,
+          prize: w.prizes?.name ?? "Unknown Prize",
+          created_at: w.created_at,
+          city: w.profiles?.city ?? "Unknown",
+          initials,
+        };
+      });
+
+      setWinners(formatted);
       setLoading(false);
     }
 
-    loadWins();
+    loadWinners();
   }, []);
 
   return (
-    <>
-      <Navbar />
+    <div className="relative min-h-screen overflow-hidden bg-[#faf7f0]">
 
-      <main className="min-h-screen bg-[radial-gradient(circle_at_top,#1E3A8A_0%,#0F172A_55%,#020617_100%)] pt-28 text-white">
-        <section className="px-6 py-14">
-          <div className="max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-              <div>
-                <p className="font-bold uppercase tracking-[0.2em] text-yellow-300">
-                  Recent winners
-                </p>
-                <h1 className="mt-4 text-5xl md:text-6xl font-black">
-                  Mazel tov to our supporters
-                </h1>
-                <p className="mt-5 max-w-2xl text-lg text-gray-300">
-                  A live look at recent prize wins from the Spin4Chinuch wheel.
-                </p>
+      {/* background glow */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-8">
+
+        {/* HEADER */}
+        <Panel title="">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+            <div>
+              <h1 className="text-4xl font-black text-[#142A52]">
+                Winners Board
+              </h1>
+              <p className="mt-2 text-slate-500 max-w-xl">
+                Every spin supports Chinuch Yehudi
+              </p>
+            </div>
+
+          </div>
+        </Panel>
+
+        {/* STATS */}
+        <div className="grid gap-5 sm:grid-cols-3">
+
+          <StatCard
+            label="Total Winners"
+            value={winners.length}
+            icon={<Trophy />}
+          />
+
+          <StatCard
+            label="Latest Prize"
+            value={winners[0]?.prize ?? "—"}
+            icon={<Gift />}
+          />
+
+          <StatCard
+            label="Latest City"
+            value={winners[0]?.city ?? "—"}
+            icon={<MapPin />}
+          />
+        </div>
+
+        {/* TABLE */}
+        <Panel title="Recent Winners" subtitle="Updated automatically">
+
+          {loading ? (
+            <div className="py-16 text-center text-slate-500">
+              Loading winners...
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+
+              {/* header */}
+              <div className="grid grid-cols-[60px_1fr_1fr] bg-slate-50 px-6 py-4 text-sm font-semibold uppercase tracking-wide text-slate-500">
+                <div>Player</div>
+                <div>Prize</div>
+                <div>City</div>
               </div>
 
-              <Link href="/spin" className="rounded-full bg-yellow-400 px-8 py-4 font-black text-[#142A52] shadow-xl transition hover:scale-105">
-                Spin Now
-              </Link>
-            </div>
+              {/* rows */}
+              {winners.map((w) => {
+                const initials = w.initials || "??";
 
-            <div className="mt-12 overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-2xl backdrop-blur-xl">
-              {loading ? (
-                <div className="p-8 text-center text-gray-200">Loading winners...</div>
-              ) : wins.length === 0 ? (
-                <div className="p-8 text-center text-gray-200">No winners yet. Be the first one on the board.</div>
-              ) : (
-                <div className="divide-y divide-white/10">
-                  {wins.map((win) => (
-                    <div key={win.id} className="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-center">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 text-[#142A52]">
-                          <Trophy className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-black">{win.prize}</h2>
-                          <p className="text-sm text-gray-300">{maskEmail(win.user_email)}</p>
-                        </div>
+                return (
+                  <div
+                    key={w.id}
+                    className="grid grid-cols-[60px_1fr_1fr] items-center px-6 py-5 border-t border-slate-100 hover:bg-slate-50 transition-colors"
+                  >
+
+                    {/* initials */}
+                    <div className="flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-[#142A52] text-white flex items-center justify-center font-bold">
+                        {initials}
                       </div>
+                    </div>
 
-                      <p className="text-gray-300">
-                        {new Date(win.created_at).toLocaleDateString()}
+                    {/* prize */}
+                    <div className="min-w-0">
+                      <p className="font-semibold text-[#142A52] truncate">
+                        {w.prize}
                       </p>
                     </div>
-                  ))}
-                </div>
-              )}
+
+                    {/* city */}
+                    <div className="text-slate-500 text-sm">
+                      {w.city}
+                    </div>
+
+                  </div>
+                );
+              })}
+
             </div>
-          </div>
-        </section>
-      </main>
-    </>
+          )}
+
+        </Panel>
+
+      </div>
+    </div>
   );
 }

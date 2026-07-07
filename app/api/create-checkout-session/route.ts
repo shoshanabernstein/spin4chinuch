@@ -34,15 +34,13 @@ export async function POST(req: Request) {
       );
     }
 
-    let amount = 0;
+    const PRICE_PER_SPIN = 1800; // cents
 
-    if (spins === 10) amount = 1000;
-    if (spins === 25) amount = 2000;
-    if (spins === 50) amount = 3500;
+    const amount = spins * PRICE_PER_SPIN;
 
-    if (amount === 0) {
+    if (spins < 1) {
       return NextResponse.json(
-        { error: "Invalid package" },
+        { error: "Invalid quantity" },
         { status: 400 }
       );
     }
@@ -54,7 +52,7 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `${spins} Spin Package`,
+              name: `${spins} Spin${spins === 1 ? "" : "s"}`,
             },
             unit_amount: amount,
           },

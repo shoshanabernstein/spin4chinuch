@@ -1,20 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import Navbar from "@/components/Navbar";
-import { supabase } from "@/lib/supabase";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { useEffect, useState } from "react";
 
-const packages = [
-  { spins: 10, price: "$10", note: "Great for trying your luck.", featured: false },
-  { spins: 25, price: "$20", note: "Best value for supporters.", featured: true },
-  { spins: 50, price: "$35", note: "Maximum impact and maximum fun.", featured: false },
-];
+import Navbar from "@/components/Navbar";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { supabase } from "@/lib/supabase";
+import BuySpinsHero from "@/components/buy-spins/BuySpinsHero";
+import SpinSelectorPanel from "@/components/buy-spins/SpinSelectorPanel";
+import OrderSummary from "@/components/buy-spins/OrderSummary";
+import PrizeCarousel from "@/components/buy-spins/PrizeCarousel";
+import StripeCheckout from "@/components/buy-spins/StripeCheckout";
+import StripeProvider from "@/components/StripeProvider";
+
+interface Prize {
+  id: number;
+  name: string;
+  image_url: string | null;
+  retail_value: number | null;
+  sponsor_name: string | null;
+}
 
 export default function BuySpinsPage() {
+  const PRICE_PER_SPIN = 18;
+
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  async function buySpins(spins: number) {
+  const [prizes, setPrizes] = useState<Prize[]>([]);
+
+  const [clientSecret, setClientSecret] = useState("");
+  const [showPayment, setShowPayment] = useState(false);
+
+  const total = quantity * PRICE_PER_SPIN;
+
+  useEffect(() => {
+    async function fetchPrizes() {
+      const { data, error } = await supabase
+        .from("prizes")
+        .select("*")
+        .eq("active", true)
+        .order("id", { ascending: true });
+
+      if (!error) {
+        setPrizes(data || []);
+      }
+    }
+
+    fetchPrizes();
+  }, []);
+
+  async function startCheckout() {
     setLoading(true);
 
     try {
@@ -22,35 +57,33 @@ export default function BuySpinsPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!user || !session) {
-        alert("Please log in first");
+      if (!user) {
+        alert("Please log in first.");
         return;
       }
 
-      const res = await fetch("/api/create-checkout-session", {
+      const res = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ spins }),
+        body: JSON.stringify({
+          quantity,
+          userId: user.id,
+        }),
       });
 
       const data = await res.json();
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error(data);
-        alert("Unable to start checkout");
+      if (!data.clientSecret) {
+        throw new Error("Missing client secret");
       }
-    } catch (error) {
-      console.error(error);
-      alert("Payment failed");
+
+      setClientSecret(data.clientSecret);
+      setShowPayment(true);
+    } catch (err) {
+      console.error(err);
+      alert("Unable to start checkout.");
     } finally {
       setLoading(false);
     }
@@ -58,70 +91,117 @@ export default function BuySpinsPage() {
 
   return (
     <ProtectedRoute>
-      <>
+      <div className="relative min-h-screen overflow-hidden">
+
+        {/* Background (matches Dashboard) */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
+        </div>
+
         <Navbar />
 
-        <main className="min-h-screen bg-[#faf7f0] pt-24">
-          <div className="max-w-6xl mx-auto px-6 py-16">
-            <div className="text-center">
-              <img src="/logo.png" alt="Spin4Chinuch" className="h-24 mx-auto" />
+        <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-10">
 
-              <h1 className="mt-8 text-5xl md:text-6xl font-black text-[#142A52]">
-                Buy Spins
-              </h1>
+          {/* Hero */}
+          <BuySpinsHero />
 
-              <p className="mt-4 text-xl text-gray-600">
-                Every spin helps strengthen Jewish education.
-              </p>
-            </div>
+          {/* Purchase Section */}
+          <section
+            id="purchase"
+            className="grid gap-6 lg:grid-cols-2"
+          >
+            <SpinSelectorPanel
+              quantity={quantity}
+              setQuantity={setQuantity}
+            />
 
-            <div className="grid md:grid-cols-3 gap-8 mt-16">
-              {packages.map((pkg) => (
-                <div
-                  key={pkg.spins}
-                  className={`relative bg-white rounded-2xl shadow-xl p-8 border-4 border-[#C9A44D] ${pkg.featured ? "md:scale-105 shadow-2xl" : ""}`}
-                >
-                  {pkg.featured && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#C9A44D] text-white px-5 py-2 rounded-full font-bold text-sm">
-                      MOST POPULAR
-                    </div>
-                  )}
+            <OrderSummary
+              quantity={quantity}
+              setQuantity={setQuantity}
+              total={total}
+              loading={loading}
+              onStartCheckout={startCheckout}
+            />
+          </section>
 
-                  <div className="text-center">
-                    <h2 className="text-3xl font-black text-[#142A52]">
-                      {pkg.spins} Spins
-                    </h2>
+          {/* Prize Carousel */}
+          <section id="prizes">
+            <PrizeCarousel prizes={prizes} />
+          </section>
 
-                    <p className="text-6xl font-black text-[#C9A44D] mt-4">
-                      {pkg.price}
-                    </p>
-
-                    <p className="mt-4 text-gray-600">{pkg.note}</p>
-
-                    <button
-                      disabled={loading}
-                      onClick={() => buySpins(pkg.spins)}
-                      className={`w-full mt-8 py-4 rounded-xl text-xl font-bold transition disabled:opacity-50 ${pkg.featured ? "bg-[#C9A44D] text-white hover:opacity-90" : "bg-[#142A52] text-white hover:bg-[#1d3d77]"}`}
-                    >
-                      {loading ? "Loading..." : "Buy Now"}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-16 bg-white rounded-2xl shadow-lg p-8 text-center">
-              <h3 className="text-2xl font-bold text-[#142A52]">
-                Spin. Support. Strengthen.
-              </h3>
-
-              <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-                Every spin supports Jewish education while giving you the opportunity to win exciting prizes. Thank you for being part of our mission.
-              </p>
-            </div>
-          </div>
         </main>
-      </>
+
+        {/* Stripe Drawer */}
+        {showPayment && clientSecret && (
+          <div className="fixed inset-0 z-50 flex">
+
+            {/* Overlay */}
+            <div
+              onClick={() => setShowPayment(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+
+            {/* Drawer */}
+            <div className="relative ml-auto flex h-full w-full max-w-xl flex-col bg-white shadow-2xl animate-in slide-in-from-right duration-300">
+
+              <div className="border-b p-6">
+
+                <h2 className="text-3xl font-black text-[#142A52]">
+                  Secure Checkout
+                </h2>
+
+                <p className="mt-1 text-sm text-slate-500">
+                  Complete your purchase securely with Stripe.
+                </p>
+
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+
+                <div className="mb-6 rounded-2xl border border-slate-200 bg-[#FAF7F0] p-5">
+
+                  <div className="flex justify-between">
+
+                    <span className="text-slate-500">
+                      Spins
+                    </span>
+
+                    <span className="font-bold">
+                      {quantity}
+                    </span>
+
+                  </div>
+
+                  <div className="mt-3 flex justify-between">
+
+                    <span className="text-slate-500">
+                      Total
+                    </span>
+
+                    <span className="text-2xl font-black text-[#C9A44D]">
+                      ${total}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                <StripeProvider
+                  key={clientSecret}
+                  clientSecret={clientSecret}
+                >
+                  <StripeCheckout />
+                </StripeProvider>
+
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
     </ProtectedRoute>
   );
 }

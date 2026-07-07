@@ -1,99 +1,120 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Gift, Ticket } from "lucide-react";
+import { Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import PrizeCard from "@/components/buy-spins/PrizeCard";
 import { supabase } from "@/lib/supabase";
 
 type Prize = {
   id: string;
   name: string;
-  quantity: number;
+  image_url: string;
+  retail_value: number | null;
+  sponsor_name: string | null;
 };
 
 export default function PrizesPage() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadPrizes() {
+    async function fetchPrizes() {
       const { data, error } = await supabase
         .from("prizes")
-        .select("id, name, quantity")
+        .select("*")
         .eq("active", true)
-        .gt("quantity", 0)
-        .order("created_at", { ascending: true });
+        .order("id", { ascending: true });
 
-      if (error) {
-        console.error(error);
-        setPrizes([]);
-      } else {
+      if (!error) {
         setPrizes(data || []);
       }
-
-      setLoading(false);
     }
 
-    loadPrizes();
+    fetchPrizes();
   }, []);
 
   return (
-    <>
+    <div className="relative min-h-screen overflow-hidden bg-[#F8FAFC]">
+      {/* Background */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
+      </div>
+
       <Navbar />
 
-      <main className="min-h-screen bg-[#faf7f0] pt-28">
-        <section className="px-6 py-14">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
-              <div>
-                <p className="font-bold uppercase tracking-[0.2em] text-[#C9A44D]">
-                  Current prizes
-                </p>
-                <h1 className="mt-4 text-5xl md:text-6xl font-black text-[#142A52]">
-                  Spin for prizes that support chinuch
-                </h1>
-                <p className="mt-5 max-w-2xl text-lg text-gray-600">
-                  These are the active prizes currently stocked on the wheel. Every paid spin helps Chinuch Yehudi USA continue its work.
-                </p>
-              </div>
+      <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-12">
+        {/* Hero */}
+        <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-xl">
 
-              <Link href="/buy-spins" className="btn-main inline-flex items-center justify-center gap-3">
-                <Ticket className="h-5 w-5" />
-                Buy Spins
-              </Link>
+          {/* Wheel Watermark */}
+          <div
+            className="absolute right-[-80px] top-0 h-full w-[50%] bg-contain bg-right bg-no-repeat opacity-[0.025]"
+            style={{
+              backgroundImage: "url('/wheel-watermark.svg')",
+            }}
+          />
+
+          {/* Background Glows */}
+          <div className="absolute -left-28 -top-28 h-64 w-64 rounded-full bg-blue-200/25 blur-3xl" />
+          <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-yellow-200/20 blur-3xl" />
+
+          <div className="relative flex items-center justify-between gap-6 px-8 py-6 lg:px-10">
+
+            {/* Title */}
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-none text-[#142A52]">
+                All <span className="text-[#C9A44D]">Prizes</span>
+              </h1>
             </div>
 
-            {loading ? (
-              <div className="mt-14 rounded-2xl bg-white p-8 text-center shadow-lg">
-                Loading prizes...
-              </div>
-            ) : prizes.length === 0 ? (
-              <div className="mt-14 rounded-2xl bg-white p-8 text-center shadow-lg">
-                Prizes are being restocked. Please check back soon.
-              </div>
-            ) : (
-              <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {prizes.map((prize) => (
-                  <article key={prize.id} className="rounded-2xl border border-[#C9A44D]/25 bg-white p-7 shadow-lg">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#142A52] text-white">
-                      <Gift className="h-6 w-6" />
-                    </div>
+            {/* Gift */}
+            <div
+              className="
+        relative
+        flex
+        h-20
+        w-20
+        items-center
+        justify-center
+        rounded-2xl
+        bg-gradient-to-br
+        from-[#142A52]
+        to-[#23457F]
+        shadow-lg
+      "
+            >
 
-                    <h2 className="mt-5 text-2xl font-black text-[#142A52]">
-                      {prize.name}
-                    </h2>
+              <div className="absolute inset-0 rounded-2xl bg-[#C9A44D]/20 blur-xl" />
 
-                    <p className="mt-4 text-gray-600">
-                      Remaining: <span className="font-bold text-[#142A52]">{prize.quantity}</span>
-                    </p>
-                  </article>
-                ))}
+              <div className="relative rounded-xl bg-white/10 p-3 backdrop-blur-sm">
+                <Gift
+                  className="h-8 w-8 text-[#E7C45B]"
+                  strokeWidth={2}
+                />
               </div>
-            )}
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* Prize Grid */}
+        <section>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {prizes.map((prize) => (
+              <PrizeCard
+                key={prize.id}
+                name={prize.name}
+                imageUrl={prize.image_url}
+                retailValue={prize.retail_value}
+                sponsorName={prize.sponsor_name}
+              />
+            ))}
           </div>
         </section>
       </main>
-    </>
+    </div>
   );
 }
