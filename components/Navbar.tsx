@@ -9,7 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast/headless";
 
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
 
@@ -18,8 +17,6 @@ export default function Navbar() {
   const { user } = useAuth();
 
   const isLoggedIn = !!user;
-
-
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

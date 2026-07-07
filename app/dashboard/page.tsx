@@ -9,6 +9,8 @@ import ActionCard from "@/components/ui/ActionCard";
 import Panel from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
 
+import Image from "next/image";
+
 import {
   DollarSign,
   Ticket,
@@ -113,7 +115,25 @@ export default function DashboardPage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-8">
           {/* Hero */}
           <section className="relative overflow-hidden rounded-[28px] border border-blue-100 bg-white p-5 sm:p-6 lg:p-8 shadow-lg">
-            <div className="absolute right-0 top-0 h-full w-1/2 bg-[url('/wheel-watermark.png')] bg-contain bg-right bg-no-repeat opacity-10" />
+           
+
+<Image
+  src="/wheel-watermark.png"
+  alt=""
+  aria-hidden
+  width={1200}
+  height={1200}
+  className="
+    pointer-events-none
+    absolute
+    right-[-180px]
+    top-1/2
+    w-[700px]
+    -translate-y-1/2
+    opacity-15
+    select-none
+  "
+/>
 
             <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
 

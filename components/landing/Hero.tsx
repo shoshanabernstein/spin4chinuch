@@ -1,73 +1,159 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import {
+  ArrowRight,
+  Gift,
+  HeartHandshake,
+  Sparkles,
+} from "lucide-react";
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-[#142A52] via-[#28457B] to-[#4267A8] px-8 py-24 text-white shadow-2xl">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#142A52] via-[#28457C] to-[#4267A8]">
 
       {/* Background Glow */}
-      <div className="absolute -left-24 top-0 h-72 w-72 rounded-full bg-[#80A8F7]/20 blur-3xl" />
-      <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-[#C9A44D]/20 blur-3xl" />
+      <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-white/10 blur-3xl" />
+      <div className="absolute -right-32 bottom-0 h-[450px] w-[450px] rounded-full bg-[#E7C96D]/10 blur-3xl" />
 
       {/* Wheel Watermark */}
-      <div
-        className="absolute inset-y-0 right-0 w-1/2 bg-[url('/wheel-watermark.png')] bg-contain bg-right bg-no-repeat opacity-10"
-      />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          className="
+            absolute
+            right-[-220px]
+            top-1/2
+            h-[900px]
+            w-[900px]
+            -translate-y-1/2
+            bg-[url('/wheel-watermark.png')]
+            bg-contain
+            bg-no-repeat
+            opacity-[0.08]
+          "
+        />
+      </div>
 
-      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start gap-8 lg:w-1/2">
+<div className="relative mx-auto flex max-w-7xl items-center justify-between gap-12 px-6 pt-12 pb-6 lg:pt-14 lg:pb-8">
 
-        <span className="rounded-full bg-white/15 px-5 py-2 text-sm font-semibold tracking-widest backdrop-blur">
-          SUPPORT CHINUCH YEHUDI
-        </span>
 
-        <h1 className="text-5xl font-black leading-tight md:text-7xl">
-          Spin.
-          <br />
-          Win.
-          <br />
-          Give Back.
-        </h1>
+        {/* LEFT */}
+        <div className="max-w-2xl">
 
-        <p className="max-w-xl text-lg leading-8 text-blue-100">
-          Every spin supports Jewish education while giving you the opportunity
-          to win exciting prizes donated by our generous sponsors.
-        </p>
+          <h1 className="text-5xl font-black leading-tight tracking-tight text-white lg:text-7xl">
+            Spin.
+            <br />
+            Win.
+            <br />
+            Give Back.
+          </h1>
 
-        <div className="flex flex-wrap gap-4">
+          <p className="mt-6 max-w-xl text-lg leading-8 text-blue-100">
+            Support Jewish education while entering for incredible prize
+            drawings.
+          </p>
 
-          <Button href="/buy-spins" variant="gold">
-            Buy Spins
-          </Button>
+          <div className="mt-10 flex items-center gap-6">
 
-          <Button
-            href="/spin"
-            variant="secondary"
-            className="border border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20"
-          >
-            Spin Now
-          </Button>
+            <Button href="#Actions" variant="gold">
+              Buy Spins
+            </Button>
+
+            <a
+              href="#About"
+              className="flex items-center gap-2 font-semibold text-white transition hover:text-[#E7C96D]"
+            >
+              Learn More
+              <ArrowRight size={18} />
+            </a>
+
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-8">
+
+            <div className="flex items-center gap-3">
+              <HeartHandshake
+                className="text-[#E7C96D]"
+                size={22}
+              />
+              <span className="text-white">
+                Supporting Chinuch
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Gift
+                className="text-[#E7C96D]"
+                size={22}
+              />
+              <span className="text-white">
+                Premium Prizes
+              </span>
+            </div>
+
+          </div>
 
         </div>
 
-        <div className="flex flex-wrap gap-10 pt-8">
+        {/* RIGHT */}
+        <div className="relative hidden h-[360px] w-[420px] lg:block">
 
-          <div>
-            <p className="text-4xl font-black">100%</p>
-            <p className="text-blue-200">Supports Chinuch</p>
+          {/* Floating Card */}
+          <div className="absolute right-0 top-8 w-80 rounded-3xl border border-white/10 bg-white/10 p-7 shadow-2xl backdrop-blur-xl">
+
+            <div className="flex items-center gap-4">
+
+              <div className="rounded-2xl bg-[#E7C96D]/20 p-3">
+                <Gift
+                  size={28}
+                  className="text-[#E7C96D]"
+                />
+              </div>
+
+              <div>
+
+                <h3 className="text-xl font-bold text-white">
+                  Amazing Prizes
+                </h3>
+
+                <p className="mt-1 text-sm text-blue-100">
+                  Every spin gives you another opportunity to win.
+                </p>
+
+              </div>
+
+            </div>
+
           </div>
 
-          <div>
-            <p className="text-4xl font-black">🎁</p>
-            <p className="text-blue-200">Amazing Prizes</p>
-          </div>
+          {/* Second Card */}
+          <div className="absolute bottom-10 left-0 w-72 rounded-3xl border border-white/10 bg-white/10 p-6 shadow-xl backdrop-blur-xl">
 
-          <div>
-            <p className="text-4xl font-black">❤️</p>
-            <p className="text-blue-200">Community Impact</p>
+            <div className="flex items-center gap-3">
+
+              <HeartHandshake
+                size={26}
+                className="text-[#E7C96D]"
+              />
+
+              <div>
+
+                <p className="font-semibold text-white">
+                  Every Spin Matters
+                </p>
+
+                <p className="text-sm text-blue-100">
+                  Helping support Chinuch Yehudi.
+                </p>
+
+              </div>
+
+            </div>
+
           </div>
 
         </div>
+
       </div>
     </section>
   );

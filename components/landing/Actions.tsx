@@ -16,11 +16,6 @@ export default function Actions() {
         <h2 className="mt-6 text-4xl font-black text-[#142A52] md:text-5xl">
           Ready to Spin?
         </h2>
-
-        <p className="mt-6 text-lg leading-8 text-slate-600">
-          Support Chinuch Yehudi while giving yourself a chance to win exciting
-          prizes.
-        </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
