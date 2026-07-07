@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
     const profileReq = supabase
       .from("profiles")
-      .select("spins_remaining, spins_purchased, total_donations, role")
+      .select("remaining_spins, total_spins, role")
       .eq("id", user.id)
       .single();
 
@@ -52,14 +52,35 @@ export default function DashboardPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    const [{ data: profile }, { data: winsData }] =
-      await Promise.all([profileReq, winsReq]);
+    const paymentsReq = supabase
+      .from("payments")
+      .select("amount")
+      .eq("user_id", user.id)
+      .eq("payment_status", "succeeded");
+
+    const [
+      { data: profile },
+      { data: winsData },
+      { data: paymentsData },
+    ] = await Promise.all([
+      profileReq,
+      winsReq,
+      paymentsReq,
+    ]);
 
     if (profile) {
-      setSpinsLeft(profile.spins_remaining ?? 0);
-      setSpinsPurchased(profile.spins_purchased ?? 0);
-      setDonations(profile.total_donations ?? 0);
+      setSpinsLeft(profile.remaining_spins ?? 0);
+      setSpinsPurchased(profile.total_spins ?? 0);
       setRole(profile.role ?? "");
+
+      if (paymentsData) {
+        const total = paymentsData.reduce(
+          (sum, payment) => sum + Number(payment.amount || 0),
+          0
+        );
+
+        setDonations(total / 100);
+      }
     }
 
     if (winsData) setWins(winsData);

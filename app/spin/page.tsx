@@ -64,14 +64,16 @@ export default function SpinPage() {
         `)
         .eq("active", true)
         .order("created_at", {
-          ascending:true
+          ascending: true
         });
 
 
 
-    if(error){
+    if (error) {
 
-      console.error(error);
+      console.error("WHEEL ERROR:", error);
+
+      alert(error.message);
 
       setOutcomes([]);
 
@@ -96,14 +98,14 @@ export default function SpinPage() {
 
 
     const {
-      data:{
+      data: {
         user
       }
     } = await supabase.auth.getUser();
 
 
 
-    if(!user) return;
+    if (!user) return;
 
 
 
@@ -116,7 +118,7 @@ export default function SpinPage() {
 
 
 
-    if(error){
+    if (error) {
 
       console.error(error);
 
@@ -141,7 +143,7 @@ export default function SpinPage() {
   async function spin() {
 
 
-    if(
+    if (
       spinning ||
       loadingPrizes
     ) return;
@@ -149,7 +151,7 @@ export default function SpinPage() {
 
 
 
-    if(outcomes.length === 0){
+    if (outcomes.length === 0) {
 
       alert(
         "No prizes are available right now."
@@ -161,7 +163,7 @@ export default function SpinPage() {
 
 
 
-    if(remainingSpins <= 0){
+    if (remainingSpins <= 0) {
 
       alert(
         "You have no spins remaining."
@@ -184,13 +186,13 @@ export default function SpinPage() {
 
 
 
-    if(spinSound.current){
+    if (spinSound.current) {
 
       spinSound.current.currentTime = 0;
 
       spinSound.current
         .play()
-        .catch(()=>{});
+        .catch(() => { });
 
     }
 
@@ -201,13 +203,13 @@ export default function SpinPage() {
 
 
     const {
-      data:{session}
+      data: { session }
     } = await supabase.auth.getSession();
 
 
 
 
-    if(!session){
+    if (!session) {
 
       alert("Please log in.");
 
@@ -229,9 +231,9 @@ export default function SpinPage() {
         "/api/spin",
         {
 
-          method:"POST",
+          method: "POST",
 
-          headers:{
+          headers: {
 
             "Content-Type":
               "application/json",
@@ -256,7 +258,7 @@ export default function SpinPage() {
 
 
 
-    if(!data.success){
+    if (!data.success) {
 
       alert(data.error);
 
@@ -274,7 +276,7 @@ export default function SpinPage() {
 
     const index =
       outcomes.findIndex(
-        (item)=>
+        (item) =>
           item.id === data.outcomeId
       );
 
@@ -282,7 +284,7 @@ export default function SpinPage() {
 
 
 
-    if(index === -1){
+    if (index === -1) {
 
       alert(
         "Wheel changed. Please try again."
@@ -335,11 +337,11 @@ export default function SpinPage() {
 
 
 
-    setTimeout(()=>{
+    setTimeout(() => {
 
 
 
-      if(spinSound.current){
+      if (spinSound.current) {
 
         spinSound.current.pause();
 
@@ -351,13 +353,13 @@ export default function SpinPage() {
 
 
 
-      if(winSound.current){
+      if (winSound.current) {
 
         winSound.current.currentTime = 0;
 
         winSound.current
           .play()
-          .catch(()=>{});
+          .catch(() => { });
 
       }
 
@@ -384,17 +386,17 @@ export default function SpinPage() {
 
 
 
-      setTimeout(()=>{
+      setTimeout(() => {
 
         setShowConfetti(false);
 
-      },5000);
+      }, 5000);
 
 
 
 
 
-    },9000);
+    }, 9000);
 
 
 
@@ -554,7 +556,11 @@ export default function SpinPage() {
 
 
 
-
+            <p className="text-white">
+              Loading: {String(loadingPrizes)} |
+              Outcomes: {outcomes.length} |
+              Spins: {remainingSpins}
+            </p>
 
             <button
 
@@ -591,12 +597,12 @@ export default function SpinPage() {
 
               {
                 loadingPrizes
-                ? "LOADING..."
-                : spinning
-                ? "SPINNING..."
-                : remainingSpins <= 0
-                ? "NO SPINS LEFT"
-                : "SPIN THE WHEEL"
+                  ? "LOADING..."
+                  : spinning
+                    ? "SPINNING..."
+                    : remainingSpins <= 0
+                      ? "NO SPINS LEFT"
+                      : "SPIN THE WHEEL"
               }
 
 
