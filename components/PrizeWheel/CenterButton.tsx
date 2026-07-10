@@ -5,11 +5,25 @@ import { motion } from "framer-motion";
 
 type Props = {
   spinning: boolean;
+  canSpin: boolean;
+  onSpin: () => void;
 };
 
-export default function CenterButton({ spinning }: Props) {
+export default function CenterButton({ spinning, canSpin, onSpin }: Props) {
   return (
     <motion.g
+      role="button"
+      tabIndex={canSpin ? 0 : -1}
+      aria-label={spinning ? "Wheel is spinning" : "Spin the prize wheel"}
+      aria-disabled={!canSpin}
+      onClick={canSpin ? onSpin : undefined}
+      onKeyDown={(event) => {
+        if (canSpin && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          onSpin();
+        }
+      }}
+      style={{ cursor: canSpin ? "pointer" : "not-allowed", opacity: canSpin ? 1 : 0.65 }}
       animate={
         spinning
           ? {
@@ -58,7 +72,7 @@ export default function CenterButton({ spinning }: Props) {
         fill="white"
         letterSpacing="2"
       >
-        SPIN
+        {spinning ? "..." : "SPIN"}
       </text>
     </motion.g>
   );
