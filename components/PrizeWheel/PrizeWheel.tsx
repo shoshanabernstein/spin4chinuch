@@ -11,6 +11,8 @@ import CenterButton from "./CenterButton";
 type PrizeWheelProps = {
     rotation: number;
     spinning: boolean;
+    canSpin: boolean;
+    onSpin: () => void;
     prizes: { 
         id: number;
         label: string;
@@ -27,6 +29,8 @@ const RADIUS = 405;
 export default function PrizeWheel({
     rotation,
     spinning,
+    canSpin,
+    onSpin,
     prizes,
 }: PrizeWheelProps) {
 
@@ -325,7 +329,7 @@ export default function PrizeWheel({
 
 
 
-                    <CenterButton spinning={spinning}/>
+                    <CenterButton spinning={spinning} canSpin={canSpin} onSpin={onSpin}/>
 
 
 
