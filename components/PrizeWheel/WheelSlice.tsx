@@ -4,7 +4,6 @@ type WheelSliceProps = {
   startAngle: number;
   endAngle: number;
   radius: number;
-  color: string;
   gradientIndex: number;
 };
 
@@ -27,7 +26,6 @@ export default function WheelSlice({
   startAngle,
   endAngle,
   radius,
-  color,
   gradientIndex,
 }: WheelSliceProps)
 {

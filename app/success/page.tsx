@@ -26,12 +26,12 @@ export default function SuccessPage() {
         </h1>
 
         <p className="text-gray-600 text-lg mb-8">
-          Your spins have been added to your account.
+          Your payment was received securely.
         </p>
 
         <div className="bg-blue-50 rounded-2xl p-6 mb-8">
           <p className="text-blue-700 font-semibold text-xl">
-            Thank you for supporting Jewish education ❤️
+            Your spins may take a moment to appear while Stripe confirms the payment.
           </p>
         </div>
 

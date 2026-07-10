@@ -2,7 +2,7 @@
 
 import Panel from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
-import { CreditCard, Ticket } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 interface OrderSummaryProps {
   quantity: number;

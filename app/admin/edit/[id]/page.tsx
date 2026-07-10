@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -10,7 +11,6 @@ export default function EditPrizePage() {
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(0);
-  const [probability, setProbability] = useState(1);
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +33,6 @@ export default function EditPrizePage() {
 
     setName(data.name);
     setQuantity(data.quantity);
-    setProbability(data.probability);
     setActive(data.active);
     setLoading(false);
   }
@@ -44,7 +43,6 @@ export default function EditPrizePage() {
       .update({
         name,
         quantity,
-        probability,
         active,
       })
       .eq("id", id);
@@ -93,16 +91,6 @@ export default function EditPrizePage() {
               className="w-full border rounded-xl p-4 mt-2"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold">Probability</label>
-            <input
-              type="number"
-              className="w-full border rounded-xl p-4 mt-2"
-              value={probability}
-              onChange={(e) => setProbability(Number(e.target.value))}
             />
           </div>
 

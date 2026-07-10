@@ -16,6 +16,14 @@ type Winner = {
   initials: string;
 };
 
+type PublicWinnerRow = {
+  id: number;
+  prize: string;
+  created_at: string;
+  city: string;
+  initials: string;
+};
+
 export default function WinnersPage() {
   const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,13 +31,8 @@ export default function WinnersPage() {
   useEffect(() => {
     async function loadWinners() {
       const { data, error } = await supabase
-        .from("wins")
-        .select(`
-          id,
-          created_at,
-          prizes ( name ),
-          profiles ( first_name, last_name, city )
-        `)
+        .from("public_winners")
+        .select("id,created_at,prize,city,initials")
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -39,19 +42,13 @@ export default function WinnersPage() {
         return;
       }
 
-      const formatted: Winner[] = (data || []).map((w: any) => {
-        const first = w.profiles?.first_name ?? "";
-        const last = w.profiles?.last_name ?? "";
-
-        const initials =
-          ((first?.[0] ?? "") + (last?.[0] ?? "")).toUpperCase() || "??";
-
+      const formatted: Winner[] = ((data as PublicWinnerRow[] | null) || []).map((winner) => {
         return {
-          id: w.id,
-          prize: w.prizes?.name ?? "Unknown Prize",
-          created_at: w.created_at,
-          city: w.profiles?.city ?? "Unknown",
-          initials,
+          id: winner.id,
+          prize: winner.prize ?? "Prize",
+          created_at: winner.created_at,
+          city: winner.city || "",
+          initials: winner.initials || "??",
         };
       });
 

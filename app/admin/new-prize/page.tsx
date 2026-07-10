@@ -9,7 +9,6 @@ export default function NewPrizePage() {
 
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [probability, setProbability] = useState(1);
   const [active, setActive] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +25,6 @@ export default function NewPrizePage() {
       .insert({
         name,
         quantity,
-        probability,
         active,
       });
 
@@ -74,19 +72,6 @@ export default function NewPrizePage() {
               type="number"
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
-              className="w-full border rounded-xl p-4"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-2 font-semibold">
-              Probability
-            </label>
-
-            <input
-              type="number"
-              value={probability}
-              onChange={(e) => setProbability(Number(e.target.value))}
               className="w-full border rounded-xl p-4"
             />
           </div>
