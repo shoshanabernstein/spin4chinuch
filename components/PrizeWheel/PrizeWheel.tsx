@@ -2,345 +2,211 @@
 
 import { motion } from "framer-motion";
 import WheelSlice from "./WheelSlice";
-import { wheelColors } from "./colors";
-import Lights from "./Lights";
 import Pointer from "./Pointer";
-import CenterButton from "./CenterButton";
 
-
-type PrizeWheelProps = {
-    rotation: number;
-    spinning: boolean;
-    canSpin: boolean;
-    onSpin: () => void;
-    prizes: { 
-        id: number;
-        label: string;
-        prize_id: number | null;
-    }[];
+type Prize = {
+  id: number;
+  label: string;
+  prize_id: number | null;
 };
 
+type PrizeWheelProps = {
+  rotation: number;
+  spinning: boolean;
+  canSpin: boolean;
+  onSpin: () => void;
+  prizes: Prize[];
+};
 
 const SIZE = 900;
 const CENTER = 450;
-const RADIUS = 405;
-
+const RADIUS = 392;
+const COLORS = [
+  "#173B73",
+  "#C9A44D",
+  "#2F6ED8",
+  "#0F7892",
+  "#234F91",
+  "#D6B967",
+  "#3D7FDB",
+  "#17677C",
+];
 
 export default function PrizeWheel({
-    rotation,
-    spinning,
-    canSpin,
-    onSpin,
-    prizes,
+  rotation,
+  spinning,
+  canSpin,
+  onSpin,
+  prizes,
 }: PrizeWheelProps) {
+  const slices = Math.max(prizes.length, 1);
+  const angle = 360 / slices;
 
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[610px]">
+      <div className="absolute inset-[3%] rounded-full bg-[#2F6ED8]/20 blur-3xl" />
 
-    const slices = prizes.length || 8;
+      <Pointer spinning={spinning} />
 
-    const angle = 360 / slices;
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: rotation }}
+        transition={{ duration: 7.5, ease: [0.12, 0.82, 0.16, 1] }}
+      >
+        <svg
+          width={SIZE}
+          height={SIZE}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          className="h-full w-full drop-shadow-[0_24px_45px_rgba(7,22,40,.28)]"
+          role="img"
+          aria-label="Spin4Chinuch prize wheel"
+        >
+          <defs>
+            {COLORS.map((color, index) => (
+              <linearGradient
+                key={color}
+                id={`sliceGradient${index}`}
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0%" stopColor={color} stopOpacity="0.82" />
+                <stop offset="45%" stopColor={color} />
+                <stop offset="100%" stopColor="#071628" stopOpacity="0.32" />
+              </linearGradient>
+            ))}
 
+            <linearGradient id="outerGold" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#F5DE98" />
+              <stop offset="28%" stopColor="#C9A44D" />
+              <stop offset="55%" stopColor="#FFF0B8" />
+              <stop offset="82%" stopColor="#A9822E" />
+              <stop offset="100%" stopColor="#E8CD7A" />
+            </linearGradient>
 
-    return (
+            <radialGradient id="hubNavy">
+              <stop offset="0%" stopColor="#234F91" />
+              <stop offset="100%" stopColor="#071628" />
+            </radialGradient>
 
-        <div className="relative w-[min(86vw,620px)] drop-shadow-[0_30px_80px_rgba(0,0,0,.45)]">
+            <filter id="softWheelShadow">
+              <feDropShadow dx="0" dy="14" stdDeviation="18" floodOpacity="0.3" />
+            </filter>
+          </defs>
 
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r="438"
+            fill="#071628"
+            stroke="url(#outerGold)"
+            strokeWidth="18"
+            filter="url(#softWheelShadow)"
+          />
 
-            <Pointer spinning={spinning} />
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r="414"
+            fill="#0C1F38"
+            stroke="#FFFFFF"
+            strokeOpacity="0.18"
+            strokeWidth="3"
+          />
 
+          {prizes.length > 0 &&
+            prizes.map((prize, index) => (
+              <WheelSlice
+                key={prize.id}
+                radius={RADIUS}
+                startAngle={index * angle}
+                endAngle={(index + 1) * angle}
+                color={COLORS[index % COLORS.length]}
+                gradientIndex={index % COLORS.length}
+              />
+            ))}
 
-            <motion.div
-                animate={{
-                    scale: [1, 1.08, 1],
-                    opacity: [0.5, 0.9, 0.5],
-                }}
-                transition={{
-                    repeat: Infinity,
-                    duration: 3,
-                }}
-                className="absolute inset-0 rounded-full bg-yellow-400/20 blur-3xl"
-            />
+          {prizes.length > 0 &&
+            prizes.map((prize, index) => {
+              const textAngle = index * angle + angle / 2;
+              const label =
+                prize.label.length > 17
+                  ? `${prize.label.slice(0, 15)}…`
+                  : prize.label;
 
-
-
-            <motion.div
-                animate={{
-                    rotate: rotation,
-                }}
-                transition={{
-                    duration: 9,
-                    ease: [0.12,0.95,0.18,1],
-                }}
-            >
-
-
-                <svg
-                    width={SIZE}
-                    height={SIZE}
-                    viewBox={`0 0 ${SIZE} ${SIZE}`}
-                    className="h-auto w-full"
-                    role="img"
-                    aria-label="Prize wheel"
+              return (
+                <text
+                  key={`label-${prize.id}`}
+                  x={CENTER}
+                  y="136"
+                  fill="white"
+                  fontSize={prizes.length > 10 ? "18" : "22"}
+                  fontWeight="750"
+                  textAnchor="middle"
+                  letterSpacing=".3"
+                  transform={`rotate(${textAngle} ${CENTER} ${CENTER})`}
+                  style={{ textShadow: "0 2px 5px rgba(0,0,0,.35)" }}
                 >
-
-
-                    <defs>
-
-                        <radialGradient id="centerGlow">
-                            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
-                            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-                        </radialGradient>
-
-
-                        <linearGradient id="goldRing" x1="0" x2="1">
-                            <stop offset="0%" stopColor="#FDE68A" />
-                            <stop offset="50%" stopColor="#D4AF37" />
-                            <stop offset="100%" stopColor="#FDE68A" />
-                        </linearGradient>
-
-
-
-                        {wheelColors.map((color,i)=>(
-                            <linearGradient
-                                key={i}
-                                id={`sliceGradient${i}`}
-                                x1="0"
-                                y1="0"
-                                x2="1"
-                                y2="1"
-                            >
-                                <stop offset="0%" stopColor="white" stopOpacity=".35"/>
-                                <stop offset="15%" stopColor={color}/>
-                                <stop offset="75%" stopColor={color}/>
-                                <stop offset="100%" stopColor="black" stopOpacity=".35"/>
-                            </linearGradient>
-                        ))}
-
-
-
-                        <filter id="wheelShadow">
-                            <feDropShadow
-                                dx="0"
-                                dy="10"
-                                stdDeviation="15"
-                                floodOpacity="0.35"
-                            />
-                        </filter>
-
-
-
-                        <linearGradient id="metalGold" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor="#FFF8D6"/>
-                            <stop offset="15%" stopColor="#F6D46A"/>
-                            <stop offset="35%" stopColor="#B8860B"/>
-                            <stop offset="50%" stopColor="#FFF5C3"/>
-                            <stop offset="70%" stopColor="#C9981F"/>
-                            <stop offset="100%" stopColor="#FFF8D6"/>
-                        </linearGradient>
-
-
-
-                        <radialGradient id="innerShadow">
-                            <stop offset="70%" stopColor="transparent"/>
-                            <stop offset="100%" stopColor="#000" stopOpacity=".35"/>
-                        </radialGradient>
-
-
-                    </defs>
-
-
-
-
-
-                    <Lights />
-
-
-
-
-
-                    <circle
-                        cx={CENTER}
-                        cy={CENTER}
-                        r={360}
-                        fill="url(#metalGold)"
-                        filter="url(#wheelShadow)"
-                    />
-
-
-
-                    <circle
-                        cx={CENTER}
-                        cy={CENTER}
-                        r={345}
-                        fill="#111827"
-                    />
-
-
-
-
-
-                    {Array.from({length:slices}).map((_,i)=>(
-
-                        <WheelSlice
-                            key={i}
-                            radius={RADIUS}
-                            startAngle={i*angle}
-                            endAngle={(i+1)*angle}
-                            color={
-                                wheelColors[
-                                    i % wheelColors.length
-                                ]
-                            }
-                            gradientIndex={
-                                i % wheelColors.length
-                            }
-                        />
-
-                    ))}
-
-
-
-
-
-
-                    {Array.from({length:slices}).map((_,i)=>{
-
-                        const angleDeg=i*angle;
-
-
-                        return (
-
-                            <line
-                                key={i}
-                                x1={CENTER}
-                                y1={CENTER}
-                                x2={
-                                    CENTER +
-                                    Math.cos(
-                                        ((angleDeg-90)*Math.PI)/180
-                                    ) *
-                                    RADIUS
-                                }
-                                y2={
-                                    CENTER +
-                                    Math.sin(
-                                        ((angleDeg-90)*Math.PI)/180
-                                    ) *
-                                    RADIUS
-                                }
-                                stroke="rgba(255,255,255,.35)"
-                                strokeWidth="2"
-                            />
-
-                        );
-
-                    })}
-
-
-
-
-
-
-
-                    {Array.from({length:slices}).map((_,i)=>{
-
-
-                        const label =
-                            prizes[i]?.label || "Prize";
-
-
-                        const textAngle =
-                            i*angle + angle/2;
-
-
-
-                        return (
-
-                            <text
-                                key={`label-${i}`}
-                                x={CENTER}
-                                y={CENTER-250}
-                                fill="white"
-                                fontSize="24"
-                                fontWeight="900"
-                                textAnchor="middle"
-                                transform={
-                                    `rotate(${textAngle} ${CENTER} ${CENTER})`
-                                }
-                            >
-
-                                {
-                                    label.length > 18
-                                    ? `${label.slice(0,15)}...`
-                                    : label
-                                }
-
-                            </text>
-
-                        );
-
-
-                    })}
-
-
-
-
-
-
-
-                    <circle
-                        cx={CENTER}
-                        cy={CENTER}
-                        r={340}
-                        fill="url(#innerShadow)"
-                    />
-
-
-
-                    <circle
-                        cx={CENTER}
-                        cy={CENTER}
-                        r={210}
-                        fill="none"
-                        stroke="url(#goldRing)"
-                        strokeWidth="8"
-                    />
-
-
-
-                    <ellipse
-                        cx={CENTER}
-                        cy={220}
-                        rx={240}
-                        ry={100}
-                        fill="white"
-                        opacity="0.12"
-                    />
-
-
-
-                    <ellipse
-                        cx={CENTER}
-                        cy={CENTER-140}
-                        rx="250"
-                        ry="90"
-                        fill="white"
-                        opacity=".08"
-                    />
-
-
-
-                    <CenterButton spinning={spinning} canSpin={canSpin} onSpin={onSpin}/>
-
-
-
-                </svg>
-
-
-            </motion.div>
-
-
-        </div>
-
-    );
-
+                  {label}
+                </text>
+              );
+            })}
+
+          {Array.from({ length: 32 }).map((_, index) => {
+            const lightAngle = (index / 32) * Math.PI * 2;
+            const x = CENTER + Math.cos(lightAngle) * 423;
+            const y = CENTER + Math.sin(lightAngle) * 423;
+
+            return (
+              <circle
+                key={index}
+                cx={x}
+                cy={y}
+                r="5"
+                fill={index % 2 === 0 ? "#FFF3BE" : "#C9A44D"}
+                opacity={spinning ? 1 : 0.82}
+              />
+            );
+          })}
+
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r="112"
+            fill="url(#hubNavy)"
+            stroke="url(#outerGold)"
+            strokeWidth="12"
+          />
+          <circle
+            cx={CENTER}
+            cy={CENTER}
+            r="88"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeOpacity="0.12"
+            strokeWidth="2"
+          />
+        </svg>
+      </motion.div>
+
+      <button
+        type="button"
+        onClick={onSpin}
+        disabled={!canSpin}
+        aria-label={spinning ? "Wheel is spinning" : "Spin the prize wheel"}
+        className="absolute left-1/2 top-1/2 z-30 flex h-[19%] w-[19%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#102F57] text-[clamp(.75rem,2.5vw,1.25rem)] font-black tracking-[0.12em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_12px_30px_rgba(7,22,40,.35)] transition duration-200 hover:scale-105 hover:bg-[#173B73] focus:outline-none focus:ring-4 focus:ring-[#5E9CF4]/35 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:scale-100"
+      >
+        {spinning ? (
+          <span className="flex items-center gap-1" aria-hidden="true">
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white [animation-delay:-.2s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white [animation-delay:-.1s]" />
+            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white" />
+          </span>
+        ) : (
+          "SPIN"
+        )}
+      </button>
+    </div>
+  );
 }
