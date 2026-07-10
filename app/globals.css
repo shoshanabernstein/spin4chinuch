@@ -55,12 +55,7 @@
   }
 
   body {
-    background: radial-gradient(
-      circle at top,
-      #12325a 0%,
-      #0c1f38 35%,
-      #071628 100%
-    );
+    background: #071628;
 
     color: var(--text);
 
@@ -97,11 +92,9 @@
 ========================================== */
 
 .btn-main {
-  background: linear-gradient(
-    135deg,
-    var(--primary),
-    var(--primary-light)
-  );
+  background: linear-gradient(135deg,
+      var(--primary),
+      var(--primary-light));
 
   color: white;
 
@@ -125,11 +118,9 @@
 ========================================== */
 
 .btn-gold {
-  background: linear-gradient(
-    135deg,
-    #d8b45c,
-    #f3d06f
-  );
+  background: linear-gradient(135deg,
+      #d8b45c,
+      #f3d06f);
 
   color: #142a52;
 

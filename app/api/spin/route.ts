@@ -198,11 +198,34 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      outcomeId: winningOutcome.id,
-      prizeId: prize?.id ?? null,
-      prize: prize?.name ?? winningOutcome.label,
-    });
 
+
+      outcomeId: winningOutcome.id,
+
+      prizeId: prize?.id ?? null,
+
+      winner: {
+        won: prize !== null,
+
+        outcomeId: winningOutcome.id,
+
+        outcomeLabel: winningOutcome.label,
+
+        prize: prize
+          ? {
+            id: prize.id,
+            name: prize.name,
+            retailValue: prize.retail_value,
+            sponsor: prize.sponsor_name,
+          }
+          : null,
+      },
+
+      remainingSpins: profile.remaining_spins - 1,
+      won: prize !== null,
+
+      outcomeLabel: winningOutcome.label,
+    });
   } catch (err) {
     console.error(err);
 

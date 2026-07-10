@@ -1,70 +1,83 @@
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Phone,
+  Mail,
+  Globe,
+  Code2,
+} from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="mt-24 border-t border-blue-100 bg-white">
-      <div className="mx-auto max-w-7xl px-6 py-14">
+  <footer className="border-t border-white/10 bg-[#071628]">
+  <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-8 py-3 lg:flex-row">
 
-        <div className="grid gap-10 md:grid-cols-3">
+    {/* Logo */}
+    <Link href="/" className="flex items-center">
+      <Image
+        src="/navbar_logo.png"
+        alt="Spin4Chinuch"
+        width={700}
+        height={170}
+        className="w-[180px] h-auto"
+      />
+    </Link>
 
-          {/* Logo */}
-          <div>
-            <Image
-              src="/navbar_logo.png"
-              alt="Spin4Chinuch"
-              width={220}
-              height={60}
-              className="w-auto h-14"
-            />
-
-            <p className="mt-5 max-w-sm text-sm leading-7 text-slate-500">
-              Supporting Jewish education through exciting fundraising
-              experiences and amazing prizes.
-            </p>
+        {/* Contact Information */}
+    <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-300">
+          <div className="flex items-center gap-2">
+            <Phone size={18} className="text-blue-400" />
+            <span>(203) 768-6234</span>
           </div>
 
-          {/* Navigation */}
-          <div>
-            <h3 className="mb-5 text-lg font-bold text-[#142A52]">
-              Navigation
-            </h3>
+          <a
+            href="mailto:info@chinuchyehudiusa.org"
+            className="flex items-center gap-2 transition hover:text-blue-300"
+          >
+            <Mail size={18} className="text-blue-400" />
+            info@chinuchyehudiusa.org
+          </a>
 
-            <div className="flex flex-col gap-3 text-slate-600">
-              <Link href="/">Home</Link>
-              <Link href="/prizes">Prizes</Link>
-              <Link href="/winners">Winners</Link>
-              <Link href="/buy-spins">Buy Spins</Link>
-              <Link href="/spin">Spin the Wheel</Link>
-            </div>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="mb-5 text-lg font-bold text-[#142A52]">
-              Contact
-            </h3>
-
-            <div className="space-y-3 text-slate-600">
-              <p>info@spin4chinuch.org</p>
-              <p>(555) 123-4567</p>
-
-              <Link
-                href="/contact"
-                className="inline-block mt-4 rounded-full bg-[#142A52] px-6 py-3 font-semibold text-white transition hover:bg-[#4267A8]"
-              >
-                Contact Us
-              </Link>
-            </div>
-          </div>
+          <a
+            href="https://chinuchyehudiusa.org/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 transition hover:text-blue-300"
+          >
+            <Globe size={18} className="text-blue-400" />
+            chinuchyehudiusa.org
+          </a>
 
         </div>
 
-        <div className="mt-12 border-t border-slate-200 pt-8 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} Spin4Chinuch. All Rights Reserved.
+        {/* Developer */}
+    <div className="text-right text-xs">
+
+          <div className="flex items-center justify-end gap-2 text-sm text-slate-300">
+            <Code2 size={18} className="text-blue-400" />
+            <span>
+              Made by{" "}
+              <span className="font-semibold text-white">
+                Shoshana Bernstein
+              </span>
+            </span>
+          </div>
+
+          <a
+            href="mailto:shoshanbernstein@gmail.com"
+            className="mt-1 block text-sm text-blue-300 transition hover:text-blue-200"
+          >
+            shoshanbernstein@gmail.com
+          </a>
+
         </div>
 
       </div>
-    </footer>
+
+      {/* Bottom Copyright */}
+  <div className="border-t border-white/10 py-1.5 text-center text-xs text-slate-500">
+    © {new Date().getFullYear()} Spin4Chinuch. All Rights Reserved.
+  </div>
+</footer>
   );
 }

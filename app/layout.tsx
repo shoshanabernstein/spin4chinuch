@@ -31,7 +31,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#F6F9FD] text-slate-900">
+      <body className="min-h-screen flex flex-col bg-[#071628] text-white">
 
         <AuthProvider>
           <Toaster
@@ -44,25 +44,10 @@ export default function RootLayout({
                 borderRadius: "14px",
                 padding: "16px",
               },
-
-              success: {
-                iconTheme: {
-                  primary: "#22c55e",
-                  secondary: "#fff",
-                },
-              },
-
-              error: {
-                iconTheme: {
-                  primary: "#ef4444",
-                  secondary: "#fff",
-                },
-              },
             }}
           />
 
           <Navbar />
-
           <main className="flex-1 pt-24">
             {children}
           </main>
