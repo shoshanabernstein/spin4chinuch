@@ -242,16 +242,14 @@ export default function SpinPage() {
     // Calculate target rotation
     const sliceAngle = 360 / outcomes.length;
 
+    const desiredAngle =
+      360 - (index * sliceAngle + sliceAngle / 2);
+    const currentAngle = ((rotation % 360) + 360) % 360;
+    const landingOffset =
+      ((desiredAngle - currentAngle) % 360 + 360) % 360;
+
     const targetRotation =
-      rotation +
-      360 * 8 +
-      (
-        360 -
-        (
-          index * sliceAngle +
-          sliceAngle / 2
-        )
-      );
+      rotation + 360 * 8 + landingOffset;
 
     setRotation(targetRotation);
 
@@ -305,7 +303,7 @@ export default function SpinPage() {
   return (
     <ProtectedRoute>
       <>
-        <main className="relative min-h-screen overflow-hidden bg-white pt-24">
+        <div className="relative min-h-screen overflow-hidden bg-white">
 
           {/* Background */}
           <div className="pointer-events-none absolute inset-0">
@@ -551,7 +549,7 @@ export default function SpinPage() {
             preload="auto"
           />
 
-        </main>
+        </div>
 
       </>
     </ProtectedRoute>
