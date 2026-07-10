@@ -14,12 +14,12 @@ export default function Contact() {
           </span>
 
           <h2 className="mt-6 text-4xl font-black text-[#142A52] md:text-5xl">
-            We'd Love to Hear From You
+            We&apos;d Love to Hear From You
           </h2>
 
           <p className="mt-6 text-lg leading-8 text-slate-600">
             Have questions about Spin4Chinuch, prizes, donations, or sponsorship
-            opportunities? Reach out—we're happy to help.
+            opportunities? Reach out—we&apos;re happy to help.
           </p>
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">

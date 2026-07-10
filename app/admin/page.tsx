@@ -1,31 +1,49 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
 export default function AdminPage() {
-  const [prizes, setPrizes] = useState<any[]>([]);
+  type Prize = {
+    id: number;
+    name: string;
+    quantity: number;
+    active: boolean;
+  };
+  const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function loadPrizes() {
     setLoading(true);
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("prizes")
       .select("*")
       .order("created_at", { ascending: true });
 
+    if (error) {
+      window.alert(`Unable to load prizes: ${error.message}`);
+    }
     setPrizes(data || []);
     setLoading(false);
   }
 
-  async function deletePrize(id: string) {
-    const confirmed = confirm("Delete this prize?");
+  async function deletePrize(id: number) {
+    const confirmed = confirm("Archive this prize?");
 
     if (!confirmed) return;
 
-    await supabase.from("prizes").delete().eq("id", id);
+    const { error } = await supabase
+      .from("prizes")
+      .update({ active: false })
+      .eq("id", id);
+
+    if (error) {
+      window.alert(`Unable to archive prize: ${error.message}`);
+      return;
+    }
 
     loadPrizes();
   }
@@ -54,6 +72,12 @@ export default function AdminPage() {
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
           >
             Dashboard
+          </Link>
+          <Link
+            href="/admin/outcomes"
+            className="bg-[#142A52] hover:bg-[#23457F] text-white px-6 py-3 rounded-xl"
+          >
+            Wheel Outcomes
           </Link>
         </div>
 
@@ -133,10 +157,7 @@ export default function AdminPage() {
                     </p>
 
                     <p className="text-gray-600">
-                      Probability:{" "}
-                      <span className="font-bold">
-                        {prize.probability}
-                      </span>
+                      Odds are managed through wheel outcomes.
                     </p>
 
                     <p
@@ -161,7 +182,7 @@ export default function AdminPage() {
                     onClick={() => deletePrize(prize.id)}
                     className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl"
                   >
-                    Delete
+                    Archive
                   </button>
 
                 </div>

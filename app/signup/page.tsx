@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import Select from "react-select";
 import { supabase } from "../../lib/supabase";
 import { US_STATES, COUNTRIES } from "@/lib/locations";
 import toast from "react-hot-toast";
@@ -48,11 +47,6 @@ export default function SignupPage() {
   }
 
   const router = useRouter();
-  const countryOptions = COUNTRIES.map((country) => ({
-    value: country,
-    label: country,
-  }));
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -102,8 +96,21 @@ export default function SignupPage() {
     setLoading(true);
 
     const { data, error } = await supabase.auth.signUp({
-      email: form.email,
+      email: form.email.trim().toLowerCase(),
       password: form.password,
+      options: {
+        data: {
+          first_name: form.first_name.trim(),
+          last_name: form.last_name.trim(),
+          phone: form.phone,
+          address1: form.address1.trim(),
+          address2: form.address2.trim(),
+          city: form.city.trim(),
+          state: form.state,
+          zip: form.zip.trim(),
+          country: form.country,
+        },
+      },
     });
 
     if (error) {
@@ -120,33 +127,15 @@ export default function SignupPage() {
 
     }
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: data.user.id,
-        email: form.email,
-        total_spins: 0,
-        remaining_spins: 0,
-        first_name: form.first_name,
-        last_name: form.last_name,
-        phone: form.phone,
-        address1: form.address1,
-        address2: form.address2 || null,
-        city: form.city,
-        state: form.state,
-        zip: form.zip,
-        country: form.country,
-      });
-
     setLoading(false);
 
-    if (profileError) {
-      toast.error(profileError.message);
-      return;
+    if (!data.session) {
+      toast.success("Account created. Check your email to confirm your address.");
+      router.replace("/login");
+    } else {
+      toast.success("Account created successfully!");
+      router.replace("/dashboard");
     }
-
-    toast.success("Account created successfully!");
-    router.replace("/dashboard");
 
 
   }

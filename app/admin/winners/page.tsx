@@ -1,10 +1,18 @@
 "use client";
+/* eslint-disable react-hooks/immutability */
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase";
 
 export default function WinnersPage() {
-  const [wins, setWins] = useState<any[]>([]);
+  type Win = {
+    id: number;
+    user_email: string;
+    prize: string;
+    created_at: string;
+    status: string;
+  };
+  const [wins, setWins] = useState<Win[]>([]);
 
   useEffect(() => {
     loadWins();

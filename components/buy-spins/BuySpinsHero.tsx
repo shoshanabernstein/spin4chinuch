@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/components/ui/Button";
-import { CreditCard, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 
 export default function BuySpinsHero() {
   return (

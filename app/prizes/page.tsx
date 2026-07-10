@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import PrizeCard from "@/components/buy-spins/PrizeCard";
 import { supabase } from "@/lib/supabase";
-import Image from "next/image";
 
 type Prize = {
   id: string;
@@ -42,9 +40,7 @@ export default function PrizesPage() {
         <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
       </div>
 
-      <Navbar />
-
-      <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-12">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-12">
         {/* Hero */}
         <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-xl">
 
@@ -117,7 +113,7 @@ export default function PrizesPage() {
             ))}
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

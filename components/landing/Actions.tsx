@@ -59,8 +59,8 @@ export default function Actions() {
             </h3>
 
             <p className="mt-4 text-lg leading-8 text-blue-100">
-              Already have spins? Head straight to the wheel and see if you're
-              today's next winner.
+              Already have spins? Head straight to the wheel and see if you&apos;re
+              today&apos;s next winner.
             </p>
 
             <div className="mt-10">

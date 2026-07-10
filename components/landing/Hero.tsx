@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Gift,
   HeartHandshake,
-  Sparkles,
 } from "lucide-react";
 
 export default function Hero() {

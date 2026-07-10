@@ -46,7 +46,7 @@ return (
         </h1>
 
         <p className="mt-3 text-slate-500">
-          Enter your email and we'll send you a password reset link.
+          Enter your email and we&apos;ll send you a password reset link.
         </p>
 
       </div>

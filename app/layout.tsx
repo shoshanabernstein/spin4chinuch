@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import AppChrome from "@/components/AppChrome";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from "react-hot-toast";
 
@@ -47,12 +46,7 @@ export default function RootLayout({
             }}
           />
 
-          <Navbar />
-          <main className="flex-1 pt-24">
-            {children}
-          </main>
-
-          <Footer />
+          <AppChrome>{children}</AppChrome>
 
         </AuthProvider>
 

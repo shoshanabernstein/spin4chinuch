@@ -1,44 +1,45 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { getRequestUser } from "@/lib/server/supabase";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const secretKey = process.env.STRIPE_SECRET_KEY;
+if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
 
+const stripe = new Stripe(secretKey);
 const PRICE_PER_SPIN = 1800;
+const MAX_SPINS_PER_ORDER = 100;
 
 export async function POST(req: Request) {
   try {
-    const { quantity, userId } = await req.json();
+    const user = await getRequestUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!quantity || quantity < 1) {
+    const body = (await req.json()) as { quantity?: unknown };
+    const quantity = Number(body.quantity);
+
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_SPINS_PER_ORDER) {
       return NextResponse.json(
-        { error: "Invalid quantity" },
+        { error: `Quantity must be an integer from 1 to ${MAX_SPINS_PER_ORDER}.` },
         { status: 400 }
       );
     }
 
-    const amount = quantity * PRICE_PER_SPIN;
     const paymentIntent = await stripe.paymentIntents.create({
-      amount,
+      amount: quantity * PRICE_PER_SPIN,
       currency: "usd",
-      payment_method_types: ["card"],
+      automatic_payment_methods: { enabled: true },
       metadata: {
-        userId,
-        spins: quantity.toString(),
+        userId: user.id,
+        spins: String(quantity),
+        pricePerSpin: String(PRICE_PER_SPIN),
       },
     });
 
-    console.log(paymentIntent.payment_method_types);
-
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
-    });
-
+    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      { error: "Payment intent failed" },
-      { status: 500 }
-    );
+    console.error("Payment intent creation failed", error);
+    return NextResponse.json({ error: "Unable to start checkout." }, { status: 500 });
   }
 }

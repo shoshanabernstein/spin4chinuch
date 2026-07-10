@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -26,7 +27,6 @@ type Win = {
 };
 
 export default function DashboardPage() {
-  const [email, setEmail] = useState("");
   const [spinsLeft, setSpinsLeft] = useState(0);
   const [spinsPurchased, setSpinsPurchased] = useState(0);
   const [donations, setDonations] = useState(0);
@@ -39,8 +39,6 @@ export default function DashboardPage() {
     } = await supabase.auth.getUser();
 
     if (!user) return;
-
-    setEmail(user.email || "");
 
     const profileReq = supabase
       .from("profiles")
@@ -69,9 +67,6 @@ export default function DashboardPage() {
       paymentLogsReq,
     ]);
 
-    console.log("Logged in user:", user.id);
-    console.log("Payment Logs:", paymentLogsData);
-
     if (profile) {
       setSpinsLeft(profile.remaining_spins ?? 0);
       setSpinsPurchased(profile.total_spins ?? 0);
@@ -87,7 +82,6 @@ export default function DashboardPage() {
       0
     );
 
-    console.log("Total Donations:", totalDonations);
     setDonations(totalDonations / 100);
   }
 

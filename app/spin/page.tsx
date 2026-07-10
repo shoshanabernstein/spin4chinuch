@@ -83,7 +83,7 @@ export default function SpinPage() {
     setLoadingPrizes(true);
 
     const { data, error } = await supabase
-      .from("wheel_outcomes")
+      .from("public_wheel_outcomes")
       .select("id,label,prize_id")
       .eq("active", true)
       .order("created_at", { ascending: true });

@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 import { useAuth } from "@/components/AuthProvider";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -102,9 +103,11 @@ export default function LoginPage() {
 
       <div className="text-center mb-8">
 
-        <img
+        <Image
           src="/navbar_logo.png"
           alt="Spin4Chinuch"
+          width={700}
+          height={170}
           className="mx-auto h-16 w-auto mb-4"
         />
 
@@ -236,4 +239,18 @@ export default function LoginPage() {
 
   </main>
 );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-[#F6F9FD]">
+          <Loader2 className="animate-spin text-[#0D2C6C]" size={42} />
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
+  );
 }

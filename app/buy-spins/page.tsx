@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
-import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { supabase } from "@/lib/supabase";
 import BuySpinsHero from "@/components/buy-spins/BuySpinsHero";
@@ -56,9 +56,12 @@ export default function BuySpinsPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!user) {
-        alert("Please log in first.");
+      if (!user || !session) {
+        throw new Error("Please log in again before checking out.");
         return;
       }
 
@@ -66,10 +69,10 @@ export default function BuySpinsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           quantity,
-          userId: user.id,
         }),
       });
 
@@ -83,7 +86,8 @@ export default function BuySpinsPage() {
       setShowPayment(true);
     } catch (err) {
       console.error(err);
-      alert("Unable to start checkout.");
+      const message = err instanceof Error ? err.message : "Unable to start checkout.";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -99,9 +103,7 @@ export default function BuySpinsPage() {
           <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
         </div>
 
-        <Navbar />
-
-        <main className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-10">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-10">
 
           {/* Hero */}
           <BuySpinsHero />
@@ -130,7 +132,7 @@ export default function BuySpinsPage() {
             <PrizeCarousel prizes={prizes} />
           </section>
 
-        </main>
+        </div>
 
         {/* Stripe Drawer */}
         {showPayment && clientSecret && (
