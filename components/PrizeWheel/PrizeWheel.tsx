@@ -65,7 +65,7 @@ export default function PrizeWheel({
             {COLORS.map((color, index) => (
               <linearGradient
                 key={color}
-                id={`polishedSlice${index}`}
+                id={`sliceGradient${index}`}
                 x1="0"
                 y1="0"
                 x2="1"
