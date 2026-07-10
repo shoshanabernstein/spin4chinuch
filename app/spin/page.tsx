@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import Confetti from "react-confetti";
+import toast from "react-hot-toast";
 
-import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
@@ -38,6 +38,7 @@ export default function SpinPage() {
   const [spinning, setSpinning] = useState(false);
 
   const [winner, setWinner] = useState("");
+  const [didWin, setDidWin] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
 
   /* -----------------------------
@@ -175,6 +176,7 @@ export default function SpinPage() {
 
     setSpinning(true);
     setWinner("");
+    setDidWin(false);
 
     // Play spin sound
     if (spinSound.current) {
@@ -191,23 +193,33 @@ export default function SpinPage() {
     } = await supabase.auth.getSession();
 
     if (!session) {
+      toast.error("Your session expired. Please log in again.");
       setSpinning(false);
       return;
     }
 
     // Call API
-    const response = await fetch("/api/spin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+    let response: Response;
+
+    try {
+      response = await fetch("/api/spin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+    } catch {
+      toast.error("Could not connect. Your spin was not used.");
+      setSpinning(false);
+      return;
+    }
 
     const data = await response.json();
 
     if (!response.ok || !data.success) {
       console.error(data.error);
+      toast.error(data.error ?? "Unable to spin right now.");
       setSpinning(false);
       return;
     }
@@ -253,7 +265,7 @@ export default function SpinPage() {
       }
 
       // Winner sound
-      if (winSound.current) {
+      if (data.won && winSound.current) {
         winSound.current.currentTime = 0;
 
         winSound.current
@@ -261,9 +273,15 @@ export default function SpinPage() {
           .catch(() => { });
       }
 
-      setWinner(data.prize);
+      const won = Boolean(data.won);
+      const resultLabel =
+        data.winner?.prize?.name ??
+        data.outcomeLabel ??
+        "Try Again";
 
-      setShowConfetti(true);
+      setWinner(resultLabel);
+      setDidWin(won);
+      setShowConfetti(won);
 
       setSpinning(false);
 
@@ -287,8 +305,6 @@ export default function SpinPage() {
   return (
     <ProtectedRoute>
       <>
-        <Navbar />
-
         <main className="relative min-h-screen overflow-hidden bg-white pt-24">
 
           {/* Background */}
@@ -358,9 +374,20 @@ export default function SpinPage() {
                     rotation={rotation}
                     spinning={spinning}
                     prizes={outcomes}
+                    canSpin={canSpin}
+                    onSpin={spin}
                   />
 
                 </div>
+
+                {!loadingPrizes && outcomes.length > 0 && remainingSpins <= 0 && (
+                  <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-center">
+                    <p className="font-bold text-[#142A52]">You’re out of spins.</p>
+                    <Link href="/buy-spins" className="mt-1 inline-block font-bold text-[#4267A8] hover:underline">
+                      Get more spins
+                    </Link>
+                  </div>
+                )}
 
                 {!loadingPrizes && outcomes.length === 0 && (
 
@@ -432,24 +459,24 @@ export default function SpinPage() {
 
                   <div className="relative p-10 text-center">
 
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-yellow-500 shadow-lg">
+                    <div className={`mx-auto flex h-20 w-20 items-center justify-center rounded-full shadow-lg ${didWin ? "bg-gradient-to-br from-yellow-300 to-yellow-500" : "bg-gradient-to-br from-blue-400 to-blue-600"}`}>
 
                       <Trophy className="h-10 w-10 text-white" />
 
                     </div>
 
                     <p className="mt-6 text-sm font-bold uppercase tracking-[0.35em] text-[#4267A8]">
-                      Congratulations
+                      {didWin ? "Congratulations" : "Thanks for supporting Chinuch"}
                     </p>
 
                     <h2 className="mt-3 text-4xl font-black text-[#142A52]">
-                      You Won!
+                      {didWin ? "You Won!" : "Not This Time"}
                     </h2>
 
                     <div className="mt-8 rounded-2xl border border-yellow-200 bg-yellow-50 p-6">
 
                       <p className="text-sm font-semibold uppercase tracking-wider text-yellow-700">
-                        Your Prize
+                        {didWin ? "Your Prize" : "Your Result"}
                       </p>
 
                       <p className="mt-3 text-3xl font-black text-[#142A52]">
