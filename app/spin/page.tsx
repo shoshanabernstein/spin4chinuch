@@ -145,7 +145,13 @@ export default function SpinPage() {
           </p>
 
           <div className="mt-10 flex justify-center">
-            <PrizeWheel rotation={rotation} spinning={spinning} prizes={prizes} />
+            <PrizeWheel
+              rotation={rotation}
+              spinning={spinning}
+              prizes={prizes}
+              onSpin={spin}
+              disabled={loadingPrizes || prizes.length === 0}
+            />
           </div>
 
           <button

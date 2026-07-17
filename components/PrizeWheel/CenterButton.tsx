@@ -1,15 +1,40 @@
-
 "use client";
 
 import { motion } from "framer-motion";
 
 type Props = {
   spinning: boolean;
+  disabled?: boolean;
+  onClick: () => void;
 };
 
-export default function CenterButton({ spinning }: Props) {
+export default function CenterButton({
+  spinning,
+  disabled = false,
+  onClick,
+}: Props) {
+  const isDisabled = spinning || disabled;
+
   return (
     <motion.g
+      role="button"
+      aria-label="Spin the prize wheel"
+      aria-disabled={isDisabled}
+      tabIndex={isDisabled ? -1 : 0}
+      onClick={() => {
+        if (!isDisabled) {
+          onClick();
+        }
+      }}
+      onKeyDown={(event) => {
+        if (
+          !isDisabled &&
+          (event.key === "Enter" || event.key === " ")
+        ) {
+          event.preventDefault();
+          onClick();
+        }
+      }}
       animate={
         spinning
           ? {
@@ -22,6 +47,12 @@ export default function CenterButton({ spinning }: Props) {
       transition={{
         repeat: Infinity,
         duration: spinning ? 0.2 : 2,
+      }}
+      style={{
+        cursor: isDisabled ? "not-allowed" : "pointer",
+        transformOrigin: "450px 450px",
+        opacity: isDisabled ? 0.65 : 1,
+        pointerEvents: spinning ? "none" : "auto",
       }}
     >
       <circle
@@ -53,12 +84,14 @@ export default function CenterButton({ spinning }: Props) {
         x="450"
         y="450"
         textAnchor="middle"
+        dominantBaseline="middle"
         fontSize="34"
         fontWeight="900"
         fill="white"
         letterSpacing="2"
+        style={{ pointerEvents: "none", userSelect: "none" }}
       >
-        SPIN
+        {spinning ? "..." : "SPIN"}
       </text>
     </motion.g>
   );

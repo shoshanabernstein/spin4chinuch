@@ -11,6 +11,8 @@ type PrizeWheelProps = {
     rotation: number;
     spinning: boolean;
     prizes: { name: string }[];
+    onSpin: () => void;
+    disabled?: boolean;
 };
 
 const SIZE = 900;
@@ -21,6 +23,8 @@ export default function PrizeWheel({
     rotation,
     spinning,
     prizes,
+    onSpin,
+    disabled = false,
 }: PrizeWheelProps) {
     const slices = prizes.length || 8;
     const angle = 360 / slices;
@@ -233,7 +237,11 @@ export default function PrizeWheel({
                         opacity=".08"
                     />
 
-                    <CenterButton spinning={spinning} />
+                    <CenterButton
+                        spinning={spinning}
+                        onClick={onSpin}
+                        disabled={disabled}
+                    />
                 </svg>
             </motion.div>
         </div>
