@@ -2,190 +2,299 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
-import { supabase } from "@/lib/supabase";
 import Confetti from "react-confetti";
+import toast from "react-hot-toast";
+import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { supabase } from "@/lib/supabase";
 
-type Prize = {
-  id: string;
-  name: string;
-  quantity: number;
-  active: boolean;
+type Outcome = {
+  id: number;
+  label: string;
+  prize_id: number | null;
 };
+
+type SpinResponse = {
+  success?: boolean;
+  error?: string;
+  outcomeId?: number;
+  outcomeLabel?: string;
+  remainingSpins?: number;
+  won?: boolean;
+  winner?: {
+    prize?: { name?: string } | null;
+  };
+};
+
+const SPIN_DURATION = 7500;
 
 export default function SpinPage() {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [winner, setWinner] = useState("");
-  const [prizes, setPrizes] = useState<Prize[]>([]);
-  const [loadingPrizes, setLoadingPrizes] = useState(true);
+  const [didWin, setDidWin] = useState(false);
+  const [outcomes, setOutcomes] = useState<Outcome[]>([]);
+  const [loadingWheel, setLoadingWheel] = useState(true);
+  const [remainingSpins, setRemainingSpins] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+
   const spinSound = useRef<HTMLAudioElement | null>(null);
   const winSound = useRef<HTMLAudioElement | null>(null);
+  const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    loadPrizes();
+    void Promise.all([loadOutcomes(), loadBalance()]);
+
+    return () => {
+      if (resultTimer.current) clearTimeout(resultTimer.current);
+    };
   }, []);
 
-  async function loadPrizes() {
-    setLoadingPrizes(true);
+  async function loadOutcomes() {
+    setLoadingWheel(true);
 
-    const { data, error } = await supabase
-      .from("prizes")
-      .select("id, name, quantity, active")
-      .eq("active", true)
-      .gt("quantity", 0)
+    // This public view already limits results to active, available outcomes.
+    // It intentionally does not expose an `active` column.
+    let result = await supabase
+      .from("public_wheel_outcomes")
+      .select("id,label,prize_id")
       .order("created_at", { ascending: true });
 
-    if (error) {
-      console.error(error);
-      setPrizes([]);
-    } else {
-      setPrizes(data || []);
+    // Support databases where the public-view migration has not been applied yet.
+    if (result.error) {
+      result = await supabase
+        .from("wheel_outcomes")
+        .select("id,label,prize_id")
+        .eq("active", true)
+        .order("created_at", { ascending: true });
     }
 
-    setLoadingPrizes(false);
+    if (result.error) {
+      console.error("Unable to load wheel outcomes:", result.error);
+      setOutcomes([]);
+      toast.error(`The prize wheel could not be loaded: ${result.error.message}`);
+    } else {
+      setOutcomes((result.data as Outcome[] | null) ?? []);
+    }
+
+    setLoadingWheel(false);
+  }
+
+  async function loadBalance() {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("remaining_spins")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.error("Unable to load spin balance:", error);
+      return;
+    }
+
+    setRemainingSpins(data.remaining_spins ?? 0);
+  }
+
+  function stopSpinSound() {
+    if (!spinSound.current) return;
+    spinSound.current.pause();
+    spinSound.current.currentTime = 0;
   }
 
   async function spin() {
-    if (spinning || loadingPrizes) return;
+    if (spinning || loadingWheel) return;
 
-    if (prizes.length === 0) {
-      alert("No prizes are available right now.");
+    if (outcomes.length === 0) {
+      toast.error("No wheel outcomes are available right now.");
+      return;
+    }
+
+    if (remainingSpins <= 0) {
+      toast.error("You do not have any spins remaining.");
       return;
     }
 
     setSpinning(true);
     setWinner("");
+    setDidWin(false);
+    setShowConfetti(false);
 
     if (spinSound.current) {
       spinSound.current.currentTime = 0;
-      spinSound.current.play().catch(() => {});
+      void spinSound.current.play().catch(() => undefined);
     }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
-    if (!user || !session) {
-      alert("Please log in.");
+    if (!session) {
+      stopSpinSound();
+      toast.error("Your session expired. Please log in again.");
       setSpinning(false);
       return;
     }
 
-    const res = await fetch("/api/spin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-    });
+    let response: Response;
 
-    const data = await res.json();
-
-    if (!data.success) {
-      alert(data.error);
+    try {
+      response = await fetch("/api/spin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+    } catch {
+      stopSpinSound();
+      toast.error("Could not connect. Your spin was not used.");
       setSpinning(false);
       return;
     }
 
-    const index = prizes.findIndex((p) => p.id === data.prizeId);
+    const data = (await response.json()) as SpinResponse;
+
+    if (!response.ok || !data.success || data.outcomeId === undefined) {
+      stopSpinSound();
+      toast.error(data.error ?? "Unable to spin right now.");
+      setSpinning(false);
+      return;
+    }
+
+    const index = outcomes.findIndex((outcome) => outcome.id === data.outcomeId);
 
     if (index < 0) {
-      alert("The prize list changed. Please try again.");
-      await loadPrizes();
+      stopSpinSound();
+      toast.error("The wheel changed. Please try again.");
+      await loadOutcomes();
       setSpinning(false);
       return;
     }
 
-    const sliceAngle = 360 / prizes.length;
-    const targetRotation =
-      rotation + 360 * 8 + (360 - index * sliceAngle - sliceAngle / 2);
+    const sliceAngle = 360 / outcomes.length;
+    const desiredAngle = 360 - (index * sliceAngle + sliceAngle / 2);
+    const currentAngle = ((rotation % 360) + 360) % 360;
+    const landingOffset = ((desiredAngle - currentAngle) % 360 + 360) % 360;
 
-    setRotation(targetRotation);
+    setRotation(rotation + 360 * 7 + landingOffset);
+    setRemainingSpins(data.remainingSpins ?? Math.max(remainingSpins - 1, 0));
 
-    setTimeout(() => {
-      if (spinSound.current) {
-        spinSound.current.pause();
-        spinSound.current.currentTime = 0;
-      }
+    resultTimer.current = setTimeout(() => {
+      stopSpinSound();
 
-      if (winSound.current) {
+      const won = Boolean(data.won);
+      const resultLabel =
+        data.winner?.prize?.name ?? data.outcomeLabel ?? "Try Again";
+
+      if (won && winSound.current) {
         winSound.current.currentTime = 0;
-        winSound.current.play().catch(() => {});
+        void winSound.current.play().catch(() => undefined);
       }
 
-      setWinner(data.prize);
-      setShowConfetti(true);
+      setWinner(resultLabel);
+      setDidWin(won);
+      setShowConfetti(won);
       setSpinning(false);
-      loadPrizes();
 
-      setTimeout(() => {
-        setShowConfetti(false);
-      }, 5000);
-    }, 9000);
+      if (won) {
+        setTimeout(() => setShowConfetti(false), 4500);
+      }
+    }, SPIN_DURATION);
   }
 
-  return (
-    <>
-      <main className="min-h-screen pt-24 cy-dark-page flex items-center justify-center overflow-hidden">
-        {showConfetti && <Confetti recycle={false} numberOfPieces={400} />}
+  const canSpin = !spinning && !loadingWheel && outcomes.length > 0;
 
-        <div className="max-w-7xl mx-auto px-8 py-12 flex flex-col items-center">
-          <h1 className="text-5xl md:text-7xl font-black text-center text-white">
+  return (
+    <ProtectedRoute>
+      <main className="min-h-screen cy-dark-page px-4 py-12 text-white sm:px-6">
+        {showConfetti && <Confetti recycle={false} numberOfPieces={350} />}
+
+        <div className="mx-auto flex max-w-6xl flex-col items-center">
+          <p className="text-sm font-bold uppercase tracking-[0.3em] text-[#8fe5ef]">
+            Spin4Chinuch
+          </p>
+          <h1 className="mt-3 text-center text-5xl font-black md:text-7xl">
             Spin to Win
           </h1>
-
-          <p className="text-[#8fe5ef] text-xl md:text-2xl mt-5 text-center">
-            Every spin supports Jewish education
+          <p className="mt-4 text-center text-lg text-blue-100">
+            Every spin supports Jewish education.
           </p>
 
-          <div className="mt-10 flex justify-center">
-            <PrizeWheel
-              rotation={rotation}
-              spinning={spinning}
-              prizes={prizes}
-              onSpin={spin}
-              disabled={loadingPrizes || prizes.length === 0}
-            />
+          <div className="mt-5 rounded-full border border-white/15 bg-white/10 px-5 py-2 font-bold">
+            {remainingSpins} {remainingSpins === 1 ? "spin" : "spins"} remaining
           </div>
 
-          <button
-            onClick={spin}
-            disabled={spinning || loadingPrizes || prizes.length === 0}
-            className="mt-14 px-8 md:px-16 py-5 md:py-6 rounded-2xl text-2xl md:text-3xl font-black bg-gradient-to-r from-[#d6a84f] to-[#16a6b8] text-white shadow-[0_0_40px_rgba(15,141,179,.45)] hover:scale-105 hover:shadow-[0_0_70px_rgba(214,168,79,.35)] transition disabled:opacity-50 disabled:hover:scale-100"
-          >
-            {loadingPrizes ? "LOADING PRIZES..." : spinning ? "SPINNING..." : "SPIN THE WHEEL"}
-          </button>
+          <div className="mt-10 flex min-h-[420px] w-full items-center justify-center">
+            {loadingWheel ? (
+              <div className="text-center">
+                <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-white/20 border-t-[#d6a84f]" />
+                <p className="mt-4 font-bold">Loading the prize wheel…</p>
+              </div>
+            ) : outcomes.length === 0 ? (
+              <div className="max-w-lg rounded-3xl border border-white/10 bg-white/10 p-8 text-center">
+                <h2 className="text-2xl font-black">The wheel is unavailable</h2>
+                <p className="mt-3 text-blue-100">
+                  No active outcomes could be loaded. Check the Supabase migration and wheel outcomes table.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void loadOutcomes()}
+                  className="mt-6 rounded-xl bg-[#d6a84f] px-6 py-3 font-black text-[#12304a]"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : (
+              <PrizeWheel
+                rotation={rotation}
+                spinning={spinning}
+                prizes={outcomes}
+                canSpin={canSpin}
+                onSpin={() => void spin()}
+              />
+            )}
+          </div>
 
-          {!loadingPrizes && prizes.length === 0 && (
-            <p className="mt-6 max-w-xl text-center text-[#dff5f8]">
-              Prizes are being restocked. Please check back soon.
+          {!loadingWheel && outcomes.length > 0 && (
+            <p className="mt-5 text-center text-blue-100">
+              Press the center of the wheel to spin.
             </p>
           )}
 
+          {remainingSpins <= 0 && !loadingWheel && (
+            <Link
+              href="/buy-spins"
+              className="mt-7 rounded-2xl bg-gradient-to-r from-[#d6a84f] to-[#16a6b8] px-8 py-4 text-xl font-black text-white"
+            >
+              Buy Spins
+            </Link>
+          )}
+
           {winner && (
-            <div className="mt-14 bg-white/10 backdrop-blur-xl border border-[#d6a84f] rounded-3xl px-8 md:px-12 py-10 shadow-2xl text-center animate-pulse text-white">
-              <h2 className="text-4xl md:text-5xl font-black text-[#8fe5ef]">
-                Congratulations!
+            <div className="mt-10 w-full max-w-xl rounded-3xl border border-[#d6a84f] bg-white/10 p-8 text-center shadow-2xl backdrop-blur-xl">
+              <h2 className="text-4xl font-black text-[#8fe5ef]">
+                {didWin ? "Congratulations!" : "Thanks for spinning!"}
               </h2>
-
-              <p className="mt-6 text-2xl md:text-3xl font-bold">You won:</p>
-
-              <p className="mt-4 text-4xl md:text-5xl font-black text-[#d6a84f]">
-                {winner}
-              </p>
-
-              <Link
-                href="/dashboard"
-                className="inline-block mt-8 bg-[#d6a84f] text-[#12304a] font-bold px-8 py-4 rounded-xl hover:scale-105 transition"
-              >
-                Return to Dashboard
-              </Link>
+              <p className="mt-5 text-xl">{didWin ? "You won:" : "Your result:"}</p>
+              <p className="mt-3 text-4xl font-black text-[#d6a84f]">{winner}</p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setWinner("")}
+                  className="rounded-xl bg-[#0f8db3] px-6 py-3 font-bold"
+                >
+                  Close
+                </button>
+                <Link href="/dashboard" className="rounded-xl bg-[#d6a84f] px-6 py-3 font-bold text-[#12304a]">
+                  Dashboard
+                </Link>
+              </div>
             </div>
           )}
         </div>
@@ -193,6 +302,6 @@ export default function SpinPage() {
         <audio ref={spinSound} src="/sounds/spin.mp3" preload="auto" />
         <audio ref={winSound} src="/sounds/win.mp3" preload="auto" />
       </main>
-    </>
+    </ProtectedRoute>
   );
 }
