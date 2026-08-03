@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 
 export default function ProtectedRoute({
@@ -11,12 +12,13 @@ export default function ProtectedRoute({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/login");
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
-  }, [loading, user, router]);
+  }, [loading, pathname, user, router]);
 
   if (loading) {
     return (

@@ -22,14 +22,14 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
 
   function scrollLeft() {
     containerRef.current?.scrollBy({
-      left: -320,
+      left: -334,
       behavior: "smooth",
     });
   }
 
   function scrollRight() {
     containerRef.current?.scrollBy({
-      left: 320,
+      left: 334,
       behavior: "smooth",
     });
   }
@@ -45,7 +45,7 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
       if (el.scrollLeft >= maxScroll - 10) {
         el.scrollTo({ left: 0, behavior: "smooth" });
       } else {
-        el.scrollBy({ left: 320, behavior: "smooth" });
+        el.scrollBy({ left: 334, behavior: "smooth" });
       }
     }, 3500);
 
@@ -83,14 +83,18 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
           {/* Buttons */}
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={scrollLeft}
+              aria-label="Show previous prizes"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
             >
               <ChevronLeft size={18} />
             </button>
 
             <button
+              type="button"
               onClick={scrollRight}
+              aria-label="Show next prizes"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
             >
               <ChevronRight size={18} />
@@ -113,10 +117,10 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
           "
         >
           {prizes.map((prize) => (
-            <div key={prize.id} className="snap-start">
+            <div key={prize.id} className="flex w-[280px] shrink-0 snap-start sm:w-[310px]">
               <PrizeCard
                 name={prize.name}
-                imageUrl={prize.image_url || "/placeholder-prize.png"}
+                imageUrl={prize.image_url}
                 retailValue={prize.retail_value}
                 sponsorName={prize.sponsor_name}
               />

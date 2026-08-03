@@ -95,9 +95,9 @@ function LoginForm() {
   }
 
   return (
-  <main className="min-h-screen bg-[#F6F9FD] flex items-center justify-center px-6 py-20">
+  <main className="app-page flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16">
 
-    <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl border border-slate-200 p-10">
+    <div className="relative w-full max-w-md rounded-3xl border border-blue-100 bg-white p-6 shadow-[0_24px_70px_rgba(20,42,82,.14)] sm:p-10">
 
       {/* Logo / Header */}
 
@@ -165,6 +165,7 @@ function LoginForm() {
 
             <button
               type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
               onClick={() =>
                 setShowPassword(!showPassword)
               }

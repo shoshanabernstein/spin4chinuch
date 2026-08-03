@@ -7,7 +7,7 @@ import Button from "@/components/ui/Button";
 
 export default function Actions() {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24">
+    <section id="actions" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24">
       <div className="mx-auto mb-16 max-w-3xl text-center">
         <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-[#4267A8]">
           Get Started

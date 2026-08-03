@@ -140,9 +140,9 @@ export default function SignupPage() {
 
   }
   return (
-    <main className="min-h-screen bg-[#F6F9FD] py-20 px-6 flex justify-center">
+    <main className="app-page flex justify-center px-4 py-10 sm:px-6 sm:py-16">
 
-      <div className="w-full max-w-3xl rounded-3xl bg-white border border-slate-200 shadow-2xl p-10">
+      <div className="relative w-full max-w-3xl rounded-3xl border border-blue-100 bg-white p-6 shadow-[0_24px_70px_rgba(20,42,82,.14)] sm:p-10">
 
         <div className="text-center mb-10">
 
@@ -169,6 +169,7 @@ export default function SignupPage() {
 
             <input
               name="first_name"
+              aria-label="First name"
               placeholder="First Name"
               required
               value={form.first_name}
@@ -178,6 +179,7 @@ export default function SignupPage() {
 
             <input
               name="last_name"
+              aria-label="Last name"
               placeholder="Last Name"
               required
               value={form.last_name}
@@ -190,6 +192,7 @@ export default function SignupPage() {
           <input
             type="email"
             name="email"
+            aria-label="Email address"
             placeholder="Email Address"
             required
             value={form.email}
@@ -203,6 +206,7 @@ export default function SignupPage() {
             <input
               type={showPassword ? "text" : "password"}
               name="password"
+              aria-label="Password"
               placeholder="Password"
               required
               value={form.password}
@@ -212,6 +216,7 @@ export default function SignupPage() {
 
             <button
               type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-4 top-1/2 -translate-y-1/2"
             >
@@ -253,6 +258,7 @@ export default function SignupPage() {
             <input
               type={showConfirm ? "text" : "password"}
               name="confirmPassword"
+              aria-label="Confirm password"
               placeholder="Confirm Password"
               required
               value={form.confirmPassword}
@@ -262,6 +268,7 @@ export default function SignupPage() {
 
             <button
               type="button"
+              aria-label={showConfirm ? "Hide confirmed password" : "Show confirmed password"}
               onClick={() => setShowConfirm(!showConfirm)}
               className="absolute right-4 top-1/2 -translate-y-1/2"
             >
@@ -272,6 +279,7 @@ export default function SignupPage() {
 
           <input
             name="phone"
+            aria-label="Phone number"
             placeholder="Phone Number"
             required
             value={form.phone}
@@ -288,6 +296,7 @@ export default function SignupPage() {
 
           <input
             name="address1"
+            aria-label="Address line 1"
             placeholder="Address Line 1"
             required
             value={form.address1}
@@ -297,6 +306,7 @@ export default function SignupPage() {
 
           <input
             name="address2"
+            aria-label="Address line 2"
             placeholder="Address Line 2 (Optional)"
             value={form.address2}
             onChange={handleChange}
@@ -307,6 +317,7 @@ export default function SignupPage() {
 
             <input
               name="city"
+              aria-label="City"
               placeholder="City"
               required
               value={form.city}
@@ -316,6 +327,7 @@ export default function SignupPage() {
 
             <select
               name="state"
+              aria-label="State"
               required
               value={form.state}
               onChange={(e) =>
@@ -338,6 +350,7 @@ export default function SignupPage() {
 
             <input
               name="zip"
+              aria-label="ZIP or postal code"
               placeholder="ZIP Code"
               required
               value={form.zip}
@@ -347,6 +360,7 @@ export default function SignupPage() {
 
             <select
               name="country"
+              aria-label="Country"
               required
               value={form.country}
               onChange={(e) =>

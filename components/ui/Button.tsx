@@ -28,7 +28,7 @@ export default function Button({
   type = "button",
 }: ButtonProps) {
   const base =
-    "inline-flex items-center justify-center rounded-full px-6 py-3 font-semibold transition-all duration-300 shadow-lg hover:scale-105";
+    "inline-flex min-h-12 items-center justify-center rounded-full px-6 py-3 font-bold transition-all duration-300 shadow-md hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200";
 
   const variants: Record<Variant, string> = {
     primary:

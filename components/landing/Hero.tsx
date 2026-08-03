@@ -54,12 +54,12 @@ export default function Hero() {
 
           <div className="mt-10 flex items-center gap-6">
 
-            <Button href="#Actions" variant="gold">
+            <Button href="#actions" variant="gold">
               Buy Spins
             </Button>
 
             <a
-              href="#About"
+              href="#about"
               className="flex items-center gap-2 font-semibold text-white transition hover:text-[#E7C96D]"
             >
               Learn More

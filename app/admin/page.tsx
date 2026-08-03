@@ -1,196 +1,70 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { CircleDashed, Gift, Shield, Ticket, Trophy, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import ActionCard from "@/components/ui/ActionCard";
+import StatCard from "@/components/ui/StatCard";
+
+type AdminStats = {
+  users: number;
+  prizes: number;
+  activePrizes: number;
+  winners: number;
+};
 
 export default function AdminPage() {
-  type Prize = {
-    id: number;
-    name: string;
-    quantity: number;
-    active: boolean;
-  };
-  const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [stats, setStats] = useState<AdminStats>({ users: 0, prizes: 0, activePrizes: 0, winners: 0 });
   const [loading, setLoading] = useState(true);
 
-  async function loadPrizes() {
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("prizes")
-      .select("*")
-      .order("created_at", { ascending: true });
-
-    if (error) {
-      window.alert(`Unable to load prizes: ${error.message}`);
-    }
-    setPrizes(data || []);
-    setLoading(false);
-  }
-
-  async function deletePrize(id: number) {
-    const confirmed = confirm("Archive this prize?");
-
-    if (!confirmed) return;
-
-    const { error } = await supabase
-      .from("prizes")
-      .update({ active: false })
-      .eq("id", id);
-
-    if (error) {
-      window.alert(`Unable to archive prize: ${error.message}`);
-      return;
-    }
-
-    loadPrizes();
-  }
-
   useEffect(() => {
-    loadPrizes();
+    async function loadStats() {
+      const [users, prizes, activePrizes, winners] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("prizes").select("id", { count: "exact", head: true }),
+        supabase.from("prizes").select("id", { count: "exact", head: true }).eq("active", true),
+        supabase.from("wins").select("id", { count: "exact", head: true }),
+      ]);
+      setStats({
+        users: users.count ?? 0,
+        prizes: prizes.count ?? 0,
+        activePrizes: activePrizes.count ?? 0,
+        winners: winners.count ?? 0,
+      });
+      setLoading(false);
+    }
+    void loadStats();
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 p-10">
-      <div className="max-w-7xl mx-auto">
-
-        <div className="flex justify-between items-center mb-10">
-          <div>
-            <h1 className="text-5xl font-extrabold text-blue-700">
-              Admin Dashboard
-            </h1>
-
-            <p className="text-gray-500 mt-2">
-              Manage your Spin4Chinuch prizes
-            </p>
+    <main className="app-page">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
+      </div>
+      <div className="app-container">
+        <section className="page-hero">
+          <div className="absolute right-0 top-0 h-full w-72 bg-[url('/wheel-watermark.png')] bg-contain bg-right bg-no-repeat opacity-[0.06]" />
+          <div className="relative">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#4267A8]">Administration</p>
+            <h1 className="mt-1 text-4xl font-black text-[#142A52]">Admin Dashboard</h1>
+            <p className="mt-2 max-w-2xl text-slate-500">Manage users, prizes, wheel outcomes, and winners from one place.</p>
           </div>
+        </section>
 
-          <Link
-            href="/dashboard"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/admin/outcomes"
-            className="bg-[#142A52] hover:bg-[#23457F] text-white px-6 py-3 rounded-xl"
-          >
-            Wheel Outcomes
-          </Link>
-        </div>
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-busy={loading}>
+          <StatCard label="Registered Users" value={loading ? "—" : stats.users} icon={<Users />} />
+          <StatCard label="Total Prizes" value={loading ? "—" : stats.prizes} icon={<Gift />} />
+          <StatCard label="Active Prizes" value={loading ? "—" : stats.activePrizes} icon={<Trophy />} />
+          <StatCard label="Recorded Wins" value={loading ? "—" : stats.winners} icon={<Ticket />} />
+        </section>
 
-        <div className="grid md:grid-cols-4 gap-6 mb-10">
-
-          <div className="bg-white rounded-3xl shadow-lg p-6">
-            <div className="text-4xl">🎁</div>
-
-            <p className="text-gray-500 mt-4">
-              Total Prizes
-            </p>
-
-            <h2 className="text-4xl font-bold text-blue-600">
-              {prizes.length}
-            </h2>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg p-6">
-            <div className="text-4xl">🏆</div>
-
-            <p className="text-gray-500 mt-4">
-              Active
-            </p>
-
-            <h2 className="text-4xl font-bold text-green-600">
-              {prizes.filter(p => p.active).length}
-            </h2>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg p-6">
-            <div className="text-4xl">❌</div>
-
-            <p className="text-gray-500 mt-4">
-              Disabled
-            </p>
-
-            <h2 className="text-4xl font-bold text-red-600">
-              {prizes.filter(p => !p.active).length}
-            </h2>
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-lg p-6">
-            <Link
-              href="/admin/new-prize"
-              className="flex items-center justify-center h-full text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-5 hover:scale-105 transition"
-            >
-              ➕ Add Prize
-            </Link>
-          </div>
-
-        </div>
-
-        {loading ? (
-          <div className="text-center text-2xl">
-            Loading...
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-
-            {prizes.map((prize) => (
-              <div
-                key={prize.id}
-                className="bg-white rounded-3xl shadow-xl p-6 hover:shadow-2xl transition"
-              >
-                <div className="flex justify-between items-start">
-
-                  <div>
-                    <h2 className="text-2xl font-bold text-blue-700">
-                      {prize.name}
-                    </h2>
-
-                    <p className="mt-3 text-gray-600">
-                      Remaining:{" "}
-                      <span className="font-bold">
-                        {prize.quantity}
-                      </span>
-                    </p>
-
-                    <p className="text-gray-600">
-                      Odds are managed through wheel outcomes.
-                    </p>
-
-                    <p
-                      className={`mt-4 font-semibold ${prize.active
-                        ? "text-green-600"
-                        : "text-red-600"
-                        }`}
-                    >
-                      {prize.active ? "🟢 Active" : "🔴 Disabled"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 mt-8">
-
-
-                  <Link href={`/admin/edit/${prize.id}`}>
-                    Edit
-                  </Link>
-
-                  <button
-                    onClick={() => deletePrize(prize.id)}
-                    className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl"
-                  >
-                    Archive
-                  </button>
-
-                </div>
-              </div>
-            ))}
-
-          </div>
-        )}
+        <section className="grid gap-5 lg:grid-cols-2">
+          <ActionCard title="Users" description="Manage roles, spin balances, and account access." buttonText="Manage Users" href="/admin/users" icon={<Shield size={28} />} />
+          <ActionCard title="Prizes" description="Create, edit, archive, and restore fundraiser prizes." buttonText="Manage Prizes" href="/admin/prizes" icon={<Gift size={28} />} />
+          <ActionCard title="Wheel Outcomes" description="Control wheel labels, prize links, weights, and availability." buttonText="Manage Outcomes" href="/admin/outcomes" icon={<CircleDashed size={28} />} />
+          <ActionCard title="Winners" description="Review winner history and fulfillment information." buttonText="View Winners" href="/admin/winners" icon={<Trophy size={28} />} />
+        </section>
       </div>
     </main>
   );

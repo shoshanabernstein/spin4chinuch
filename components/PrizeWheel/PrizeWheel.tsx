@@ -13,10 +13,33 @@ type Prize = {
 type PrizeWheelProps = {
   rotation: number;
   spinning: boolean;
+  spinPhase: "idle" | "requesting" | "revealing";
   canSpin: boolean;
   onSpin: () => void;
   prizes: Prize[];
 };
+
+function splitWheelLabel(label: string) {
+  const compact = label
+    .replace(/\s*\(up to 6\)\s*/i, " ")
+    .replace(/\bGift Cards?\b/gi, "")
+    .replace(/\bSession\b/gi, "")
+    .replace(/Music Theory Lesson/i, "Music Lesson")
+    .trim();
+  const words = compact.split(/\s+/);
+  const lines: string[] = [];
+
+  for (const word of words) {
+    const current = lines.at(-1);
+    if (!current || (current.length + word.length + 1 > 13 && lines.length < 2)) {
+      lines.push(word);
+    } else {
+      lines[lines.length - 1] = `${current} ${word}`;
+    }
+  }
+
+  return lines.slice(0, 2);
+}
 
 const SIZE = 900;
 const CENTER = 450;
@@ -35,6 +58,7 @@ const COLORS = [
 export default function PrizeWheel({
   rotation,
   spinning,
+  spinPhase,
   canSpin,
   onSpin,
   prizes,
@@ -51,7 +75,13 @@ export default function PrizeWheel({
       <motion.div
         className="absolute inset-0"
         animate={{ rotate: rotation }}
-        transition={{ duration: 7.5, ease: [0.12, 0.82, 0.16, 1] }}
+        transition={
+          spinPhase === "requesting"
+            ? { duration: 2.4, ease: "linear" }
+            : spinPhase === "revealing"
+              ? { duration: 7.5, ease: [0.12, 0.82, 0.16, 1] }
+              : { duration: 0.2 }
+        }
       >
         <svg
           width={SIZE}
@@ -77,6 +107,12 @@ export default function PrizeWheel({
               </linearGradient>
             ))}
 
+            <linearGradient id={`sliceGradient${COLORS.length}`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#334155" />
+              <stop offset="52%" stopColor="#17263A" />
+              <stop offset="100%" stopColor="#07111F" />
+            </linearGradient>
+
             <linearGradient id="outerGold" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#F5DE98" />
               <stop offset="28%" stopColor="#C9A44D" />
@@ -92,6 +128,9 @@ export default function PrizeWheel({
 
             <filter id="softWheelShadow">
               <feDropShadow dx="0" dy="14" stdDeviation="18" floodOpacity="0.3" />
+            </filter>
+            <filter id="labelShadow">
+              <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.65" />
             </filter>
           </defs>
 
@@ -122,32 +161,38 @@ export default function PrizeWheel({
                 radius={RADIUS}
                 startAngle={index * angle}
                 endAngle={(index + 1) * angle}
-                gradientIndex={index % COLORS.length}
+                gradientIndex={prize.prize_id ? index % COLORS.length : COLORS.length}
               />
             ))}
 
           {prizes.length > 0 &&
             prizes.map((prize, index) => {
               const textAngle = index * angle + angle / 2;
-              const label =
-                prize.label.length > 17
-                  ? `${prize.label.slice(0, 15)}…`
-                  : prize.label;
+              const labelLines = splitWheelLabel(prize.label);
+              const firstLineY = 125 - (labelLines.length - 1) * 11;
 
               return (
                 <text
                   key={`label-${prize.id}`}
                   x={CENTER}
-                  y="136"
+                  y={firstLineY}
                   fill="white"
-                  fontSize={prizes.length > 10 ? "18" : "22"}
+                  fontSize={prizes.length > 10 ? "20" : "23"}
                   fontWeight="750"
                   textAnchor="middle"
-                  letterSpacing=".3"
+                  letterSpacing=".15"
                   transform={`rotate(${textAngle} ${CENTER} ${CENTER})`}
-                  style={{ textShadow: "0 2px 5px rgba(0,0,0,.35)" }}
+                  filter="url(#labelShadow)"
                 >
-                  {label}
+                  {labelLines.map((line, lineIndex) => (
+                    <tspan
+                      key={`${prize.id}-${lineIndex}`}
+                      x={CENTER}
+                      dy={lineIndex === 0 ? 0 : 25}
+                    >
+                      {line}
+                    </tspan>
+                  ))}
                 </text>
               );
             })}

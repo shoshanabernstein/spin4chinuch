@@ -1,116 +1,45 @@
 "use client";
-/* eslint-disable react-hooks/immutability, react-hooks/exhaustive-deps */
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
+import PrizeForm, { PrizeFormValues } from "@/components/admin/PrizeForm";
 import { supabase } from "@/lib/supabase";
 
 export default function EditPrizePage() {
-  const { id } = useParams();
-  const router = useRouter();
-
-  const [name, setName] = useState("");
-  const [quantity, setQuantity] = useState(0);
-  const [active, setActive] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const params = useParams<{ id: string }>();
+  const prizeId = Number(params.id);
+  const [prize, setPrize] = useState<PrizeFormValues | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    loadPrize();
-  }, []);
-
-  async function loadPrize() {
-    const { data, error } = await supabase
-      .from("prizes")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      alert("Prize not found");
-      router.push("/admin");
-      return;
+    async function loadPrize() {
+      if (!Number.isInteger(prizeId)) { setFailed(true); return; }
+      const { data, error } = await supabase.from("prizes").select("name,quantity,active,image_url,retail_value,sponsor_name,delivery_type,delivery_instructions").eq("id", prizeId).single();
+      if (error) { toast.error("Prize not found."); setFailed(true); return; }
+      setPrize({
+        name: data.name,
+        quantity: data.quantity,
+        active: data.active,
+        image_url: data.image_url ?? "",
+        retail_value: data.retail_value,
+        sponsor_name: data.sponsor_name ?? "",
+        delivery_type: data.delivery_type ?? "",
+        delivery_instructions: data.delivery_instructions ?? "",
+      });
     }
-
-    setName(data.name);
-    setQuantity(data.quantity);
-    setActive(data.active);
-    setLoading(false);
-  }
-
-  async function savePrize() {
-    const { error } = await supabase
-      .from("prizes")
-      .update({
-        name,
-        quantity,
-        active,
-      })
-      .eq("id", id);
-
-    if (error) {
-      console.error(error);
-      alert("Failed to update prize");
-      return;
-    }
-
-    router.push("/admin");
-    router.refresh();
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center">
-        Loading...
-      </main>
-    );
-  }
+    void loadPrize();
+  }, [prizeId]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-8">
-      <div className="w-full max-w-xl bg-white rounded-3xl shadow-2xl p-10">
-
-        <h1 className="text-4xl font-bold text-blue-700 mb-8">
-          ✏️ Edit Prize
-        </h1>
-
-        <div className="space-y-6">
-
-          <div>
-            <label className="font-semibold">Prize Name</label>
-            <input
-              className="w-full border rounded-xl p-4 mt-2"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold">Quantity</label>
-            <input
-              type="number"
-              className="w-full border rounded-xl p-4 mt-2"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={active}
-              onChange={(e) => setActive(e.target.checked)}
-            />
-            <label>Active</label>
-          </div>
-
-          <button
-            onClick={savePrize}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl text-xl font-bold"
-          >
-            Save Changes
-          </button>
-
-        </div>
+    <main className="app-page">
+      <div className="app-container max-w-4xl">
+        <section className="page-hero">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#4267A8]">Prize Management</p>
+          <h1 className="mt-1 text-4xl font-black">Edit Prize</h1>
+          <p className="mt-2 text-slate-500">Update inventory, presentation, and fulfillment details.</p>
+        </section>
+        {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
       </div>
     </main>
   );

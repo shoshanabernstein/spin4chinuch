@@ -1,11 +1,10 @@
-import Image from "next/image";
 import { GraduationCap, HeartHandshake, School } from "lucide-react";
 
 export default function About() {
   return (
     <section
       id="about"
-      className="mx-auto max-w-7xl px-6 pt-6 pb-16"
+      className="mx-auto max-w-7xl scroll-mt-28 px-6 pt-6 pb-16"
     >
 
       <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -82,22 +81,21 @@ export default function About() {
 
           <div className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-2xl">
 
-            {/* Replace with your image */}
-            <Image
-              src="/children-learning.jpg"
-              alt="Children learning"
-              width={800}
-              height={900}
-              className="h-[600px] w-full object-cover"
-            />
+            <video
+              className="aspect-video w-full bg-[#071628] object-contain"
+              controls
+              playsInline
+              preload="metadata"
+              aria-label="Chinuch Yehudi in action"
+            >
+              <source src="/app_video.mp4" type="video/mp4" />
+              Your browser does not support embedded video.
+            </video>
 
-            {/* Overlay */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#142A52]/90 via-[#142A52]/40 to-transparent p-8">
-
-              <h3 className="text-3xl font-bold text-white">
+            <div className="border-t border-blue-100 bg-white p-6 sm:p-8">
+              <h3 className="text-2xl font-bold text-[#142A52] sm:text-3xl">
                 Every Child Deserves a Jewish Education
               </h3>
-
             </div>
 
           </div>

@@ -41,7 +41,7 @@ export default function HowItWorks() {
 
         <LandingCard
           title="3. Win Prizes"
-          description="If the wheel lands on a winning space, you'll receive your prize immediately."
+          description="If the wheel lands on a winning space, your win is saved and our team coordinates prize delivery."
           icon={<Trophy size={30} />}
         />
 

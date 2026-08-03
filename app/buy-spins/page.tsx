@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -39,6 +40,7 @@ export default function BuySpinsPage() {
         .from("prizes")
         .select("*")
         .eq("active", true)
+        .gt("quantity", 0)
         .order("id", { ascending: true });
 
       if (!error) {
@@ -48,6 +50,15 @@ export default function BuySpinsPage() {
 
     fetchPrizes();
   }, []);
+
+  useEffect(() => {
+    if (!showPayment) return;
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setShowPayment(false);
+    }
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [showPayment]);
 
   async function startCheckout() {
     setLoading(true);
@@ -95,7 +106,7 @@ export default function BuySpinsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="app-page">
 
         {/* Background (matches Dashboard) */}
         <div className="pointer-events-none absolute inset-0">
@@ -103,7 +114,7 @@ export default function BuySpinsPage() {
           <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-10">
+        <div className="app-container">
 
           {/* Hero */}
           <BuySpinsHero />
@@ -136,7 +147,7 @@ export default function BuySpinsPage() {
 
         {/* Stripe Drawer */}
         {showPayment && clientSecret && (
-          <div className="fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
 
             {/* Overlay */}
             <div
@@ -149,7 +160,16 @@ export default function BuySpinsPage() {
 
               <div className="border-b p-6">
 
-                <h2 className="text-3xl font-black text-[#142A52]">
+                <button
+                  type="button"
+                  onClick={() => setShowPayment(false)}
+                  aria-label="Close checkout"
+                  className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+
+                <h2 id="checkout-title" className="pr-12 text-3xl font-black text-[#142A52]">
                   Secure Checkout
                 </h2>
 

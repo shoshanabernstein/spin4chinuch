@@ -48,6 +48,12 @@ export default function Navbar() {
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="font-semibold text-white transition hover:text-blue-300">{link.label}</Link>
           ))}
+          <Link
+            href="/buy-spins"
+            className="rounded-full bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] px-5 py-2.5 font-black text-[#142A52] shadow-lg transition hover:-translate-y-0.5 hover:brightness-105"
+          >
+            Buy Spins
+          </Link>
           <div ref={accountRef} className="relative">
             <button type="button" onClick={() => setAccountOpen((open) => !open)} aria-expanded={accountOpen} className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] px-5 py-2.5 font-bold text-white shadow-lg transition hover:brightness-110">
               Account <ChevronDown className={`h-4 w-4 transition ${accountOpen ? "rotate-180" : ""}`} />
@@ -77,6 +83,7 @@ export default function Navbar() {
 
       {mobileOpen && (
         <div className="border-t border-white/10 bg-[#071628] px-4 pb-5 pt-3 lg:hidden">
+          <Link href="/buy-spins" onClick={() => setMobileOpen(false)} className="mb-2 block rounded-xl bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] px-4 py-3 text-center font-black text-[#142A52]">Buy Spins</Link>
           {links.map((link) => <Link key={link.href} href={link.href} onClick={() => setMobileOpen(false)} className="block rounded-xl px-4 py-3 font-semibold text-white hover:bg-white/5">{link.label}</Link>)}
           {user ? (
             <>

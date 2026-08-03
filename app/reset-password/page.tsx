@@ -97,9 +97,9 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F6F9FD] flex items-center justify-center px-6 py-20">
+    <main className="app-page flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16">
 
-      <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-[0_20px_60px_rgba(13,44,108,0.15)] p-10">
+      <div className="relative w-full max-w-lg rounded-3xl border border-blue-100 bg-white p-6 shadow-[0_24px_70px_rgba(20,42,82,.14)] sm:p-10">
 
         <Image
           src="/navbar_logo.png"

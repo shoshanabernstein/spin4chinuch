@@ -16,7 +16,7 @@ export default function QuantitySelector({
   }
 
   function increase() {
-    setQuantity((prev) => prev + 1);
+    setQuantity((prev) => Math.min(100, prev + 1));
   }
 
   return (
@@ -29,7 +29,9 @@ export default function QuantitySelector({
         <button
           type="button"
           onClick={decrease}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF4FF] text-[#4267A8] shadow transition-all duration-200 hover:scale-105 hover:bg-[#4267A8] hover:text-white active:scale-95"
+          disabled={quantity <= 1}
+          aria-label="Remove one spin"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#EEF4FF] text-[#4267A8] shadow transition-all duration-200 hover:scale-105 hover:bg-[#4267A8] hover:text-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
         >
           <Minus size={22} />
         </button>
@@ -54,7 +56,9 @@ export default function QuantitySelector({
         <button
           type="button"
           onClick={increase}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C9A44D] text-white shadow transition-all duration-200 hover:scale-105 hover:brightness-105 active:scale-95"
+          disabled={quantity >= 100}
+          aria-label="Add one spin"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#C9A44D] text-white shadow transition-all duration-200 hover:scale-105 hover:brightness-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
         >
           <Plus size={22} />
         </button>

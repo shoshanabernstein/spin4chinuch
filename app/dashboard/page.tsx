@@ -17,7 +17,6 @@ import {
   Ticket,
   CircleDashed,
   Trophy,
-  Shield,
 } from "lucide-react";
 
 type Win = {
@@ -97,7 +96,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="app-page">
 
         {/* Background */}
         <div className="pointer-events-none absolute inset-0">
@@ -106,9 +105,9 @@ export default function DashboardPage() {
         </div>
 
         {/* ✅ UNIFIED SPACING SYSTEM */}
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-8">
+        <div className="app-container">
           {/* Hero */}
-          <section className="relative overflow-hidden rounded-[28px] border border-blue-100 bg-white p-5 sm:p-6 lg:p-8 shadow-lg">
+          <section className="page-hero">
            
 
 <Image
@@ -241,22 +240,13 @@ export default function DashboardPage() {
 
           {/* ADMIN */}
           {role === "admin" && (
-            <Panel
-              title="👑 Admin Tools"
-              subtitle="Administrative actions"
-            >
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-
-                <ActionCard title="Users" description="Manage registered users" buttonText="Manage Users" href="/admin/users" icon={<Shield size={24} />} />
-
-                <ActionCard title="Prizes" description="Manage available prizes" buttonText="Manage Prizes" href="/admin/prizes" icon={<Trophy size={24} />} />
-
-                <ActionCard title="Winners" description="View winning history" buttonText="View Winners" href="/admin/winners" icon={<Ticket size={24} />} />
-
-                <ActionCard title="Dashboard" description="Open admin dashboard" buttonText="Admin Dashboard" href="/admin" icon={<DollarSign size={24} />} />
-
-              </div>
-            </Panel>
+            <ActionCard
+              title="Admin Dashboard"
+              description="Manage users, prizes, wheel outcomes, and winners."
+              buttonText="Open Admin Dashboard"
+              href="/admin"
+              icon={<DollarSign size={28} />}
+            />
           )}
         </div>
       </div>

@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 
 type Prize = { id: number; name: string };
@@ -29,8 +30,8 @@ export default function OutcomesAdminPage() {
       supabase.from("prizes").select("id,name").eq("active", true).gt("quantity", 0).order("name"),
     ]);
 
-    if (outcomeResult.error) window.alert(outcomeResult.error.message);
-    if (prizeResult.error) window.alert(prizeResult.error.message);
+    if (outcomeResult.error) toast.error(outcomeResult.error.message);
+    if (prizeResult.error) toast.error(prizeResult.error.message);
     setOutcomes((outcomeResult.data as Outcome[] | null) ?? []);
     setPrizes((prizeResult.data as Prize[] | null) ?? []);
   }
@@ -39,11 +40,11 @@ export default function OutcomesAdminPage() {
 
   async function createOutcome() {
     if (!label.trim() || !Number.isInteger(probability) || probability < 1) {
-      window.alert("Enter a label and a positive whole-number weight.");
+      toast.error("Enter a label and a positive whole-number weight.");
       return;
     }
     if (type === "prize" && !prizeId) {
-      window.alert("Choose a prize for a prize outcome.");
+      toast.error("Choose a prize for a prize outcome.");
       return;
     }
 
@@ -54,17 +55,27 @@ export default function OutcomesAdminPage() {
       probability,
       active: true,
     });
-    if (error) return window.alert(error.message);
+    if (error) return toast.error(error.message);
 
     setLabel("");
     setPrizeId("");
     setProbability(1);
+    toast.success("Wheel outcome added.");
     await load();
   }
 
   async function updateOutcome(id: number, patch: Partial<Outcome>) {
+    if (
+      patch.probability !== undefined &&
+      (!Number.isInteger(patch.probability) || patch.probability < 1)
+    ) {
+      toast.error("Weight must be a positive whole number.");
+      await load();
+      return;
+    }
     const { error } = await supabase.from("wheel_outcomes").update(patch).eq("id", id);
-    if (error) return window.alert(error.message);
+    if (error) return toast.error(error.message);
+    toast.success("Wheel outcome updated.");
     await load();
   }
 
@@ -73,9 +84,9 @@ export default function OutcomesAdminPage() {
     .reduce((sum, item) => sum + item.probability, 0);
 
   return (
-    <div className="min-h-screen bg-[#F6F9FD] px-4 py-10 text-[#142A52] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-8">
-        <header className="flex flex-wrap items-end justify-between gap-4">
+    <div className="app-page">
+      <div className="app-container max-w-6xl">
+        <header className="page-hero flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[.24em] text-[#4267A8]">Administration</p>
             <h1 className="mt-2 text-4xl font-black">Wheel outcomes</h1>

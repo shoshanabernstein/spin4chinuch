@@ -8,13 +8,15 @@ import { supabase } from "@/lib/supabase";
 type Prize = {
   id: string;
   name: string;
-  image_url: string;
+  image_url: string | null;
   retail_value: number | null;
   sponsor_name: string | null;
 };
 
 export default function PrizesPage() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchPrizes() {
@@ -22,27 +24,28 @@ export default function PrizesPage() {
         .from("prizes")
         .select("*")
         .eq("active", true)
+        .gt("quantity", 0)
         .order("id", { ascending: true });
 
-      if (!error) {
-        setPrizes(data || []);
-      }
+      if (error) setError("Prizes are temporarily unavailable. Please try again shortly.");
+      else setPrizes(data || []);
+      setLoading(false);
     }
 
     fetchPrizes();
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F8FAFC]">
+    <div className="app-page">
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-yellow-200/20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 space-y-12">
+      <div className="app-container">
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-xl">
+        <section className="page-hero">
 
 
 
@@ -58,7 +61,7 @@ export default function PrizesPage() {
           <div className="absolute -left-28 -top-28 h-64 w-64 rounded-full bg-blue-200/25 blur-3xl" />
           <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-yellow-200/20 blur-3xl" />
 
-          <div className="relative flex items-center justify-between gap-6 px-8 py-6 lg:px-10">
+          <div className="relative flex items-center justify-between gap-6">
 
             {/* Title */}
             <div>
@@ -101,7 +104,13 @@ export default function PrizesPage() {
 
         {/* Prize Grid */}
         <section>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {loading ? (
+            <div className="rounded-3xl border border-blue-100 bg-white py-16 text-center text-slate-500 shadow-lg">Loading prizes…</div>
+          ) : error ? (
+            <div role="alert" className="rounded-3xl border border-red-100 bg-white py-16 text-center text-red-600 shadow-lg">{error}</div>
+          ) : prizes.length === 0 ? (
+            <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">New prizes will be announced soon.</div>
+          ) : <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {prizes.map((prize) => (
               <PrizeCard
                 key={prize.id}
@@ -111,7 +120,7 @@ export default function PrizesPage() {
                 sponsorName={prize.sponsor_name}
               />
             ))}
-          </div>
+          </div>}
         </section>
       </div>
     </div>
