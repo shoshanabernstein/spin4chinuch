@@ -38,6 +38,13 @@ export default function Navbar() {
             </Link>
           ))}
 
+          <Link
+            href="/buy-spins"
+            className="rounded-full bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] px-3 py-2 text-sm font-black text-[#142A52] shadow-lg transition hover:-translate-y-0.5 hover:brightness-105 sm:px-5 md:text-base"
+          >
+            Buy Spins
+          </Link>
+
           <div className="group relative">
             <button
               type="button"
