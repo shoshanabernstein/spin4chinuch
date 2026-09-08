@@ -1,4 +1,4 @@
-import { Mail, MapPin } from "lucide-react";
+import { Globe, Mail } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 export default function Contact() {
@@ -18,7 +18,7 @@ export default function Contact() {
           </h2>
 
           <p className="mt-6 text-lg leading-8 text-slate-600">
-            Have questions about Spin4Chinuch, prizes, donations, or sponsorship
+            Have questions about Spin for Chinuch, prizes, donations, or sponsorship
             opportunities? Reach out—we&apos;re happy to help.
           </p>
 
@@ -39,16 +39,16 @@ export default function Contact() {
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4267A8] to-[#80A8F7] text-white">
-                <MapPin size={26} />
+                <Globe size={26} />
               </div>
 
               <h3 className="mt-5 text-lg font-bold text-[#142A52]">
-                Location
+                Website
               </h3>
 
-              <p className="mt-2 text-slate-600">
-                Waterbury, CT
-              </p>
+              <a href="https://chinuchyehudiusa.org/" target="_blank" rel="noopener noreferrer" className="mt-2 block text-slate-600 transition hover:text-[#2F6ED8]">
+                chinuchyehudiusa.org
+              </a>
             </div>
           </div>
 

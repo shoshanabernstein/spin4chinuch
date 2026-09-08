@@ -10,6 +10,7 @@ type Prize = {
   name: string;
   image_url: string | null;
   retail_value: number | null;
+  quantity: number;
   sponsor_name: string | null;
 };
 
@@ -25,7 +26,7 @@ export default function PrizesPage() {
         .select("*")
         .eq("active", true)
         .gt("quantity", 0)
-        .order("id", { ascending: true });
+        .order("retail_value", { ascending: false, nullsFirst: false });
 
       if (error) setError("Prizes are temporarily unavailable. Please try again shortly.");
       else setPrizes(data || []);
@@ -116,7 +117,7 @@ export default function PrizesPage() {
                 key={prize.id}
                 name={prize.name}
                 imageUrl={prize.image_url}
-                retailValue={prize.retail_value}
+                quantity={prize.quantity}
                 sponsorName={prize.sponsor_name}
               />
             ))}

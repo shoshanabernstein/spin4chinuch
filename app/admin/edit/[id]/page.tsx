@@ -15,7 +15,10 @@ export default function EditPrizePage() {
   useEffect(() => {
     async function loadPrize() {
       if (!Number.isInteger(prizeId)) { setFailed(true); return; }
-      const { data, error } = await supabase.from("prizes").select("name,quantity,active,image_url,retail_value,sponsor_name,delivery_type,delivery_instructions").eq("id", prizeId).single();
+      const [{ data, error }, contactResult] = await Promise.all([
+        supabase.from("prizes").select("name,quantity,active,image_url,retail_value,sponsor_name,delivery_type,delivery_instructions").eq("id", prizeId).single(),
+        supabase.from("prize_contacts").select("contact_name,contact_email").eq("prize_id", prizeId).maybeSingle(),
+      ]);
       if (error) { toast.error("Prize not found."); setFailed(true); return; }
       setPrize({
         name: data.name,
@@ -26,6 +29,8 @@ export default function EditPrizePage() {
         sponsor_name: data.sponsor_name ?? "",
         delivery_type: data.delivery_type ?? "",
         delivery_instructions: data.delivery_instructions ?? "",
+        contact_name: contactResult.data?.contact_name ?? "",
+        contact_email: contactResult.data?.contact_email ?? "",
       });
     }
     void loadPrize();

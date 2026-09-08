@@ -104,8 +104,8 @@ function LoginForm() {
       <div className="text-center mb-8">
 
         <Image
-          src="/navbar_logo.png"
-          alt="Spin4Chinuch"
+          src="/logo.png"
+          alt="Spin for Chinuch"
           width={700}
           height={170}
           className="mx-auto h-16 w-auto mb-4"
@@ -116,7 +116,7 @@ function LoginForm() {
         </h1>
 
         <p className="mt-2 text-slate-500">
-          Sign in to your Spin4Chinuch account
+          Sign in to your Spin for Chinuch account
         </p>
 
       </div>

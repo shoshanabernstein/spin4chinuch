@@ -7,6 +7,7 @@ type SpinResult = {
   outcomeLabel: string;
   remainingSpins: number;
   won: boolean;
+  spinAgain: boolean;
   prize: {
     id: number;
     name: string;
@@ -37,7 +38,17 @@ export async function POST(req: Request) {
 
   const result = data as SpinResult;
   if (result.won && result.prize?.name && user.email) {
-    await sendWinEmail(user.email, result.prize.name).catch((emailError) => {
+    const { data: prizeDetails, error: prizeDetailsError } = await supabaseAdmin
+      .from("prizes")
+      .select("image_url")
+      .eq("id", result.prize.id)
+      .maybeSingle();
+
+    if (prizeDetailsError) {
+      console.error("Could not load the winner email prize image", prizeDetailsError);
+    }
+
+    await sendWinEmail(user.email, result.prize.name, prizeDetails?.image_url).catch((emailError) => {
       console.error("Win email failed", emailError);
     });
   }
@@ -48,8 +59,10 @@ export async function POST(req: Request) {
     outcomeLabel: result.outcomeLabel,
     remainingSpins: result.remainingSpins,
     won: result.won,
+    spinAgain: result.spinAgain,
     winner: {
       won: result.won,
+      spinAgain: result.spinAgain,
       outcomeId: result.outcomeId,
       outcomeLabel: result.outcomeLabel,
       prize: result.prize,

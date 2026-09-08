@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-const minimalRoutes = ["/login", "/signup", "/forgot-password", "/reset-password"];
+const minimalRoutes = ["/signup", "/forgot-password", "/reset-password"];
 
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

@@ -89,7 +89,7 @@ export default function PrizeWheel({
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           className="h-full w-full drop-shadow-[0_24px_45px_rgba(7,22,40,.28)]"
           role="img"
-          aria-label="Spin4Chinuch prize wheel"
+          aria-label="Spin for Chinuch prize wheel"
         >
           <defs>
             {COLORS.map((color, index) => (

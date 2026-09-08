@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getRequestUser } from "@/lib/server/supabase";
+import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
@@ -8,6 +8,7 @@ if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
 const stripe = new Stripe(secretKey);
 const PRICE_PER_SPIN = 1800;
 const MAX_SPINS_PER_ORDER = 100;
+const TOTAL_SPIN_LIMIT = 2000;
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +24,16 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: `Quantity must be an integer from 1 to ${MAX_SPINS_PER_ORDER}.` },
         { status: 400 }
+      );
+    }
+
+    const { data: soldSpins, error: soldSpinsError } = await supabaseAdmin.rpc("sold_spin_count");
+    if (soldSpinsError) throw soldSpinsError;
+    const spinsRemaining = Math.max(0, TOTAL_SPIN_LIMIT - Number(soldSpins ?? 0));
+    if (quantity > spinsRemaining) {
+      return NextResponse.json(
+        { error: spinsRemaining === 0 ? "All 2,000 spins have been sold." : `Only ${spinsRemaining} spins remain.` },
+        { status: 409 }
       );
     }
 

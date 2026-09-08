@@ -15,6 +15,8 @@ export type PrizeFormValues = {
   sponsor_name: string;
   delivery_type: string;
   delivery_instructions: string;
+  contact_name: string;
+  contact_email: string;
 };
 
 const emptyPrize: PrizeFormValues = {
@@ -26,6 +28,8 @@ const emptyPrize: PrizeFormValues = {
   sponsor_name: "",
   delivery_type: "",
   delivery_instructions: "",
+  contact_name: "",
+  contact_email: "",
 };
 
 export default function PrizeForm({ prizeId, initialValues = emptyPrize }: { prizeId?: number; initialValues?: PrizeFormValues }) {
@@ -55,10 +59,23 @@ export default function PrizeForm({ prizeId, initialValues = emptyPrize }: { pri
       delivery_instructions: values.delivery_instructions.trim() || null,
     };
     const result = prizeId
-      ? await supabase.from("prizes").update(payload).eq("id", prizeId)
-      : await supabase.from("prizes").insert(payload);
+      ? await supabase.from("prizes").update(payload).eq("id", prizeId).select("id").single()
+      : await supabase.from("prizes").insert(payload).select("id").single();
+    if (result.error) { setLoading(false); return toast.error(result.error.message); }
+
+    const savedPrizeId = result.data.id;
+    const contactName = values.contact_name.trim();
+    const contactEmail = values.contact_email.trim();
+    const contactResult = contactName || contactEmail
+      ? await supabase.from("prize_contacts").upsert({
+          prize_id: savedPrizeId,
+          contact_name: contactName || null,
+          contact_email: contactEmail || null,
+          updated_at: new Date().toISOString(),
+        })
+      : await supabase.from("prize_contacts").delete().eq("prize_id", savedPrizeId);
     setLoading(false);
-    if (result.error) return toast.error(result.error.message);
+    if (contactResult.error) return toast.error(`Prize saved, but the private contact could not be saved: ${contactResult.error.message}`);
     toast.success(prizeId ? "Prize updated." : "Prize created.");
     router.push("/admin/prizes");
     router.refresh();
@@ -75,6 +92,14 @@ export default function PrizeForm({ prizeId, initialValues = emptyPrize }: { pri
         <label className="font-semibold">Image URL<input type="url" value={values.image_url} onChange={(event) => update("image_url", event.target.value)} className={inputClass} placeholder="https://…" /></label>
         <label className="font-semibold">Delivery Type<input value={values.delivery_type} onChange={(event) => update("delivery_type", event.target.value)} className={inputClass} placeholder="Pickup, email, shipping…" /></label>
         <label className="font-semibold md:col-span-2">Delivery Instructions<textarea value={values.delivery_instructions} onChange={(event) => update("delivery_instructions", event.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Internal fulfillment notes" /></label>
+        <div className="md:col-span-2 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
+          <p className="font-bold text-[#142A52]">Private prize contact</p>
+          <p className="mt-1 text-sm text-slate-500">Only administrators can view this information.</p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <label className="font-semibold">Contact Name<input value={values.contact_name} onChange={(event) => update("contact_name", event.target.value)} className={inputClass} placeholder="Optional" /></label>
+            <label className="font-semibold">Contact Email<input type="email" value={values.contact_email} onChange={(event) => update("contact_email", event.target.value)} className={inputClass} placeholder="Optional" /></label>
+          </div>
+        </div>
       </div>
       <label className="mt-6 flex items-center gap-3 rounded-2xl bg-slate-50 p-4 font-semibold"><input type="checkbox" checked={values.active} onChange={(event) => update("active", event.target.checked)} className="h-5 w-5" /> Prize is active</label>
       <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

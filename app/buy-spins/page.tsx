@@ -18,6 +18,7 @@ interface Prize {
   name: string;
   image_url: string | null;
   retail_value: number | null;
+  quantity: number;
   sponsor_name: string | null;
 }
 
@@ -41,7 +42,7 @@ export default function BuySpinsPage() {
         .select("*")
         .eq("active", true)
         .gt("quantity", 0)
-        .order("id", { ascending: true });
+        .order("retail_value", { ascending: false, nullsFirst: false });
 
       if (!error) {
         setPrizes(data || []);
@@ -89,8 +90,8 @@ export default function BuySpinsPage() {
 
       const data = await res.json();
 
-      if (!data.clientSecret) {
-        throw new Error("Missing client secret");
+      if (!res.ok || !data.clientSecret) {
+        throw new Error(data.error || "Unable to start checkout.");
       }
 
       setClientSecret(data.clientSecret);

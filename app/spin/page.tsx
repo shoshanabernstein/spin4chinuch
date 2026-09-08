@@ -9,7 +9,6 @@ import {
   CircleDashed,
   DollarSign,
   Gift,
-  ShieldCheck,
   Sparkles,
   Ticket,
   Trophy,
@@ -39,7 +38,9 @@ type SpinResponse = {
   outcomeLabel?: string;
   remainingSpins?: number;
   won?: boolean;
+  spinAgain?: boolean;
   winner?: {
+    spinAgain?: boolean;
     prize?: {
       name?: string;
     } | null;
@@ -303,6 +304,7 @@ export default function SpinPage() {
       stopSpinAudio();
 
       const won = Boolean(data.won);
+      const spinAgain = Boolean(data.spinAgain ?? data.winner?.spinAgain);
       const resultLabel =
         data.winner?.prize?.name ??
         data.outcomeLabel ??
@@ -326,6 +328,10 @@ export default function SpinPage() {
           4500
         );
       }
+
+      if (spinAgain) {
+        toast.success("Spin again — this spin was returned to your balance.");
+      }
     }, SPIN_DURATION);
   }
 
@@ -339,14 +345,6 @@ export default function SpinPage() {
     setWinner("");
     setShowConfetti(false);
   }
-
-  const statusText = spinning
-    ? "Revealing your result…"
-    : loadingPrizes || loadingStats
-      ? "Preparing your wheel…"
-      : remainingSpins <= 0
-        ? "Purchase a spin to play"
-        : `${remainingSpins} ${remainingSpins === 1 ? "spin" : "spins"} ready`;
 
   return (
     <ProtectedRoute>
@@ -362,17 +360,9 @@ export default function SpinPage() {
         <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.28em] text-[#8DB9F4]">
-                <Sparkles className="h-4 w-4 text-[#C9A44D]" />
-                Spin4Chinuch
-              </div>
-              <h1 className="mt-3 bg-gradient-to-r from-white via-white to-[#E8CD7A] bg-clip-text text-4xl font-black tracking-[-0.04em] text-transparent sm:text-6xl">
+              <h1 className="bg-gradient-to-r from-white via-white to-[#E8CD7A] bg-clip-text text-4xl font-black tracking-[-0.04em] text-transparent sm:text-6xl">
                 Spin to win
               </h1>
-              <p className="mt-3 max-w-xl text-base leading-7 text-[#BFD2EB]">
-                Your result is selected securely while the wheel spins. The
-                animation then reveals the confirmed outcome.
-              </p>
             </div>
 
             <Link
@@ -384,65 +374,8 @@ export default function SpinPage() {
             </Link>
           </header>
 
-          <div className="mb-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {[
-              {
-                label: "Spins left",
-                value: loadingStats ? "—" : remainingSpins,
-                icon: Ticket,
-                accent: true,
-              },
-              {
-                label: "Total spins",
-                value: loadingStats ? "—" : totalSpins,
-                icon: CircleDashed,
-              },
-              {
-                label: "Wins",
-                value: loadingStats ? "—" : totalWins,
-                icon: Trophy,
-              },
-              {
-                label: "Donated",
-                value: loadingStats
-                  ? "—"
-                  : `$${totalDonations.toLocaleString()}`,
-                icon: DollarSign,
-              },
-            ].map(({ label, value, icon: Icon, accent }) => (
-              <div
-                key={label}
-                className={`rounded-2xl border p-4 shadow-lg transition duration-300 hover:-translate-y-1 sm:p-5 ${
-                  accent
-                    ? "border-[#C9A44D]/35 bg-[#C9A44D]/[0.09]"
-                    : "border-white/10 bg-white/[0.055]"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8FA8C8]">
-                      {label}
-                    </p>
-                    <p className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                      {value}
-                    </p>
-                  </div>
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                      accent
-                        ? "bg-[#C9A44D]/15 text-[#E8CD7A]"
-                        : "bg-[#2F6ED8]/15 text-[#8DB9F4]"
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <section className="grid overflow-hidden rounded-[34px] border border-[#C9A44D]/20 bg-[#0C1F38]/90 shadow-[0_30px_110px_rgba(0,0,0,.38),0_0_70px_rgba(47,110,216,.12)] backdrop-blur-xl lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,.55fr)]">
-            <div className="relative flex min-h-[520px] items-center justify-center overflow-hidden border-b border-white/10 p-5 sm:p-9 lg:min-h-[680px] lg:border-b-0 lg:border-r">
+          <section className="relative mx-auto grid max-w-6xl rounded-[34px] border border-[#C9A44D]/20 bg-[#0C1F38]/90 shadow-[0_30px_110px_rgba(0,0,0,.38),0_0_70px_rgba(47,110,216,.12)] backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="relative flex items-center justify-center px-3 pb-6 pt-16 sm:px-10 sm:pb-10 sm:pt-20">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,164,77,.12),rgba(47,110,216,.14)_34%,transparent_68%)]" />
               <Sparkles className="absolute left-7 top-7 h-6 w-6 text-[#C9A44D]/55" />
               <Sparkles className="absolute bottom-8 right-8 h-5 w-5 text-[#5E9CF4]/55" />
@@ -468,7 +401,7 @@ export default function SpinPage() {
                   </p>
                 </div>
               ) : (
-                <div className="relative w-full">
+                <div className="relative mx-auto w-full max-w-[610px]">
                   <PrizeWheel
                     rotation={rotation}
                     spinning={spinning}
@@ -481,6 +414,57 @@ export default function SpinPage() {
               )}
             </div>
 
+            <aside className="grid grid-cols-2 gap-3 border-t border-white/10 p-4 sm:p-6 lg:grid-cols-1 lg:border-l lg:border-t-0 lg:content-center">
+              {[
+                {
+                  label: "Spins left",
+                  value: loadingStats ? "—" : remainingSpins,
+                  icon: Ticket,
+                  accent: true,
+                },
+                {
+                  label: "Total spins",
+                  value: loadingStats ? "—" : totalSpins,
+                  icon: CircleDashed,
+                },
+                {
+                  label: "Wins",
+                  value: loadingStats ? "—" : totalWins,
+                  icon: Trophy,
+                },
+                {
+                  label: "Donated",
+                  value: loadingStats ? "—" : `$${totalDonations.toLocaleString()}`,
+                  icon: DollarSign,
+                },
+              ].map(({ label, value, icon: Icon, accent }) => (
+                <div
+                  key={label}
+                  className={`rounded-2xl border p-4 shadow-lg transition duration-300 hover:-translate-y-1 ${
+                    accent
+                      ? "border-[#C9A44D]/35 bg-[#C9A44D]/[0.09]"
+                      : "border-white/10 bg-white/[0.055]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8FA8C8]">{label}</p>
+                      <p className="mt-2 text-2xl font-black text-white">{value}</p>
+                    </div>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      accent
+                        ? "bg-[#C9A44D]/15 text-[#E8CD7A]"
+                        : "bg-[#2F6ED8]/15 text-[#8DB9F4]"
+                    }`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </aside>
+
+            {/* Wheel controls live in the center button; the former side panel was intentionally removed. */}
+            {/*
             <aside className="flex flex-col justify-between p-6 sm:p-8 lg:p-9">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8DB9F4]">
@@ -507,11 +491,7 @@ export default function SpinPage() {
                     />
                     <p className="font-bold text-white">{statusText}</p>
                   </div>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-[#8FA8C8]">
-                    <ShieldCheck className="h-4 w-4 text-[#8DB9F4]" />
-                    Result selected securely on the server
-                  </div>
-                  <p className="mt-3 border-t border-white/10 pt-3 text-xs leading-5 text-[#8FA8C8]">
+                  <p className="mt-4 border-t border-white/10 pt-3 text-xs leading-5 text-[#8FA8C8]">
                     Outcomes have different selection weights. Equal-sized
                     wheel sections do not represent equal chances of winning.
                   </p>
@@ -574,6 +554,7 @@ export default function SpinPage() {
                 </Link>
               )}
             </aside>
+            */}
           </section>
 
           {outcomes.some((outcome) => outcome.prize_id) && (

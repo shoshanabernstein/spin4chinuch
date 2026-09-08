@@ -40,8 +40,8 @@ export default function Navbar() {
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-200/10 bg-[#071628]/95 shadow-lg backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:h-24 sm:px-6 lg:px-8">
-        <Link href="/" aria-label="Spin4Chinuch home" className="shrink-0">
-          <Image src="/navbar_logo.png" alt="Spin4Chinuch" width={700} height={170} priority className="h-auto w-[210px] sm:w-[270px] lg:w-[310px]" />
+        <Link href="/" aria-label="Spin for Chinuch home" className="shrink-0">
+          <Image src="/navbar_logo.png" alt="Spin for Chinuch" width={700} height={170} priority className="h-auto w-[210px] sm:w-[270px] lg:w-[310px]" />
         </Link>
 
         <div className="hidden items-center gap-7 text-base lg:flex">

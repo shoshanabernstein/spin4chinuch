@@ -4,6 +4,7 @@ import "./globals.css";
 import AppChrome from "@/components/AppChrome";
 import { AuthProvider } from "@/components/AuthProvider";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Spin4Chinuch",
+  title: "Spin for Chinuch",
+  applicationName: "Spin for Chinuch",
   description: "A fundraising prize wheel supporting Chinuch Yehudi USA.",
 };
 
@@ -49,6 +51,8 @@ export default function RootLayout({
           <AppChrome>{children}</AppChrome>
 
         </AuthProvider>
+
+        <Analytics />
 
       </body>
     </html>

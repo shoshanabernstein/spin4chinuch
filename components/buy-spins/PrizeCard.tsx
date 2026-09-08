@@ -5,14 +5,14 @@ import Card from "@/components/ui/Card";
 interface PrizeCardProps {
   name: string;
   imageUrl?: string | null;
-  retailValue: number | null;
+  quantity: number;
   sponsorName?: string | null;
 }
 
 export default function PrizeCard({
   name,
   imageUrl,
-  retailValue,
+  quantity,
   sponsorName,
 }: PrizeCardProps) {
   return (
@@ -44,12 +44,10 @@ export default function PrizeCard({
         {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
-        {/* Retail Value */}
-        {retailValue !== null && (
-          <div className="absolute top-4 right-4 rounded-full bg-[#C9A44D] px-4 py-2 text-sm font-bold text-white shadow-lg">
-            ${retailValue.toLocaleString()}
-          </div>
-        )}
+        {/* Prize quantity */}
+        <div className="absolute top-4 right-4 rounded-full bg-[#C9A44D] px-4 py-2 text-sm font-bold text-white shadow-lg">
+          {quantity.toLocaleString()} {quantity === 1 ? "prize" : "prizes"}
+        </div>
       </div>
 
       <div className="flex min-h-[104px] flex-1 items-start p-6 pb-5">

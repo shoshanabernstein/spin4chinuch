@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
 
         <Image
           src="/navbar_logo.png"
-          alt="Spin4Chinuch"
+          alt="Spin for Chinuch"
           width={220}
           height={70}
           className="mx-auto mb-8"

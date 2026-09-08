@@ -20,7 +20,7 @@ type Prize = {
 };
 
 type PrivateContact = {
-  sponsor: string;
+  prizeId: number;
   contactName: string | null;
   contactEmail: string | null;
 };
@@ -135,11 +135,11 @@ export default function AdminPrizesPage() {
                 <div className="p-6">
                   <h2 className="text-2xl font-black">{prize.name}</h2>
                   <p className="mt-2 text-sm text-slate-500">{prize.sponsor_name || "No sponsor listed"}</p>
-                  {contacts.find((contact) => contact.sponsor === prize.sponsor_name) && (
+                  {contacts.find((contact) => contact.prizeId === prize.id) && (
                     <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-slate-600">
                       <p className="font-bold uppercase tracking-wide text-[#4267A8]">Private contact</p>
-                      <p className="mt-1">{contacts.find((contact) => contact.sponsor === prize.sponsor_name)?.contactName || "No contact name"}</p>
-                      <p className="break-all">{contacts.find((contact) => contact.sponsor === prize.sponsor_name)?.contactEmail || "No email provided"}</p>
+                      <p className="mt-1">{contacts.find((contact) => contact.prizeId === prize.id)?.contactName || "No contact name"}</p>
+                      <p className="break-all">{contacts.find((contact) => contact.prizeId === prize.id)?.contactEmail || "No email provided"}</p>
                     </div>
                   )}
                   <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
