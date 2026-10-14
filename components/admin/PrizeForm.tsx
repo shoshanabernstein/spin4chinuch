@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
+import PrizeLogoUpload from "@/components/admin/PrizeLogoUpload";
 
 export type PrizeFormValues = {
   name: string;
@@ -48,37 +49,67 @@ export default function PrizeForm({ prizeId, initialValues = emptyPrize }: { pri
     if (values.retail_value !== null && (!Number.isFinite(values.retail_value) || values.retail_value < 0)) return toast.error("Retail value cannot be negative.");
 
     setLoading(true);
-    const payload = {
-      name: values.name.trim(),
-      quantity: values.quantity,
-      active: values.active,
-      image_url: values.image_url.trim() || null,
-      retail_value: values.retail_value,
-      sponsor_name: values.sponsor_name.trim() || null,
-      delivery_type: values.delivery_type.trim() || null,
-      delivery_instructions: values.delivery_instructions.trim() || null,
-    };
-    const result = prizeId
-      ? await supabase.from("prizes").update(payload).eq("id", prizeId).select("id").single()
-      : await supabase.from("prizes").insert(payload).select("id").single();
-    if (result.error) { setLoading(false); return toast.error(result.error.message); }
+    try {
+      const payload = {
+        name: values.name.trim(),
+        active: values.active,
+        ...(!prizeId || values.image_url !== initialValues.image_url
+          ? { image_url: values.image_url.trim() || null }
+          : {}),
+        retail_value: values.retail_value,
+        sponsor_name: values.sponsor_name.trim() || null,
+        delivery_type: values.delivery_type.trim() || null,
+        delivery_instructions: values.delivery_instructions.trim() || null,
+      };
+      async function save() {
+        if (!prizeId) {
+          return supabase.from("prizes").insert({ ...payload, quantity: values.quantity }).select("id").single();
+        }
+        // Editing other fields must never restore inventory already awarded.
+        if (values.quantity === initialValues.quantity) {
+          return supabase.from("prizes").update(payload).eq("id", prizeId).select("id").single();
+        }
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const { data: current, error } = await supabase.from("prizes")
+            .select("*,wins!prize_id(count)").eq("id", prizeId).single();
+          if (error) return { data: null, error };
+          const awarded = current.wins[0]?.count ?? 0;
+          if (values.quantity < awarded) {
+            return { data: null, error: { message: `Original quantity cannot be less than the ${awarded} prizes already won.` } };
+          }
+          const result = await supabase.from("prizes").update({
+            ...payload,
+            quantity: values.quantity - awarded,
+            ...(current.original_quantity != null ? { original_quantity: values.quantity } : {}),
+          }).eq("id", prizeId).eq("quantity", current.quantity).select("id").maybeSingle();
+          if (result.error || result.data) return result;
+        }
+        return { data: null, error: { message: "Prize stock changed while saving. Please try again." } };
+      }
+      const result = await save();
+      if (result.error) { setLoading(false); return toast.error(result.error.message); }
 
-    const savedPrizeId = result.data.id;
-    const contactName = values.contact_name.trim();
-    const contactEmail = values.contact_email.trim();
-    const contactResult = contactName || contactEmail
-      ? await supabase.from("prize_contacts").upsert({
-          prize_id: savedPrizeId,
-          contact_name: contactName || null,
-          contact_email: contactEmail || null,
-          updated_at: new Date().toISOString(),
-        })
-      : await supabase.from("prize_contacts").delete().eq("prize_id", savedPrizeId);
-    setLoading(false);
-    if (contactResult.error) return toast.error(`Prize saved, but the private contact could not be saved: ${contactResult.error.message}`);
-    toast.success(prizeId ? "Prize updated." : "Prize created.");
-    router.push("/admin/prizes");
-    router.refresh();
+      const savedPrizeId = result.data!.id;
+      const contactName = values.contact_name.trim();
+      const contactEmail = values.contact_email.trim();
+      const contactResult = contactName || contactEmail
+        ? await supabase.from("prize_contacts").upsert({
+            prize_id: savedPrizeId,
+            contact_name: contactName || null,
+            contact_email: contactEmail || null,
+            updated_at: new Date().toISOString(),
+          })
+        : await supabase.from("prize_contacts").delete().eq("prize_id", savedPrizeId);
+      setLoading(false);
+      if (contactResult.error) return toast.error(`Prize saved, but the private contact could not be saved: ${contactResult.error.message}`);
+      toast.success(prizeId ? "Prize updated." : "Prize created.");
+      router.push("/admin/prizes");
+      router.refresh();
+    } catch {
+      toast.error("Unable to save changes. Please check your connection and try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputClass = "mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100";
@@ -86,10 +117,20 @@ export default function PrizeForm({ prizeId, initialValues = emptyPrize }: { pri
     <form onSubmit={savePrize} className="rounded-3xl border border-blue-100 bg-white p-6 shadow-lg sm:p-8">
       <div className="grid gap-6 md:grid-cols-2">
         <label className="font-semibold md:col-span-2">Prize Name<input required value={values.name} onChange={(event) => update("name", event.target.value)} className={inputClass} placeholder="Amazon Gift Card" /></label>
-        <label className="font-semibold">Quantity<input required type="number" min={0} step={1} value={values.quantity} onChange={(event) => update("quantity", Number(event.target.value))} className={inputClass} /></label>
+        <label className="font-semibold">Original Quantity<input required type="number" min={0} step={1} value={values.quantity} onChange={(event) => update("quantity", Number(event.target.value))} className={inputClass} /><span className="mt-2 block text-sm font-normal text-slate-500">Total prizes offered, including those already won.</span></label>
         <label className="font-semibold">Retail Value<input type="number" min={0} step="0.01" value={values.retail_value ?? ""} onChange={(event) => update("retail_value", event.target.value === "" ? null : Number(event.target.value))} className={inputClass} placeholder="Optional" /></label>
         <label className="font-semibold">Sponsor Name<input value={values.sponsor_name} onChange={(event) => update("sponsor_name", event.target.value)} className={inputClass} placeholder="Optional" /></label>
-        <label className="font-semibold">Image URL<input type="url" value={values.image_url} onChange={(event) => update("image_url", event.target.value)} className={inputClass} placeholder="https://…" /></label>
+        <div className="font-semibold">
+          <label>Prize Picture<input type="text" value={values.image_url} onChange={(event) => update("image_url", event.target.value)} className={inputClass} placeholder="/prizes/photo.jpg or https://…" /></label>
+          {prizeId ? <>
+            <div className="relative mt-3 h-64 overflow-hidden rounded-2xl bg-slate-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {values.image_url && <img src={values.image_url} alt="Current prize logo" className="h-full w-full object-contain p-4" />}
+              <PrizeLogoUpload prizeId={prizeId} name={values.name} onUploaded={url => update("image_url", url)} />
+            </div>
+            <p className="mt-2 text-sm font-normal text-slate-500">Dropped logos save immediately.</p>
+          </> : <p className="mt-2 text-sm font-normal text-slate-500">Create the prize first, then drop its logo onto the picture area.</p>}
+        </div>
         <label className="font-semibold">Delivery Type<input value={values.delivery_type} onChange={(event) => update("delivery_type", event.target.value)} className={inputClass} placeholder="Pickup, email, shipping…" /></label>
         <label className="font-semibold md:col-span-2">Delivery Instructions<textarea value={values.delivery_instructions} onChange={(event) => update("delivery_instructions", event.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Internal fulfillment notes" /></label>
         <div className="md:col-span-2 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">

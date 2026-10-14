@@ -11,6 +11,7 @@ export interface Prize {
   image_url: string | null;
   retail_value: number | null;
   quantity: number;
+  original_quantity?: number | null;
   sponsor_name: string | null;
 }
 
@@ -122,7 +123,7 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
               <PrizeCard
                 name={prize.name}
                 imageUrl={prize.image_url}
-                quantity={prize.quantity}
+                originalQuantity={prize.original_quantity}
                 sponsorName={prize.sponsor_name}
               />
             </div>

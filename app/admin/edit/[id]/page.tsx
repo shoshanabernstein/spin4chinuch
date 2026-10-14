@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import toast from "react-hot-toast";
 import PrizeForm, { PrizeFormValues } from "@/components/admin/PrizeForm";
 import { supabase } from "@/lib/supabase";
+import GiftCards from "@/components/admin/GiftCards";
 
 export default function EditPrizePage() {
   const params = useParams<{ id: string }>();
@@ -16,13 +17,13 @@ export default function EditPrizePage() {
     async function loadPrize() {
       if (!Number.isInteger(prizeId)) { setFailed(true); return; }
       const [{ data, error }, contactResult] = await Promise.all([
-        supabase.from("prizes").select("name,quantity,active,image_url,retail_value,sponsor_name,delivery_type,delivery_instructions").eq("id", prizeId).single(),
+        supabase.from("prizes").select("*,wins!prize_id(count)").eq("id", prizeId).single(),
         supabase.from("prize_contacts").select("contact_name,contact_email").eq("prize_id", prizeId).maybeSingle(),
       ]);
       if (error) { toast.error("Prize not found."); setFailed(true); return; }
       setPrize({
         name: data.name,
-        quantity: data.quantity,
+        quantity: data.original_quantity ?? data.quantity + (data.wins[0]?.count ?? 0),
         active: data.active,
         image_url: data.image_url ?? "",
         retail_value: data.retail_value,
@@ -45,6 +46,7 @@ export default function EditPrizePage() {
           <p className="mt-2 text-slate-500">Update inventory, presentation, and fulfillment details.</p>
         </section>
         {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
+        {prize && <GiftCards prizeId={prizeId} />}
       </div>
     </main>
   );

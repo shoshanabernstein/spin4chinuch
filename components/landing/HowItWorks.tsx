@@ -1,4 +1,7 @@
+"use client";
+
 import LandingCard from "./LandingCard";
+import { useAuth } from "@/components/AuthProvider";
 import {
   Ticket,
   CircleDashed,
@@ -7,8 +10,9 @@ import {
 } from "lucide-react";
 
 export default function HowItWorks() {
+  const { user } = useAuth();
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16">
+    <section className="mx-auto max-w-7xl px-6 pt-12 pb-16">
       {/* Section Header */}
       <div className="mx-auto mb-16 max-w-3xl text-center">
         <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-[#4267A8]">
@@ -29,24 +33,28 @@ export default function HowItWorks() {
       <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
         <LandingCard
           title="1. Buy Spins"
+          href="/buy-spins"
           description="Purchase one or more spins to support Chinuch Yehudi and enter the fundraiser."
           icon={<Ticket size={30} />}
         />
 
         <LandingCard
           title="2. Spin the Wheel"
+          href={user ? "/spin" : "/buy-spins"}
           description="Use your spins for a chance to instantly win exciting prizes donated by our sponsors."
           icon={<CircleDashed size={30} />}
         />
 
         <LandingCard
           title="3. Win Prizes"
+          href="/prizes"
           description="If the wheel lands on a winning space, your win is saved and our team coordinates prize delivery."
           icon={<Trophy size={30} />}
         />
 
         <LandingCard
           title="4. Make an Impact"
+          href="#about"
           description="Every spin helps strengthen Jewish education and supports the Chinuch Yehudi community."
           icon={<HeartHandshake size={30} />}
         />

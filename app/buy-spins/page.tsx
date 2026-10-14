@@ -19,6 +19,7 @@ interface Prize {
   image_url: string | null;
   retail_value: number | null;
   quantity: number;
+  original_quantity?: number | null;
   sponsor_name: string | null;
 }
 
@@ -37,15 +38,13 @@ export default function BuySpinsPage() {
 
   useEffect(() => {
     async function fetchPrizes() {
-      const { data, error } = await supabase
-        .from("prizes")
-        .select("*")
-        .eq("active", true)
-        .gt("quantity", 0)
-        .order("retail_value", { ascending: false, nullsFirst: false });
-
-      if (!error) {
-        setPrizes(data || []);
+      try {
+        const response = await fetch("/api/prizes", { cache: "no-store" });
+        if (!response.ok) throw new Error("Unable to load prizes");
+        const data = await response.json();
+        setPrizes(data.prizes.filter((prize: Prize) => prize.quantity > 0));
+      } catch {
+        toast.error("Prizes are temporarily unavailable. Please try again shortly.");
       }
     }
 

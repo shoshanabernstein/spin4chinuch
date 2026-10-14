@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
+import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight,
   Gift,
@@ -8,6 +10,7 @@ import {
 } from "lucide-react";
 
 export default function Hero() {
+  const { user } = useAuth();
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#142A52] via-[#28457C] to-[#4267A8]">
 
@@ -33,18 +36,15 @@ export default function Hero() {
         />
       </div>
 
-<div className="relative mx-auto flex max-w-7xl items-center justify-between gap-12 px-6 pt-12 pb-6 lg:pt-14 lg:pb-8">
+<div className="relative mx-auto flex min-h-[calc(100svh-5rem)] max-w-7xl flex-col items-center justify-center gap-10 px-6 py-12 sm:min-h-[calc(100svh-6rem)] md:flex-row md:justify-between lg:gap-12 lg:py-16">
 
 
         {/* LEFT */}
-        <div className="max-w-2xl">
+        <div className="w-full min-w-0 max-w-2xl md:flex-1">
 
-          <h1 className="text-5xl font-black leading-tight tracking-tight text-white lg:text-7xl">
-            Spin.
-            <br />
-            Win.
-            <br />
-            Give Back.
+          <h1 className="text-4xl font-bold leading-[1.15] tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <span className="block">Take a Spin.</span>
+            <span className="mt-3 block sm:mt-4">Win a Prize.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-blue-100">
@@ -54,8 +54,8 @@ export default function Hero() {
 
           <div className="mt-10 flex items-center gap-6">
 
-            <Button href="#actions" variant="gold">
-              Buy Spins
+            <Button href={user ? "/spin" : "/login?redirect=/spin"} variant="gold">
+              Spin
             </Button>
 
             <a
@@ -85,9 +85,12 @@ export default function Hero() {
                 className="text-[#E7C96D]"
                 size={22}
               />
-              <span className="text-white">
+              <Link
+                href="/prizes"
+                className="rounded-sm text-white transition hover:text-[#E7C96D] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E7C96D]"
+              >
                 Premium Prizes
-              </span>
+              </Link>
             </div>
 
           </div>
@@ -95,10 +98,10 @@ export default function Hero() {
         </div>
 
         {/* RIGHT */}
-        <div className="relative hidden h-[360px] w-[420px] lg:block">
+        <div className="relative grid w-full max-w-[420px] shrink-0 gap-4 md:block md:h-[360px] md:w-[320px] lg:w-[420px]">
 
           {/* Floating Card */}
-          <div className="absolute right-0 top-8 w-80 rounded-3xl border border-white/10 bg-white/10 p-7 shadow-2xl backdrop-blur-xl">
+          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-7 shadow-2xl backdrop-blur-xl md:absolute md:right-0 md:top-8 md:w-80">
 
             <div className="flex items-center gap-4">
 
@@ -126,7 +129,7 @@ export default function Hero() {
           </div>
 
           {/* Second Card */}
-          <div className="absolute bottom-10 left-0 w-72 rounded-3xl border border-white/10 bg-white/10 p-6 shadow-xl backdrop-blur-xl">
+          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-6 shadow-xl backdrop-blur-xl md:absolute md:bottom-10 md:left-0 md:w-72">
 
             <div className="flex items-center gap-3">
 

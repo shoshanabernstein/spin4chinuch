@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion";
 import WheelSlice from "./WheelSlice";
+import WheelLabel from "./WheelLabel";
 import Pointer from "./Pointer";
+import { getPrizeDisplay } from "@/lib/prize-display";
 
 type Prize = {
   id: number;
   label: string;
   prize_id: number | null;
+  sponsor_name?: string | null;
 };
 
 type PrizeWheelProps = {
@@ -18,28 +21,6 @@ type PrizeWheelProps = {
   onSpin: () => void;
   prizes: Prize[];
 };
-
-function splitWheelLabel(label: string) {
-  const compact = label
-    .replace(/\s*\(up to 6\)\s*/i, " ")
-    .replace(/\bGift Cards?\b/gi, "")
-    .replace(/\bSession\b/gi, "")
-    .replace(/Music Theory Lesson/i, "Music Lesson")
-    .trim();
-  const words = compact.split(/\s+/);
-  const lines: string[] = [];
-
-  for (const word of words) {
-    const current = lines.at(-1);
-    if (!current || (current.length + word.length + 1 > 13 && lines.length < 2)) {
-      lines.push(word);
-    } else {
-      lines[lines.length - 1] = `${current} ${word}`;
-    }
-  }
-
-  return lines.slice(0, 2);
-}
 
 const SIZE = 900;
 const CENTER = 450;
@@ -67,7 +48,7 @@ export default function PrizeWheel({
   const angle = 360 / slices;
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[610px]">
+    <div className="relative mx-auto aspect-square w-full max-w-[720px]">
       <div className="absolute inset-[3%] rounded-full bg-[#2F6ED8]/20 blur-3xl" />
 
       <Pointer spinning={spinning} />
@@ -165,37 +146,15 @@ export default function PrizeWheel({
               />
             ))}
 
-          {prizes.length > 0 &&
-            prizes.map((prize, index) => {
-              const textAngle = index * angle + angle / 2;
-              const labelLines = splitWheelLabel(prize.label);
-              const firstLineY = 125 - (labelLines.length - 1) * 11;
-
-              return (
-                <text
-                  key={`label-${prize.id}`}
-                  x={CENTER}
-                  y={firstLineY}
-                  fill="white"
-                  fontSize={prizes.length > 10 ? "20" : "23"}
-                  fontWeight="750"
-                  textAnchor="middle"
-                  letterSpacing=".15"
-                  transform={`rotate(${textAngle} ${CENTER} ${CENTER})`}
-                  filter="url(#labelShadow)"
-                >
-                  {labelLines.map((line, lineIndex) => (
-                    <tspan
-                      key={`${prize.id}-${lineIndex}`}
-                      x={CENTER}
-                      dy={lineIndex === 0 ? 0 : 25}
-                    >
-                      {line}
-                    </tspan>
-                  ))}
-                </text>
-              );
-            })}
+          {prizes.map((prize, index) => (
+            <WheelLabel
+              key={prize.id}
+              label={prize.prize_id ? getPrizeDisplay(prize.label, prize.sponsor_name).title : prize.label}
+              provider={prize.prize_id ? getPrizeDisplay(prize.label, prize.sponsor_name).provider : null}
+              angle={index * angle + angle / 2}
+              sliceAngle={angle}
+            />
+          ))}
 
           {Array.from({ length: 32 }).map((_, index) => {
             const lightAngle = (index / 32) * Math.PI * 2;
@@ -248,7 +207,7 @@ export default function PrizeWheel({
             <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-white" />
           </span>
         ) : (
-          "SPIN"
+          <span className={canSpin ? "wheel-spin-label" : undefined}>SPIN</span>
         )}
       </button>
     </div>

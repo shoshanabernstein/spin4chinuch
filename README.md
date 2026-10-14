@@ -30,7 +30,10 @@ npm run build
 
 ## Data model
 
+Manage Prizes supports dragging cards or using move arrows, followed by Save Order. The public prize page and carousel use this order. It is stored in the private Supabase Storage bucket `site-settings`, in `prize-order.json`; only the admin API can write it. For a new Supabase project, create that private bucket with JSON uploads enabled before using ordering. Newly added prizes appear after previously ordered prizes.
+
 - `prizes` stores inventory, sponsor, value, image, and fulfillment details.
+- `prizes.quantity` tracks remaining stock; `original_quantity` stores the starting quantity displayed on prize cards. Until `20261007_original_prize_quantity.sql` is applied, `/api/prizes` reconstructs totals from remaining stock plus recorded wins in a single database query. Only public card fields are returned. Review reconstructed totals if inventory was manually adjusted or win records were deleted. The prizes page keeps active, fully awarded prizes visible with their original totals.
 - `wheel_outcomes` stores the visible wheel labels and relative probability weights.
 - `perform_spin` atomically deducts a spin, reserves inventory, and records the result.
 - `credit_completed_payment` idempotently records a Stripe payment and credits spins.

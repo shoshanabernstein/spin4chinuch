@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Gift } from "lucide-react";
 import PrizeCard from "@/components/buy-spins/PrizeCard";
-import { supabase } from "@/lib/supabase";
 
 type Prize = {
   id: string;
@@ -11,6 +10,7 @@ type Prize = {
   image_url: string | null;
   retail_value: number | null;
   quantity: number;
+  original_quantity?: number | null;
   sponsor_name: string | null;
 };
 
@@ -21,16 +21,16 @@ export default function PrizesPage() {
 
   useEffect(() => {
     async function fetchPrizes() {
-      const { data, error } = await supabase
-        .from("prizes")
-        .select("*")
-        .eq("active", true)
-        .gt("quantity", 0)
-        .order("retail_value", { ascending: false, nullsFirst: false });
-
-      if (error) setError("Prizes are temporarily unavailable. Please try again shortly.");
-      else setPrizes(data || []);
-      setLoading(false);
+      try {
+        const response = await fetch("/api/prizes", { cache: "no-store" });
+        if (!response.ok) throw new Error("Unable to load prizes");
+        const data = await response.json();
+        setPrizes(data.prizes);
+      } catch {
+        setError("Prizes are temporarily unavailable. Please try again shortly.");
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchPrizes();
@@ -117,7 +117,7 @@ export default function PrizesPage() {
                 key={prize.id}
                 name={prize.name}
                 imageUrl={prize.image_url}
-                quantity={prize.quantity}
+                originalQuantity={prize.original_quantity}
                 sponsorName={prize.sponsor_name}
               />
             ))}

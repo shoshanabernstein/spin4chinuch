@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Gift, MapPin, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight, MapPin, Sparkles, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Winner = {
   id: number;
   prize: string;
-  created_at: string;
   city: string;
   initials: string;
 };
@@ -17,18 +16,14 @@ export default function WinnersPage() {
   const [winners, setWinners] = useState<Winner[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [totalWinners, setTotalWinners] = useState(0);
 
   useEffect(() => {
     async function loadWinners() {
-      const [winnerResult, countResult] = await Promise.all([
-        supabase
-          .from("public_winners")
-          .select("id,created_at,prize,city,initials")
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase.from("public_winners").select("id", { count: "exact", head: true }),
-      ]);
+      const winnerResult = await supabase
+        .from("public_winners")
+        .select("id,prize,city,initials")
+        .order("created_at", { ascending: false })
+        .limit(50);
 
       if (winnerResult.error) {
         console.error("Error loading winners:", winnerResult.error);
@@ -40,23 +35,17 @@ export default function WinnersPage() {
       const formatted = (winnerResult.data ?? []).map((winner) => ({
         id: winner.id,
         prize: winner.prize ?? "Prize",
-        created_at: winner.created_at,
         city: winner.city || "Location private",
         initials: winner.initials || "Winner",
       }));
 
       setWinners(formatted);
-      setTotalWinners(countResult.count ?? formatted.length);
       setLoading(false);
     }
 
     void loadWinners();
   }, []);
 
-  const recentPrizes = useMemo(
-    () => new Set(winners.map((winner) => winner.prize)).size,
-    [winners]
-  );
   const latestWinner = winners[0];
 
   return (
@@ -80,17 +69,6 @@ export default function WinnersPage() {
                 Get your spins <ArrowRight className="h-4 w-4" />
               </Link>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                {[
-                  { label: "Winners", value: totalWinners, icon: Trophy },
-                  { label: "Prizes", value: recentPrizes, icon: Gift },
-                ].map(({ label, value, icon: Icon }) => (
-                  <div key={label} className="flex min-w-[150px] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.055] px-4 py-3 backdrop-blur-sm">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#F0D47F]"><Icon className="h-[18px] w-[18px]" /></div>
-                    <div><p className="text-xl font-black leading-none">{loading ? "—" : value}</p><p className="mt-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#9DB2CE]">{label}</p></div>
-                  </div>
-                ))}
-              </div>
             </div>
 
             {latestWinner ? (
@@ -107,8 +85,7 @@ export default function WinnersPage() {
                     <p className="mt-2 flex items-center gap-1.5 text-sm text-[#AABBD1]"><MapPin className="h-4 w-4" /> {latestWinner.city}</p>
                   </div>
                 </div>
-                <div className="relative mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-sm text-[#AABBD1]">
-                  <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4" /> {new Date(latestWinner.created_at).toLocaleDateString()}</span>
+                <div className="relative mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-white/10 pt-4 text-sm text-[#AABBD1]">
                   <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">Congratulations!</span>
                 </div>
               </article>
@@ -121,7 +98,6 @@ export default function WinnersPage() {
         <section className="mt-8 rounded-[30px] border border-[#DCE5F1] bg-white p-5 shadow-[0_18px_50px_rgba(20,42,82,.08)] sm:p-8 lg:p-10">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div><p className="text-xs font-black uppercase tracking-[0.22em] text-[#3A6CB4]">Winner wall</p><h2 className="mt-2 text-3xl font-black tracking-[-0.035em] text-[#142A52] sm:text-4xl">Recent Winners</h2></div>
-            <p className="flex items-center gap-2 text-sm text-slate-500"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Updated after every win</p>
           </div>
 
           {loading ? (
@@ -133,18 +109,15 @@ export default function WinnersPage() {
           ) : (
             <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {winners.map((winner, index) => (
-                <article key={winner.id} className="group relative overflow-hidden rounded-[22px] border border-[#E0E7F0] bg-[#F8FAFD] p-5 transition duration-300 hover:-translate-y-1 hover:border-[#BFD0E8] hover:bg-white hover:shadow-[0_16px_35px_rgba(20,42,82,.1)]">
+                <article key={winner.id} className="group relative overflow-hidden rounded-[22px] border border-[#E0E7F0] bg-[#F8FAFD] p-6 transition duration-300 hover:-translate-y-1 hover:border-[#BFD0E8] hover:bg-white hover:shadow-[0_16px_35px_rgba(20,42,82,.1)]">
                   <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#2F6ED8] via-[#6EA0EA] to-[#D8B34F] opacity-0 transition group-hover:opacity-100" />
-                  <div className="flex items-start gap-4">
-                    <div className="relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1C3D70] to-[#102743] font-black text-white shadow-sm">
+                  <Trophy aria-hidden="true" className="absolute right-6 top-6 h-4 w-4 text-[#C49E3B]" />
+                  <div className="flex items-start gap-4 pr-7">
+                    <div className="relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1C3D70] to-[#102743] text-lg font-black text-white shadow-sm">
                       {winner.initials}
                       {index === 0 && <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-[#D8B34F]" />}
                     </div>
-                    <div className="min-w-0 flex-1"><p className="font-black leading-snug text-[#142A52]">{winner.prize}</p><p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500"><MapPin className="h-3.5 w-3.5 text-[#5D7EAF]" /> {winner.city}</p></div>
-                  </div>
-                  <div className="mt-5 flex items-center justify-between border-t border-[#E0E7F0] pt-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" /> {new Date(winner.created_at).toLocaleDateString()}</span>
-                    <Trophy className="h-4 w-4 text-[#C49E3B] opacity-70" />
+                    <div className="min-w-0 flex-1"><p className="text-lg font-black leading-snug text-[#142A52]">{winner.prize}</p><p className="mt-1.5 flex items-center gap-1.5 text-base text-slate-500"><MapPin className="h-3.5 w-3.5 shrink-0 text-[#5D7EAF]" /> {winner.city}</p></div>
                   </div>
                 </article>
               ))}

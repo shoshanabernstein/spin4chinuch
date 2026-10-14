@@ -174,3 +174,20 @@
     @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-[#142A52] outline-none transition placeholder:text-slate-400 focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100;
   }
 }
+@keyframes wheel-spin-label-pulse {
+  0%, 100% {
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    transform: scale(1.08);
+    text-shadow: 0 0 12px rgba(245, 222, 152, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wheel-spin-label {
+    display: inline-block;
+    animation: wheel-spin-label-pulse 2.6s ease-in-out infinite;
+  }
+}

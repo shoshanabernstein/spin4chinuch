@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
 import { sendWinEmail } from "@/lib/server/win-email";
+import { deliverGiftCard, giftCardsEnabled } from "@/lib/server/gift-cards";
 
 type SpinResult = {
+  winId?: number | null;
   outcomeId: number;
   outcomeLabel: string;
   remainingSpins: number;
@@ -22,7 +24,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data, error } = await supabaseAdmin.rpc("perform_spin", {
+  const useGiftCards = giftCardsEnabled();
+  const { data, error } = await supabaseAdmin.rpc(useGiftCards ? "perform_spin_with_gift_cards" : "perform_spin", {
     p_user_id: user.id,
   });
 
@@ -38,19 +41,30 @@ export async function POST(req: Request) {
 
   const result = data as SpinResult;
   if (result.won && result.prize?.name && user.email) {
-    const { data: prizeDetails, error: prizeDetailsError } = await supabaseAdmin
-      .from("prizes")
-      .select("image_url")
-      .eq("id", result.prize.id)
-      .maybeSingle();
-
-    if (prizeDetailsError) {
-      console.error("Could not load the winner email prize image", prizeDetailsError);
+    let useStandardEmail = !useGiftCards;
+    if (useGiftCards) {
+      try {
+        if (!result.winId) throw new Error("Missing win ID for gift card delivery");
+        useStandardEmail = !(await deliverGiftCard(result.winId));
+      } catch (emailError) {
+        console.error("Gift card delivery requires administrator review", emailError);
+      }
     }
+    if (useStandardEmail) {
+      const { data: prizeDetails, error: prizeDetailsError } = await supabaseAdmin
+        .from("prizes")
+        .select("image_url")
+        .eq("id", result.prize.id)
+        .maybeSingle();
 
-    await sendWinEmail(user.email, result.prize.name, prizeDetails?.image_url).catch((emailError) => {
-      console.error("Win email failed", emailError);
-    });
+      if (prizeDetailsError) {
+        console.error("Could not load the winner email prize image", prizeDetailsError);
+      }
+
+      await sendWinEmail(user.email, result.prize.name, prizeDetails?.image_url).catch((emailError) => {
+        console.error("Win email failed", emailError);
+      });
+    }
   }
 
   return NextResponse.json({

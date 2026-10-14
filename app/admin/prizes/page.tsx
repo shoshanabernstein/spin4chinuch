@@ -1,18 +1,20 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @next/next/no-img-element */
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Archive, Gift, PackageCheck, PackageX, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Archive, ArrowLeft, ArrowRight, GripVertical, Gift, PackageCheck, PackageX, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 import StatCard from "@/components/ui/StatCard";
+import PrizeCard from "@/components/buy-spins/PrizeCard";
+import { movePrize, sortPrizes } from "@/lib/prize-order";
 
 type Prize = {
   id: number;
   name: string;
   quantity: number;
+  original_quantity: number;
   active: boolean;
   image_url: string | null;
   retail_value: number | null;
@@ -30,14 +32,69 @@ export default function AdminPrizesPage() {
   const [loading, setLoading] = useState(true);
   const [contacts, setContacts] = useState<PrivateContact[]>([]);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [draggedId, setDraggedId] = useState<number | null>(null);
+  const [dropId, setDropId] = useState<number | null>(null);
+  const [savedOrder, setSavedOrder] = useState<number[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
+  const [orderReady, setOrderReady] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const orderChanged = prizes.some((prize, index) => prize.id !== savedOrder[index]);
 
   const loadPrizes = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("prizes").select("id,name,quantity,active,image_url,retail_value,sponsor_name").order("id");
-    if (error) toast.error(`Unable to load prizes: ${error.message}`);
-    setPrizes(data ?? []);
+    setOrderReady(false);
+    setLoadError("");
+    try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Please sign in again.");
+    const response = await fetch("/api/admin/prize-order", { headers: { Authorization: `Bearer ${session.access_token}` }, cache: "no-store" });
+    if (!response.ok) throw new Error("Unable to load the saved prize order. Please reload.");
+    const { order } = await response.json();
+    const { data, error } = await supabase.from("prizes").select("*,wins!prize_id(count)").order("id");
+    if (error) throw error;
+    const ordered = sortPrizes((data ?? []).map((prize) => ({
+      ...prize,
+      original_quantity: prize.original_quantity ??
+        prize.quantity + (prize.wins[0]?.count ?? 0),
+    })), order);
+    setPrizes(ordered);
+    setSavedOrder(ordered.map((prize) => prize.id));
+    setOrderReady(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load prizes.";
+      setLoadError(message);
+      toast.error(message);
+    } finally {
     setLoading(false);
+    }
   }, []);
+
+  function reorder(from: number, to: number) {
+    if (savingOrder || !orderReady) return;
+    setPrizes((current) => movePrize(current, from, to));
+  }
+
+  async function saveOrder() {
+    setSavingOrder(true);
+    const order = prizes.map((prize) => prize.id);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Please sign in again.");
+      const response = await fetch("/api/admin/prize-order", {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ order }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Unable to save order.");
+      setSavedOrder(order);
+      toast.success("Prize order saved for the public prize page.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save prize order.");
+    } finally {
+      setSavingOrder(false);
+    }
+  }
 
   useEffect(() => { void loadPrizes(); }, [loadPrizes]);
 
@@ -52,10 +109,11 @@ export default function AdminPrizesPage() {
       const data = await response.json();
       setContacts(data.contacts ?? []);
     }
-    void loadContacts();
+    void loadContacts().catch(() => toast.error("Private contacts could not be loaded. Please reload to try again."));
   }, []);
 
   async function setPrizeActive(prize: Prize, active: boolean) {
+    if (savingOrder || orderChanged) return toast.error("Save or undo the prize order before changing prize status.");
     const verb = active ? "restore" : "archive";
     if (!window.confirm(`${verb[0].toUpperCase()}${verb.slice(1)} ${prize.name}?`)) return;
     const { error } = await supabase.from("prizes").update({ active }).eq("id", prize.id);
@@ -65,6 +123,7 @@ export default function AdminPrizesPage() {
   }
 
   async function deletePrize(prize: Prize) {
+    if (savingOrder || orderChanged) return toast.error("Save or undo the prize order before deleting a prize.");
     if (!window.confirm(`Permanently delete ${prize.name}, its wheel outcomes, and their spin-history entries? Existing winner names and prize records will remain, but their outcome link will be removed. This cannot be undone.`)) return;
 
     setDeletingId(prize.id);
@@ -120,21 +179,37 @@ export default function AdminPrizesPage() {
           <StatCard label="Archived" value={prizes.filter((prize) => !prize.active).length} icon={<PackageX />} />
         </section>
 
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-blue-100 bg-white p-5">
+          <p className="text-sm text-slate-600" aria-live="polite">{orderChanged ? "You have unsaved order changes." : "Drag a prize by its handle, or use the arrows to move it."}</p>
+          <div className="flex gap-3">
+            <button type="button" disabled={!orderChanged || savingOrder || loading} onClick={() => setPrizes((current) => sortPrizes(current, savedOrder))} className="rounded-full border px-5 py-2 font-bold disabled:opacity-40">Undo</button>
+            <button type="button" disabled={!orderReady || !orderChanged || savingOrder || loading} onClick={() => void saveOrder()} className="rounded-full bg-[#2F6ED8] px-5 py-2 font-bold text-white disabled:opacity-40">{savingOrder ? "Saving..." : "Save Order"}</button>
+          </div>
+        </div>
+
         {loading ? (
           <div className="rounded-3xl border border-blue-100 bg-white py-16 text-center text-slate-500 shadow-lg">Loading prizes…</div>
+        ) : loadError ? (
+          <div role="alert" className="rounded-3xl bg-white p-8 text-center text-red-600">
+            <p>{loadError}</p>
+            <button type="button" onClick={() => void loadPrizes()} className="mt-4 rounded-full bg-[#2F6ED8] px-5 py-2 font-bold text-white">Try again</button>
+          </div>
         ) : prizes.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">No prizes have been created.</div>
         ) : (
-          <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {prizes.map((prize) => (
-              <article key={prize.id} className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg">
-                <div className="relative h-44 bg-gradient-to-br from-[#EEF4FF] to-[#FFF8DF]">
-                  {prize.image_url ? <img src={prize.image_url} alt="" className="h-full w-full object-contain p-5" /> : <Gift className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 text-[#4267A8]/35" />}
-                  <span className={`absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold ${prize.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>{prize.active ? "Active" : "Archived"}</span>
+          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {prizes.map((prize, index) => (
+              <div key={prize.id} onDragOver={(event) => { if (draggedId !== null && !savingOrder) { event.preventDefault(); setDropId(prize.id); } }} onDrop={(event) => { event.preventDefault(); if (draggedId !== null) reorder(draggedId, prize.id); setDraggedId(null); setDropId(null); }} className={`flex min-w-0 flex-col rounded-3xl ${dropId === prize.id ? "ring-4 ring-blue-400" : ""} ${draggedId === prize.id ? "opacity-50" : ""}`}>
+                <div className="mb-2 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2">
+                  <button type="button" draggable={orderReady && !savingOrder} disabled={!orderReady || savingOrder} onDragStart={(event) => { setDraggedId(prize.id); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain", String(prize.id)); }} onDragEnd={() => { setDraggedId(null); setDropId(null); }} aria-label={`Drag ${prize.name} to reorder`} className="flex cursor-grab items-center gap-2 rounded px-2 py-1 text-sm font-bold active:cursor-grabbing"><GripVertical size={18} />{index + 1}</button>
+                  <div className="flex gap-1">
+                    <button type="button" disabled={index === 0 || savingOrder || !orderReady} onClick={() => reorder(prize.id, prizes[index - 1].id)} aria-label={`Move ${prize.name} earlier`} className="rounded p-2 hover:bg-blue-100 disabled:opacity-30"><ArrowLeft size={18} /></button>
+                    <button type="button" disabled={index === prizes.length - 1 || savingOrder || !orderReady} onClick={() => reorder(prize.id, prizes[index + 1].id)} aria-label={`Move ${prize.name} later`} className="rounded p-2 hover:bg-blue-100 disabled:opacity-30"><ArrowRight size={18} /></button>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <h2 className="text-2xl font-black">{prize.name}</h2>
-                  <p className="mt-2 text-sm text-slate-500">{prize.sponsor_name || "No sponsor listed"}</p>
+              <PrizeCard name={prize.name} imageUrl={prize.image_url} originalQuantity={prize.original_quantity} sponsorName={prize.sponsor_name}>
+                <div className="border-t border-blue-100 p-6">
+                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${prize.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>{prize.active ? "Active" : "Archived"}</span>
                   {contacts.find((contact) => contact.prizeId === prize.id) && (
                     <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-slate-600">
                       <p className="font-bold uppercase tracking-wide text-[#4267A8]">Private contact</p>
@@ -143,7 +218,7 @@ export default function AdminPrizesPage() {
                     </div>
                   )}
                   <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-400">Remaining</p><p className="text-xl font-black">{prize.quantity}</p></div>
+                    <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-400">Original Quantity</p><p className="text-xl font-black">{prize.original_quantity}</p></div>
                     <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-400">Value</p><p className="text-xl font-black">{prize.retail_value == null ? "—" : `$${prize.retail_value}`}</p></div>
                   </div>
                   <div className="mt-6 grid grid-cols-2 gap-3">
@@ -160,7 +235,8 @@ export default function AdminPrizesPage() {
                     </button>
                   </div>
                 </div>
-              </article>
+              </PrizeCard>
+              </div>
             ))}
           </section>
         )}

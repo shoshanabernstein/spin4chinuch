@@ -1,11 +1,14 @@
+"use client";
+
+import Link from "next/link";
+import { useAuth } from "@/components/AuthProvider";
 import {
   Ticket,
   CircleDashed,
 } from "lucide-react";
 
-import Button from "@/components/ui/Button";
-
 export default function Actions() {
+  const { user } = useAuth();
   return (
     <section id="actions" className="mx-auto max-w-7xl scroll-mt-28 px-6 py-24">
       <div className="mx-auto mb-16 max-w-3xl text-center">
@@ -20,7 +23,7 @@ export default function Actions() {
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Buy Spins */}
-        <div className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-white p-10 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
+        <Link href="/buy-spins" className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-white p-10 shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4267A8]">
           <div className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-[#80A8F7]/20 blur-3xl" />
 
           <div className="relative">
@@ -38,15 +41,15 @@ export default function Actions() {
             </p>
 
             <div className="mt-10">
-              <Button href="/buy-spins" variant="gold">
+              <span className="inline-flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#C9A44D] to-[#E7C96D] px-6 py-3 font-bold text-[#142A52] shadow-md">
                 Buy Spins
-              </Button>
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Spin */}
-        <div className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-[#142A52] via-[#28457B] to-[#4267A8] p-10 text-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
+        <Link href={user ? "/spin" : "/login?redirect=/spin"} className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-[#142A52] via-[#28457B] to-[#4267A8] p-10 text-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4267A8]">
           <div className="absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-[#C9A44D]/20 blur-3xl" />
 
           <div className="relative">
@@ -64,16 +67,14 @@ export default function Actions() {
             </p>
 
             <div className="mt-10">
-              <Button
-                href="/spin"
-                variant="secondary"
-                className="border border-white/30 bg-white/10 text-white hover:bg-white/20"
+              <span
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/30 bg-white/10 px-6 py-3 font-bold text-white shadow-md group-hover:bg-white/20"
               >
                 Spin Now
-              </Button>
+              </span>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </section>
   );

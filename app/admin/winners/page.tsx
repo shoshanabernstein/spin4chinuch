@@ -7,6 +7,7 @@ import { CheckCircle2, Clock3, Trophy } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 import StatCard from "@/components/ui/StatCard";
+import GiftCardDeliveries from "@/components/admin/GiftCardDeliveries";
 
 type Win = {
   id: number;
@@ -53,6 +54,7 @@ export default function AdminWinnersPage() {
           <StatCard label="Pending" value={wins.filter((win) => win.status === "Pending").length} icon={<Clock3 />} />
           <StatCard label="Fulfilled" value={wins.filter((win) => win.status === "Fulfilled").length} icon={<CheckCircle2 />} />
         </section>
+        <GiftCardDeliveries onUpdate={loadWins} />
         <section className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg">
           {loading ? <div className="py-16 text-center text-slate-500">Loading winners…</div> : wins.length === 0 ? <div className="py-16 text-center text-slate-500">No winners have been recorded.</div> : wins.map((win) => (
             <article key={win.id} className="grid gap-5 border-b border-slate-100 p-5 last:border-0 lg:grid-cols-[1.4fr_1fr_190px] lg:items-center">

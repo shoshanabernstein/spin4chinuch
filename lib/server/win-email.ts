@@ -25,7 +25,7 @@ function getPublicImageUrl(imageUrl?: string | null) {
   }
 }
 
-function winnerEmailHtml(prize: string, prizeImageUrl?: string | null) {
+function winnerEmailHtml(prize: string, prizeImageUrl?: string | null, hasGiftCard = false) {
   const safePrize = escapeHtml(prize);
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
   const publicPrizeImageUrl = getPublicImageUrl(prizeImageUrl);
@@ -63,8 +63,8 @@ function winnerEmailHtml(prize: string, prizeImageUrl?: string | null) {
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-radius:16px;background:#fffaf0;border-left:4px solid #d8b34f;">
                       <tr>
                         <td style="padding:20px 22px;">
-                          <p style="margin:0 0 6px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#9b7422;">What happens next?</p>
-                          <p style="margin:0;font-size:17px;line-height:1.65;color:#344a64;">We will be in touch with you shortly regarding the delivery of your prize.</p>
+                          <p style="margin:0 0 6px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#9b7422;">${hasGiftCard ? "Below is your e-gift card" : "What happens next?"}</p>
+                          <p style="margin:0;font-size:17px;line-height:1.65;color:#344a64;">${hasGiftCard ? "Your e-gift card is attached to this email as a PDF. Open the attachment to view and use your card." : "We will be in touch with you shortly regarding the delivery of your prize."}</p>
                         </td>
                       </tr>
                     </table>
@@ -92,7 +92,7 @@ function winnerEmailHtml(prize: string, prizeImageUrl?: string | null) {
   `;
 }
 
-export async function sendWinEmail(email: string, prize: string, prizeImageUrl?: string | null) {
+export async function sendWinEmail(email: string, prize: string, prizeImageUrl?: string | null, giftCard?: { content: Buffer; id: string }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WIN_EMAIL_FROM;
 
@@ -109,13 +109,15 @@ export async function sendWinEmail(email: string, prize: string, prizeImageUrl?:
     to: email,
     replyTo: REPLY_TO_EMAIL,
     subject: `You won ${subjectPrize}!`,
-    text: `Congratulations! You won ${prize}. We will be in touch with you shortly regarding the delivery of your prize. Thank you for participating and for supporting Jewish education.`,
-    html: winnerEmailHtml(prize, prizeImageUrl),
-  });
+    text: `Congratulations! You won ${prize}. ${giftCard ? "Below is your e-gift card. Your e-gift card is attached to this email as a PDF. Open the attachment to view and use your card." : "We will be in touch with you shortly regarding the delivery of your prize."} Thank you for participating and for supporting Jewish education.`,
+    html: winnerEmailHtml(prize, prizeImageUrl, Boolean(giftCard)),
+    ...(giftCard ? { attachments: [{ filename: "Your e-gift card.pdf", content: giftCard.content }] } : {}),
+  }, giftCard ? { idempotencyKey: `gift-card/${giftCard.id}` } : undefined);
 
   if (error) {
     throw new Error(`Resend could not send the winner email: ${error.message}`);
   }
 
-  return data?.id;
+  if (!data?.id) throw new Error("Email service did not return a receipt");
+  return data.id;
 }

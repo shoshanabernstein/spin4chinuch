@@ -6,7 +6,6 @@ import Confetti from "react-confetti";
 import toast from "react-hot-toast";
 import {
   ArrowRight,
-  CircleDashed,
   DollarSign,
   Gift,
   Sparkles,
@@ -24,11 +23,6 @@ type Outcome = {
   label: string;
   prize_id: number | null;
   sponsor_name?: string | null;
-};
-
-type PrizeDetails = {
-  id: number;
-  sponsor_name: string | null;
 };
 
 type SpinResponse = {
@@ -64,7 +58,6 @@ export default function SpinPage() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   const [remainingSpins, setRemainingSpins] = useState(0);
-  const [totalSpins, setTotalSpins] = useState(0);
   const [totalDonations, setTotalDonations] = useState(0);
   const [totalWins, setTotalWins] = useState(0);
 
@@ -108,41 +101,17 @@ export default function SpinPage() {
   async function loadOutcomes() {
     setLoadingPrizes(true);
 
-    const [outcomeResult, prizeResult] = await Promise.all([
-      supabase
-        .from("public_wheel_outcomes")
-        .select("id,label,prize_id")
-        .order("created_at", { ascending: true }),
-      supabase
-        .from("prizes")
-        .select("id,sponsor_name")
-        .eq("active", true)
-        .gt("quantity", 0),
-    ]);
-
-    if (outcomeResult.error) {
-      console.error("Unable to load wheel outcomes:", outcomeResult.error);
+    try {
+      const response = await fetch("/api/wheel-outcomes", { cache: "no-store" });
+      if (!response.ok) throw new Error("Unable to load wheel outcomes");
+      const data = await response.json();
+      setOutcomes(data.outcomes);
+    } catch {
       setOutcomes([]);
       toast.error("The prize wheel could not be loaded.");
-    } else {
-      const detailsById = new Map(
-        ((prizeResult.data ?? []) as PrizeDetails[]).map((prize) => [
-          prize.id,
-          prize,
-        ])
-      );
-
-      setOutcomes(
-        (outcomeResult.data ?? []).map((outcome) => ({
-          ...outcome,
-          sponsor_name: outcome.prize_id
-            ? detailsById.get(outcome.prize_id)?.sponsor_name
-            : null,
-        }))
-      );
+    } finally {
+      setLoadingPrizes(false);
     }
-
-    setLoadingPrizes(false);
   }
 
   async function loadUserStats() {
@@ -160,7 +129,7 @@ export default function SpinPage() {
     const [profileResult, winsResult, paymentsResult] = await Promise.all([
       supabase
         .from("profiles")
-        .select("remaining_spins,total_spins")
+        .select("remaining_spins")
         .eq("id", user.id)
         .single(),
       supabase
@@ -178,7 +147,6 @@ export default function SpinPage() {
       toast.error("Your spin balance could not be loaded.");
     } else {
       setRemainingSpins(profileResult.data.remaining_spins ?? 0);
-      setTotalSpins(profileResult.data.total_spins ?? 0);
     }
 
     setTotalWins(winsResult.count ?? 0);
@@ -357,7 +325,7 @@ export default function SpinPage() {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#5E9CF4]/35 to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="bg-gradient-to-r from-white via-white to-[#E8CD7A] bg-clip-text text-4xl font-black tracking-[-0.04em] text-transparent sm:text-6xl">
@@ -374,8 +342,8 @@ export default function SpinPage() {
             </Link>
           </header>
 
-          <section className="relative mx-auto grid max-w-6xl rounded-[34px] border border-[#C9A44D]/20 bg-[#0C1F38]/90 shadow-[0_30px_110px_rgba(0,0,0,.38),0_0_70px_rgba(47,110,216,.12)] backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="relative flex items-center justify-center px-3 pb-6 pt-16 sm:px-10 sm:pb-10 sm:pt-20">
+          <section className="relative mx-auto grid max-w-7xl rounded-[34px] border border-[#C9A44D]/20 bg-[#0C1F38]/90 shadow-[0_30px_110px_rgba(0,0,0,.38),0_0_70px_rgba(47,110,216,.12)] backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_280px]">
+            <div className="relative flex items-center justify-center px-3 pb-4 pt-10 sm:px-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,164,77,.12),rgba(47,110,216,.14)_34%,transparent_68%)]" />
               <Sparkles className="absolute left-7 top-7 h-6 w-6 text-[#C9A44D]/55" />
               <Sparkles className="absolute bottom-8 right-8 h-5 w-5 text-[#5E9CF4]/55" />
@@ -401,7 +369,7 @@ export default function SpinPage() {
                   </p>
                 </div>
               ) : (
-                <div className="relative mx-auto w-full max-w-[610px]">
+                <div className="relative mx-auto w-full max-w-[720px]">
                   <PrizeWheel
                     rotation={rotation}
                     spinning={spinning}
@@ -421,11 +389,6 @@ export default function SpinPage() {
                   value: loadingStats ? "—" : remainingSpins,
                   icon: Ticket,
                   accent: true,
-                },
-                {
-                  label: "Total spins",
-                  value: loadingStats ? "—" : totalSpins,
-                  icon: CircleDashed,
                 },
                 {
                   label: "Wins",
@@ -557,51 +520,7 @@ export default function SpinPage() {
             */}
           </section>
 
-          {outcomes.some((outcome) => outcome.prize_id) && (
-            <section className="mt-7 rounded-[30px] border border-white/10 bg-[#0C1F38]/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#C9A44D]">
-                    On the wheel
-                  </p>
-                  <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
-                    Prizes from our generous sponsors
-                  </h2>
-                </div>
-                <p className="text-sm text-[#8FA8C8]">
-                  Every prize below is included in the live wheel.
-                </p>
-              </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {outcomes
-                  .filter((outcome) => outcome.prize_id)
-                  .map((outcome) => (
-                    <div
-                      key={`lineup-${outcome.id}`}
-                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-4"
-                    >
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9A44D]/15 text-[#E8CD7A]">
-                        <Gift className="h-5 w-5" aria-hidden />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="font-bold leading-snug text-white">
-                          {outcome.label}
-                        </p>
-                        {outcome.sponsor_name && (
-                          <p className="mt-1 text-sm text-[#9DB2CE]">
-                            Sponsored by{" "}
-                            <span className="font-semibold text-[#E8CD7A]">
-                              {outcome.sponsor_name}
-                            </span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </section>
-          )}
         </div>
 
         {winner && (

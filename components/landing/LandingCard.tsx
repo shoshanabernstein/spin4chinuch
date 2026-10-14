@@ -1,18 +1,22 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 
 interface LandingCardProps {
   title: string;
   description: string;
   icon: ReactNode;
+  href: string;
 }
 
 export default function LandingCard({
   title,
   description,
   icon,
+  href,
 }: LandingCardProps) {
   return (
-    <div
+    <Link
+      href={href}
       className="
         group
         relative
@@ -27,6 +31,9 @@ export default function LandingCard({
         duration-300
         hover:-translate-y-2
         hover:shadow-2xl
+        focus-visible:outline-2
+        focus-visible:outline-offset-4
+        focus-visible:outline-[#4267A8]
       "
     >
       {/* Decorative gradient */}
@@ -60,6 +67,6 @@ export default function LandingCard({
           {description}
         </p>
       </div>
-    </div>
+    </Link>
   );
 }

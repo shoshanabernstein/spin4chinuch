@@ -8,26 +8,43 @@ import StatCard from "@/components/ui/StatCard";
 
 type AdminStats = {
   users: number;
-  prizes: number;
+  purchasedSpins: number | null;
   activePrizes: number;
   winners: number;
 };
 
+async function loadPurchasedSpins() {
+  const pageSize = 1000;
+  let total = 0;
+  // Read every payment, including purchases beyond Supabase's row limit.
+  for (let offset = 0; ;) {
+    const { data, error, count } = await supabase
+      .from("payment_logs")
+      .select("spins", { count: "exact" })
+      .order("payment_intent_id")
+      .range(offset, offset + pageSize - 1);
+    if (error) throw error;
+    total += (data ?? []).reduce((sum, payment) => sum + payment.spins, 0);
+    offset += data?.length ?? 0;
+    if (!data?.length || (count !== null && offset >= count)) return total;
+  }
+}
+
 export default function AdminPage() {
-  const [stats, setStats] = useState<AdminStats>({ users: 0, prizes: 0, activePrizes: 0, winners: 0 });
+  const [stats, setStats] = useState<AdminStats>({ users: 0, purchasedSpins: 0, activePrizes: 0, winners: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
-      const [users, prizes, activePrizes, winners] = await Promise.all([
+      const [users, purchasedSpins, activePrizes, winners] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase.from("prizes").select("id", { count: "exact", head: true }),
+        loadPurchasedSpins().catch(() => null),
         supabase.from("prizes").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("wins").select("id", { count: "exact", head: true }),
       ]);
       setStats({
         users: users.count ?? 0,
-        prizes: prizes.count ?? 0,
+        purchasedSpins,
         activePrizes: activePrizes.count ?? 0,
         winners: winners.count ?? 0,
       });
@@ -54,7 +71,7 @@ export default function AdminPage() {
 
         <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-busy={loading}>
           <StatCard label="Registered Users" value={loading ? "—" : stats.users} icon={<Users />} />
-          <StatCard label="Total Prizes" value={loading ? "—" : stats.prizes} icon={<Gift />} />
+          <StatCard label="Spins Purchased" value={loading ? "—" : stats.purchasedSpins ?? "Unavailable"} icon={<Ticket />} />
           <StatCard label="Active Prizes" value={loading ? "—" : stats.activePrizes} icon={<Trophy />} />
           <StatCard label="Recorded Wins" value={loading ? "—" : stats.winners} icon={<Ticket />} />
         </section>

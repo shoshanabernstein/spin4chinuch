@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -53,11 +54,35 @@ export default function ResetPasswordPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [sessionError, setSessionError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    async function checkSession() {
+      try {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const query = new URLSearchParams(window.location.search);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error || !session || params.has("error") || query.has("error")) {
+          throw new Error("Invalid reset link");
+        }
+      } catch {
+        if (!cancelled) setSessionError("This reset link is invalid or has expired. Please request a new one.");
+      } finally {
+        if (!cancelled) setCheckingSession(false);
+      }
+    }
+    void checkSession();
+    return () => { cancelled = true; };
+  }, []);
 
   const strength = getStrength(password);
 
   async function updatePassword(e: React.FormEvent) {
     e.preventDefault();
+
+    if (checkingSession || sessionError) return;
 
     if (password !== confirm) {
       toast.error("Passwords do not match.");
@@ -121,7 +146,14 @@ export default function ResetPasswordPage() {
 
         </div>
 
-        <form
+        {checkingSession ? (
+          <p role="status" className="text-center text-slate-500">Checking your reset link...</p>
+        ) : sessionError ? (
+          <div className="space-y-4 text-center">
+            <p role="alert" className="text-red-600">{sessionError}</p>
+            <Link href="/forgot-password" className="inline-block font-semibold text-[#0D2C6C] underline">Request a new reset link</Link>
+          </div>
+        ) : <form
           onSubmit={updatePassword}
           className="space-y-6"
         >
@@ -298,7 +330,7 @@ export default function ResetPasswordPage() {
 
           </button>
 
-        </form>
+        </form>}
 
       </div>
 

@@ -6,7 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 
-type Prize = { id: number; name: string };
+type Prize = { id: number; name: string; active: boolean; quantity: number };
 type Outcome = {
   id: number;
   label: string;
@@ -27,19 +27,28 @@ export default function OutcomesAdminPage() {
   async function load() {
     const [outcomeResult, prizeResult] = await Promise.all([
       supabase.from("wheel_outcomes").select("*").order("id"),
-      supabase.from("prizes").select("id,name").eq("active", true).gt("quantity", 0).order("name"),
+      supabase.from("prizes").select("id,name,active,quantity").order("name"),
     ]);
 
     if (outcomeResult.error) toast.error(outcomeResult.error.message);
     if (prizeResult.error) toast.error(prizeResult.error.message);
-    setOutcomes((outcomeResult.data as Outcome[] | null) ?? []);
+    setOutcomes(((outcomeResult.data as Outcome[] | null) ?? []).filter(
+      (outcome) => !(outcome.type === "loss" && outcome.prize_id === null && outcome.label.trim().toLowerCase() === "spin again")
+    ));
     setPrizes((prizeResult.data as Prize[] | null) ?? []);
   }
 
   useEffect(() => { void load(); }, []);
 
   async function createOutcome() {
-    if (!label.trim() || !Number.isInteger(probability) || probability < 1) {
+    const outcomeLabel = type === "prize"
+      ? prizes.find((prize) => prize.id === Number(prizeId))?.name ?? ""
+      : label.trim();
+    if (type === "loss" && outcomeLabel.toLowerCase() === "spin again") {
+      toast.error("Spin Again has been removed from the wheel.");
+      return;
+    }
+    if (!outcomeLabel || !Number.isInteger(probability) || probability < 1) {
       toast.error("Enter a label and a positive whole-number weight.");
       return;
     }
@@ -49,7 +58,7 @@ export default function OutcomesAdminPage() {
     }
 
     const { error } = await supabase.from("wheel_outcomes").insert({
-      label: label.trim(),
+      label: outcomeLabel,
       type,
       prize_id: type === "prize" ? Number(prizeId) : null,
       probability,
@@ -96,14 +105,14 @@ export default function OutcomesAdminPage() {
         </header>
 
         <section className="grid gap-4 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg md:grid-cols-5">
-          <input value={label} onChange={(event) => setLabel(event.target.value)} placeholder="Wheel label" className="rounded-xl border border-slate-300 px-4 py-3" />
+          <input value={type === "prize" ? prizes.find((prize) => prize.id === Number(prizeId))?.name ?? "" : label} disabled={type === "prize"} onChange={(event) => setLabel(event.target.value)} placeholder={type === "prize" ? "Uses the selected prize name" : "Wheel label"} className="rounded-xl border border-slate-300 px-4 py-3 disabled:bg-slate-100" />
           <select value={type} onChange={(event) => setType(event.target.value as "prize" | "loss")} className="rounded-xl border border-slate-300 px-4 py-3">
             <option value="loss">Non-winning</option>
             <option value="prize">Prize</option>
           </select>
           <select value={prizeId} disabled={type === "loss"} onChange={(event) => setPrizeId(event.target.value)} className="rounded-xl border border-slate-300 px-4 py-3 disabled:bg-slate-100">
             <option value="">Select prize</option>
-            {prizes.map((prize) => <option key={prize.id} value={prize.id}>{prize.name}</option>)}
+            {prizes.filter((prize) => prize.active && prize.quantity > 0).map((prize) => <option key={prize.id} value={prize.id}>{prize.name}</option>)}
           </select>
           <input type="number" min={1} step={1} value={probability} onChange={(event) => setProbability(Number(event.target.value))} className="rounded-xl border border-slate-300 px-4 py-3" />
           <button onClick={createOutcome} className="rounded-xl bg-[#2F6ED8] px-5 py-3 font-bold text-white">Add outcome</button>
@@ -117,7 +126,7 @@ export default function OutcomesAdminPage() {
             return (
               <div key={outcome.id} className="grid gap-4 border-b border-slate-100 p-5 last:border-0 md:grid-cols-[1fr_120px_140px_110px] md:items-center">
                 <div>
-                  <p className="font-bold">{outcome.label}</p>
+                  <p className="font-bold">{prizes.find((prize) => prize.id === outcome.prize_id)?.name ?? outcome.label}</p>
                   <p className="text-sm text-slate-500">{outcome.type === "prize" ? "Prize outcome" : "Non-winning outcome"} · {chance}% current share</p>
                 </div>
                 <input type="number" min={1} step={1} value={outcome.probability} onChange={(event) => setOutcomes((current) => current.map((item) => item.id === outcome.id ? { ...item, probability: Number(event.target.value) } : item))} onBlur={() => void updateOutcome(outcome.id, { probability: outcome.probability })} className="rounded-xl border border-slate-300 px-3 py-2" />
