@@ -11,12 +11,14 @@ import GiftCardDeliveries from "@/components/admin/GiftCardDeliveries";
 
 type Win = {
   id: number;
+  user_id: string | null;
   user_email: string;
   prize: string;
   created_at: string;
   status: string;
   delivery_type: string | null;
   delivery_instructions: string | null;
+  home_address?: string;
 };
 
 export default function AdminWinnersPage() {
@@ -25,9 +27,23 @@ export default function AdminWinnersPage() {
 
   const loadWins = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("wins").select("id,user_email,prize,created_at,status,delivery_type,delivery_instructions").order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("wins").select("id,user_id,user_email,prize,created_at,status,delivery_type,delivery_instructions").order("created_at", { ascending: false });
     if (error) toast.error(error.message);
-    setWins(data ?? []);
+    const userIds = [...new Set((data ?? []).flatMap((win) => win.user_id ? [win.user_id] : []))];
+    const { data: profiles, error: addressError } = userIds.length
+      ? await supabase.from("profiles").select("id,address1,address2,city,state,zip,country").in("id", userIds)
+      : { data: [], error: null };
+    if (addressError) toast.error("Unable to load home addresses. Please refresh to try again.");
+    const addresses = new Map((profiles ?? []).map((profile) => [profile.id, [
+      profile.address1,
+      profile.address2,
+      [profile.city, profile.state].filter(Boolean).join(", ") + (profile.zip ? ` ${profile.zip}` : ""),
+      profile.country,
+    ].filter((line) => line?.trim()).join("\n")]));
+    setWins((data ?? []).map((win) => ({
+      ...win,
+      home_address: addressError ? "Unable to load address" : addresses.get(win.user_id) || "No home address on file",
+    })));
     setLoading(false);
   }, []);
 
@@ -39,6 +55,8 @@ export default function AdminWinnersPage() {
     toast.success("Winner status updated.");
     setWins((current) => current.map((win) => win.id === id ? { ...win, status } : win));
   }
+
+  const sortedWins = [...wins].sort((a, b) => Number(a.status === "Fulfilled") - Number(b.status === "Fulfilled"));
 
   return (
     <main className="app-page">
@@ -56,10 +74,10 @@ export default function AdminWinnersPage() {
         </section>
         <GiftCardDeliveries onUpdate={loadWins} />
         <section className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg">
-          {loading ? <div className="py-16 text-center text-slate-500">Loading winners…</div> : wins.length === 0 ? <div className="py-16 text-center text-slate-500">No winners have been recorded.</div> : wins.map((win) => (
+          {loading ? <div className="py-16 text-center text-slate-500">Loading winners…</div> : wins.length === 0 ? <div className="py-16 text-center text-slate-500">No winners have been recorded.</div> : sortedWins.map((win) => (
             <article key={win.id} className="grid gap-5 border-b border-slate-100 p-5 last:border-0 lg:grid-cols-[1.4fr_1fr_190px] lg:items-center">
               <div><h2 className="text-lg font-bold">{win.prize}</h2><p className="text-sm text-slate-500">{win.user_email}</p><p className="mt-1 text-xs text-slate-400">Won {new Date(win.created_at).toLocaleString()}</p></div>
-              <div className="text-sm text-slate-500"><p>{win.delivery_type || "No delivery type"}</p>{win.delivery_instructions && <p className="mt-1 text-xs">{win.delivery_instructions}</p>}</div>
+              <div className="text-sm text-slate-500"><p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-400">Home address</p><p className="mb-3 whitespace-pre-line">{win.home_address}</p><p>{win.delivery_type || "No delivery type"}</p>{win.delivery_instructions && <p className="mt-1 text-xs">{win.delivery_instructions}</p>}</div>
               <div><label htmlFor={`status-${win.id}`} className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-400">Status</label><select id={`status-${win.id}`} value={win.status} onChange={(event) => void updateStatus(win.id, event.target.value)} className="w-full rounded-xl border border-slate-200 px-3 py-2"><option>Pending</option><option>Fulfilled</option><option>Cancelled</option></select></div>
             </article>
           ))}

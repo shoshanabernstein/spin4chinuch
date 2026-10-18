@@ -273,10 +273,9 @@ export default function SpinPage() {
 
       const won = Boolean(data.won);
       const spinAgain = Boolean(data.spinAgain ?? data.winner?.spinAgain);
-      const resultLabel =
-        data.winner?.prize?.name ??
-        data.outcomeLabel ??
-        "Try Again";
+      const resultLabel = !won && !spinAgain
+        ? "Better luck next time"
+        : data.winner?.prize?.name ?? data.outcomeLabel ?? "Better luck next time";
 
       if (won && winSound.current) {
         winSound.current.currentTime = 0;

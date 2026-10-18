@@ -21,8 +21,11 @@ interface PrizeCarouselProps {
 
 export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
+  const resumeAtRef = useRef(0);
 
   function scrollLeft() {
+    resumeAtRef.current = performance.now() + 3000;
     containerRef.current?.scrollBy({
       left: -334,
       behavior: "smooth",
@@ -30,6 +33,7 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
   }
 
   function scrollRight() {
+    resumeAtRef.current = performance.now() + 3000;
     containerRef.current?.scrollBy({
       left: 334,
       behavior: "smooth",
@@ -41,17 +45,31 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
 
     if (!el || prizes.length === 0) return;
 
-    const interval = setInterval(() => {
-      const maxScroll = el.scrollWidth - el.clientWidth;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let frame: number;
+    let previousTime = 0;
+    let position = el.scrollLeft;
 
-      if (el.scrollLeft >= maxScroll - 10) {
-        el.scrollTo({ left: 0, behavior: "smooth" });
+    function animate(time: number) {
+      const elapsed = previousTime ? Math.min(time - previousTime, 50) : 0;
+      previousTime = time;
+      const firstGroup = el!.firstElementChild as HTMLElement;
+      const duplicate = firstGroup.nextElementSibling as HTMLElement;
+      const overflowing = firstGroup.offsetWidth > el!.clientWidth;
+      duplicate.style.display = overflowing ? "flex" : "none";
+
+      if (!reducedMotion.matches && overflowing && !pausedRef.current && time >= resumeAtRef.current && !document.hidden) {
+        // Keep fractional pixels so the speed is consistent on every display.
+        position = (position + elapsed * 0.035) % firstGroup.offsetWidth;
+        el!.scrollLeft = position;
       } else {
-        el.scrollBy({ left: 334, behavior: "smooth" });
+        position = el!.scrollLeft;
       }
-    }, 3500);
+      frame = requestAnimationFrame(animate);
+    }
 
-    return () => clearInterval(interval);
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
   }, [prizes]);
 
   if (prizes.length === 0) {
@@ -74,7 +92,12 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
 
   return (
     <Panel title="" subtitle="">
-      <div className="space-y-4">
+      <div className="space-y-4"
+        onMouseEnter={() => { pausedRef.current = true; }}
+        onMouseLeave={() => { pausedRef.current = false; }}
+        onFocusCapture={() => { pausedRef.current = true; }}
+        onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) pausedRef.current = false; }}
+      >
 
         {/* Header row */}
         <div className="flex items-start justify-between">
@@ -107,25 +130,29 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
         {/* Carousel */}
         <div
           ref={containerRef}
+          onTouchStart={() => { pausedRef.current = true; }}
+          onTouchEnd={() => { pausedRef.current = false; resumeAtRef.current = performance.now() + 3000; }}
+          onTouchCancel={() => { pausedRef.current = false; }}
+          onWheel={() => { resumeAtRef.current = performance.now() + 3000; }}
           className="
             flex
-            gap-6
             overflow-x-auto
-            scroll-smooth
-            snap-x
-            snap-mandatory
             pb-2
             [&::-webkit-scrollbar]:hidden
           "
         >
+          {[0, 1].map((copy) => (
+            <div key={copy} aria-hidden={copy === 1 ? true : undefined} className="flex shrink-0 gap-6 pr-6">
           {prizes.map((prize) => (
-            <div key={prize.id} className="flex w-[280px] shrink-0 snap-start sm:w-[310px]">
+            <div key={prize.id} className="flex w-[280px] shrink-0 sm:w-[310px]">
               <PrizeCard
                 name={prize.name}
                 imageUrl={prize.image_url}
                 originalQuantity={prize.original_quantity}
                 sponsorName={prize.sponsor_name}
               />
+            </div>
+          ))}
             </div>
           ))}
         </div>
