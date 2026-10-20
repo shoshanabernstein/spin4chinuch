@@ -14,6 +14,8 @@ import Image from "next/image";
 
 import {
   DollarSign,
+  Gift,
+  ArrowRight,
   Ticket,
   CircleDashed,
   Trophy,
@@ -186,24 +188,23 @@ export default function DashboardPage() {
           <div className="mt-8">
             <Panel
               title="Win History"
-              subtitle="Your latest prizes"
             >
               {wins.length === 0 ? (
-                <div className="rounded-3xl border-2 border-dashed border-slate-200 py-16 text-center">
-                  <div className="text-5xl">🎁</div>
-
-                  <h3 className="mt-5 text-2xl font-bold text-[#142A52]">
-                    No wins yet
-                  </h3>
-
-                  <p className="mt-2 text-slate-500">
-                    Purchase some spins and try your luck!
-                  </p>
-
-                  <div className="mt-8">
-                    <Button href="/buy-spins" variant="primary">
-                      Buy Spins
-                    </Button>
+                <div className="relative overflow-hidden rounded-[24px] border border-[#DFE7F1] bg-gradient-to-b from-[#F6F8FC] to-white px-6 py-12 text-center sm:py-14">
+                  <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-0 h-48 w-72 -translate-x-1/2 rounded-full bg-[#E7EEF9]/60 blur-3xl" />
+                  <div className="relative mx-auto max-w-sm">
+                    <div aria-hidden="true" className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] border border-[#E6D6A9] bg-gradient-to-br from-[#FFFCF3] to-[#F4E8C5] shadow-[0_6px_18px_rgba(146,113,41,.08)]">
+                      <Gift strokeWidth={1.4} className="h-9 w-9 text-[#9C7A30]" />
+                      <span className="absolute -bottom-2 left-1/2 h-px w-10 -translate-x-1/2 bg-[#D8B65C]/40" />
+                    </div>
+                    <h3 className="mt-7 text-2xl font-bold tracking-[-0.025em] text-[#142A52]">
+                      No wins yet
+                    </h3>
+                    <div className="mt-7">
+                      <Button href="/buy-spins" variant="primary">
+                        Buy Spins <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (

@@ -21,16 +21,16 @@ export default function LandingCard({
         group
         relative
         overflow-hidden
-        rounded-[30px]
+        rounded-[24px]
         border
         border-blue-100
         bg-white
-        p-8
-        shadow-md
+        p-6
+        shadow-sm
         transition-all
         duration-300
-        hover:-translate-y-2
-        hover:shadow-2xl
+        motion-safe:hover:-translate-y-1
+        hover:shadow-lg
         focus-visible:outline-2
         focus-visible:outline-offset-4
         focus-visible:outline-[#4267A8]
@@ -42,10 +42,10 @@ export default function LandingCard({
       <div className="relative">
         <div
           className="
-            mb-6
+            mb-5
             flex
-            h-16
-            w-16
+            h-12
+            w-12
             items-center
             justify-center
             rounded-2xl
@@ -59,11 +59,11 @@ export default function LandingCard({
           {icon}
         </div>
 
-        <h3 className="text-3xl font-bold text-[#142A52]">
+        <h3 className="text-lg font-bold text-[#142A52]">
           {title}
         </h3>
 
-        <p className="mt-4 leading-7 text-slate-600">
+        <p className="mt-3 text-sm leading-6 text-slate-600">
           {description}
         </p>
       </div>

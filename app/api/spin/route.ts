@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
 import { sendWinEmail } from "@/lib/server/win-email";
 import { deliverGiftCard, giftCardsEnabled } from "@/lib/server/gift-cards";
+import { notifyPrizeSponsor } from "@/lib/server/sponsor-notification";
 
 type SpinResult = {
   winId?: number | null;
@@ -63,6 +64,9 @@ export async function POST(req: Request) {
 
       await sendWinEmail(user.email, result.prize.name, prizeDetails?.image_url).catch((emailError) => {
         console.error("Win email failed", emailError);
+      });
+      await notifyPrizeSponsor(result.prize.id, user.id, user.email, result.prize.name, result.winId).catch((emailError) => {
+        console.error("Sponsor notification failed", emailError);
       });
     }
   }

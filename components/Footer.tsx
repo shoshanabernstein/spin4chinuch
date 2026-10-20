@@ -21,7 +21,7 @@ export default function Footer() {
       <div className="pointer-events-none absolute left-[-10rem] top-[-10rem] h-[28rem] w-[28rem] rounded-full bg-[#2F6ED8]/12 blur-[100px]" />
       <div className="pointer-events-none absolute bottom-[-12rem] right-[-8rem] h-[26rem] w-[26rem] rounded-full bg-[#C9A44D]/10 blur-[100px]" />
 
-      <div className="relative mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
+      <div className="relative mx-auto site-width px-5 py-8 sm:px-6 sm:py-10 lg:px-8">
         <div className="grid gap-8 border-b border-white/10 pb-8 lg:grid-cols-[1.35fr_.65fr_.8fr] lg:items-start lg:gap-12">
           <div>
             <Link href="/" aria-label="Spin for Chinuch home" className="inline-flex">
@@ -45,7 +45,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8DB9F4]">Connect</p>
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8DB9F4]">Contact</p>
             <div className="mt-5 space-y-4 text-sm text-[#BFD2EB]">
               <a href="mailto:spinforchinuchyehudi@gmail.com" className="flex items-start gap-3 transition hover:text-white">
                 <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2F6ED8]/15 text-[#8DB9F4]"><Mail className="h-4 w-4" /></span>

@@ -1,33 +1,22 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useAnimationControls } from "framer-motion";
 
 type Props = {
-  spinning: boolean;
+  muted?: boolean;
+  controls: ReturnType<typeof useAnimationControls>;
 };
 
-export default function Pointer({ spinning }: Props) {
+export default function Pointer({ muted = false, controls }: Props) {
   return (
+    <div className={`pointer-events-none absolute inset-0 z-50 rotate-90 transition-opacity duration-500 ${muted ? "opacity-50" : "opacity-100"}`} aria-hidden="true">
     <motion.div
-      className="absolute z-50 left-1/2 -translate-x-1/2"
-      style={{
-        top: -45,
-      }}
-      animate={
-        spinning
-          ? {
-              rotate: [0, -12, 8, -6, 4, 0],
-            }
-          : {}
-      }
-      transition={{
-        repeat: spinning ? Infinity : 0,
-        duration: 0.12,
-      }}
+      className="absolute -top-[5%] left-1/2 aspect-[4/5] w-[16%] -translate-x-1/2"
+      animate={controls}
     >
       <svg
-        width="120"
-        height="150"
+        width="100%"
+        height="100%"
         viewBox="0 0 120 150"
       >
         <defs>
@@ -96,5 +85,6 @@ export default function Pointer({ spinning }: Props) {
         />
       </svg>
     </motion.div>
+    </div>
   );
 }

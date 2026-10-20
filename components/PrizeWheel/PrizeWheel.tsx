@@ -1,10 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useAnimationControls } from "framer-motion";
+import Link from "next/link";
 import WheelSlice from "./WheelSlice";
 import WheelLabel from "./WheelLabel";
 import Pointer from "./Pointer";
 import { getPrizeDisplay } from "@/lib/prize-display";
+import { crossedWheelBoundary } from "@/lib/wheel-feedback";
 
 type Prize = {
   id: number;
@@ -18,8 +21,12 @@ type PrizeWheelProps = {
   spinning: boolean;
   spinPhase: "idle" | "requesting" | "revealing";
   canSpin: boolean;
+  showBuySpins?: boolean;
   onSpin: () => void;
   prizes: Prize[];
+  onRotationUpdate: (angle: number) => void;
+  onTick: () => void;
+  onSpinComplete: () => void;
 };
 
 const SIZE = 900;
@@ -41,27 +48,49 @@ export default function PrizeWheel({
   spinning,
   spinPhase,
   canSpin,
+  showBuySpins = false,
   onSpin,
   prizes,
+  onRotationUpdate,
+  onTick,
+  onSpinComplete,
 }: PrizeWheelProps) {
   const slices = Math.max(prizes.length, 1);
   const angle = 360 / slices;
+  const previousRotation = useRef(rotation);
+  const pointerControls = useAnimationControls();
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[720px]">
+    <div className="relative mx-auto aspect-square w-full [container-type:inline-size]">
       <div className="absolute inset-[3%] rounded-full bg-[#2F6ED8]/20 blur-3xl" />
 
-      <Pointer spinning={spinning} />
+      <Pointer muted={showBuySpins && !spinning} controls={pointerControls} />
 
       <motion.div
-        className="absolute inset-0"
+        className={`absolute inset-0 transition-opacity duration-500 ${showBuySpins && !spinning ? "opacity-50" : "opacity-100"}`}
         animate={{ rotate: rotation }}
+        onUpdate={(latest) => {
+          const current = Number(latest.rotate);
+          const previous = previousRotation.current;
+          previousRotation.current = current;
+          onRotationUpdate(current);
+          if (spinning && !document.hidden && crossedWheelBoundary(previous, current, angle)) {
+            void pointerControls.start({ rotate: [0, -10, 0], transition: { duration: 0.075, ease: "easeOut" } });
+            onTick();
+          }
+        }}
+        onAnimationComplete={() => {
+          if (spinPhase === "revealing") {
+            pointerControls.set({ rotate: 0 });
+            onSpinComplete();
+          }
+        }}
         transition={
           spinPhase === "requesting"
-            ? { duration: 2.4, ease: "linear" }
+            ? { duration: 2.4, ease: "linear", repeat: Infinity }
             : spinPhase === "revealing"
-              ? { duration: 7.5, ease: [0.12, 0.82, 0.16, 1] }
-              : { duration: 0.2 }
+              ? { duration: 7.5, ease: [0.2, 0.6, 0.25, 1] }
+              : { duration: 0.25, ease: "linear" }
         }
       >
         <svg
@@ -149,7 +178,11 @@ export default function PrizeWheel({
           {prizes.map((prize, index) => (
             <WheelLabel
               key={prize.id}
-              label={prize.prize_id ? getPrizeDisplay(prize.label, prize.sponsor_name).title : prize.label}
+              label={prize.prize_id
+                ? getPrizeDisplay(prize.label, prize.sponsor_name).title
+                : prize.label.trim().toLowerCase() === "try again"
+                  ? "Better luck next time"
+                  : prize.label}
               provider={prize.prize_id ? getPrizeDisplay(prize.label, prize.sponsor_name).provider : null}
               angle={index * angle + angle / 2}
               sliceAngle={angle}
@@ -176,7 +209,7 @@ export default function PrizeWheel({
           <circle
             cx={CENTER}
             cy={CENTER}
-            r="112"
+            r="124"
             fill="url(#hubNavy)"
             stroke="url(#outerGold)"
             strokeWidth="12"
@@ -184,7 +217,7 @@ export default function PrizeWheel({
           <circle
             cx={CENTER}
             cy={CENTER}
-            r="88"
+            r="108"
             fill="none"
             stroke="#FFFFFF"
             strokeOpacity="0.12"
@@ -193,12 +226,21 @@ export default function PrizeWheel({
         </svg>
       </motion.div>
 
-      <button
+      {showBuySpins && !spinning ? (
+        <Link
+          href="/buy-spins"
+          aria-label="No spins left. Buy spins"
+          className="absolute left-1/2 top-1/2 z-30 flex h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#FFF0B5]/70 bg-gradient-to-br from-[#FAE8A8] via-[#E8C761] to-[#C9A44D] text-center text-[clamp(.7rem,3cqw,1.75rem)] font-black leading-tight tracking-wide text-[#102743] shadow-[0_0_28px_rgba(232,199,97,.35)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F] motion-safe:animate-[wheel-buy-pulse_2.4s_ease-in-out_infinite]"
+        >
+          <span className="text-[clamp(.8rem,3.6cqw,2rem)] font-black leading-none tracking-[0.08em]">BUY</span>
+          <span className="mt-1 text-[clamp(1rem,4.8cqw,2.75rem)] font-black leading-none tracking-tight">SPINS</span>
+        </Link>
+      ) : <button
         type="button"
         onClick={onSpin}
         disabled={!canSpin}
         aria-label={spinning ? "Wheel is spinning" : "Spin the prize wheel"}
-        className="absolute left-1/2 top-1/2 z-30 flex h-[19%] w-[19%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#102F57] text-[clamp(.75rem,2.5vw,1.25rem)] font-black tracking-[0.12em] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_12px_30px_rgba(7,22,40,.35)] transition duration-200 hover:scale-105 hover:bg-[#173B73] focus:outline-none focus:ring-4 focus:ring-[#5E9CF4]/35 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:scale-100"
+        className="absolute left-1/2 top-1/2 z-30 flex h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#F0D47F]/70 bg-[radial-gradient(circle_at_35%_25%,#2B548A,#16365F_55%,#0A203C)] text-[clamp(.9rem,4.5cqw,2.75rem)] font-black tracking-[0.1em] text-[#FFF3C4] shadow-[inset_0_2px_4px_rgba(255,255,255,.2),inset_0_-8px_20px_rgba(0,0,0,.25),0_0_22px_rgba(232,199,97,.18),0_12px_30px_rgba(7,22,40,.5)] transition duration-200 hover:scale-105 hover:brightness-115 focus:outline-none focus:ring-4 focus:ring-[#5E9CF4]/35 disabled:cursor-not-allowed disabled:opacity-65 disabled:hover:scale-100"
       >
         {spinning ? (
           <span className="flex items-center gap-1" aria-hidden="true">
@@ -209,7 +251,7 @@ export default function PrizeWheel({
         ) : (
           <span className={canSpin ? "wheel-spin-label" : undefined}>SPIN</span>
         )}
-      </button>
+      </button>}
     </div>
   );
 }

@@ -63,8 +63,8 @@ function winnerEmailHtml(prize: string, prizeImageUrl?: string | null, hasGiftCa
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-radius:16px;background:#fffaf0;border-left:4px solid #d8b34f;">
                       <tr>
                         <td style="padding:20px 22px;">
-                          <p style="margin:0 0 6px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#9b7422;">${hasGiftCard ? "Below is your e-gift card" : "What happens next?"}</p>
-                          <p style="margin:0;font-size:17px;line-height:1.65;color:#344a64;">${hasGiftCard ? "Your e-gift card is attached to this email as a PDF. Open the attachment to view and use your card." : "We will be in touch with you shortly regarding the delivery of your prize."}</p>
+                          <p style="margin:0 0 6px;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#9b7422;">${hasGiftCard ? "Your E-Gift Card Is Here!" : "What happens next?"}</p>
+                          <p style="margin:0;font-size:17px;line-height:1.65;color:#344a64;">${hasGiftCard ? "Your e-gift card is attached to this email as a PDF. Open the attachment to view your card and redeem your gift." : "We will be in touch with you shortly regarding the delivery of your prize."}</p>
                         </td>
                       </tr>
                     </table>
@@ -109,7 +109,7 @@ export async function sendWinEmail(email: string, prize: string, prizeImageUrl?:
     to: email,
     replyTo: REPLY_TO_EMAIL,
     subject: `You won ${subjectPrize}!`,
-    text: `Congratulations! You won ${prize}. ${giftCard ? "Below is your e-gift card. Your e-gift card is attached to this email as a PDF. Open the attachment to view and use your card." : "We will be in touch with you shortly regarding the delivery of your prize."} Thank you for participating and for supporting Jewish education.`,
+    text: `Congratulations! You won ${prize}. ${giftCard ? "Your E-Gift Card Is Here! Your e-gift card is attached to this email as a PDF. Open the attachment to view your card and redeem your gift." : "We will be in touch with you shortly regarding the delivery of your prize."} Thank you for participating and for supporting Jewish education.`,
     html: winnerEmailHtml(prize, prizeImageUrl, Boolean(giftCard)),
     ...(giftCard ? { attachments: [{ filename: "Your e-gift card.pdf", content: giftCard.content }] } : {}),
   }, giftCard ? { idempotencyKey: `gift-card/${giftCard.id}` } : undefined);
@@ -119,5 +119,35 @@ export async function sendWinEmail(email: string, prize: string, prizeImageUrl?:
   }
 
   if (!data?.id) throw new Error("Email service did not return a receipt");
+  return data.id;
+}
+
+export async function sendSponsorWinEmail(email: string, winnerName: string, winnerEmail: string, prize: string, winId?: number | null) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.WIN_EMAIL_FROM;
+  if (!apiKey || !from) throw new Error("Sponsor email is not configured");
+  if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) throw new Error("Invalid sponsor notification address");
+  const fromAddress = from.match(/<([^>]+)>/)?.[1] ?? from;
+  const text = `Hi,
+Thank you for sponsoring a prize for our Chinuch Yehudi campaign!
+Below is the winner’s information so you can email them their eGift Card directly.
+Winner’s Name: ${winnerName}
+Email Address: ${winnerEmail}
+Prize: ${prize}
+Please email the prize directly to the winner at the email address listed above.
+Thank You.
+
+Shoshana Bernstein
+Please feel free to reach out to me at shoshanbernstein@gmail.com or call 475-559-1044.`;
+  const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>Below is the winner’s information so you can email them their eGift Card directly.</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>Please email the prize directly to the winner at the email address listed above.</p><p>Thank You.</p><p>Shoshana Bernstein<br>Please feel free to reach out to me at <a href="mailto:shoshanbernstein@gmail.com">shoshanbernstein@gmail.com</a> or call <a href="tel:+14755591044">475-559-1044</a>.</p>`;
+  const { data, error } = await new Resend(apiKey).emails.send({
+    from: `Spin for Chinuch <${fromAddress.trim()}>`,
+    to: email,
+    replyTo: REPLY_TO_EMAIL,
+    subject: "Chinuch Yehudi Campaign – Winner Prize Delivery",
+    text,
+    html,
+  }, winId ? { idempotencyKey: `sponsor-win/${winId}` } : undefined);
+  if (error || !data?.id) throw new Error("Sponsor notification was not confirmed");
   return data.id;
 }

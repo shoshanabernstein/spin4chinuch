@@ -12,15 +12,22 @@ export default function EditPrizePage() {
   const prizeId = Number(params.id);
   const [prize, setPrize] = useState<PrizeFormValues | null>(null);
   const [failed, setFailed] = useState(false);
+  const [notificationsReady, setNotificationsReady] = useState(false);
 
   useEffect(() => {
     async function loadPrize() {
       if (!Number.isInteger(prizeId)) { setFailed(true); return; }
       const [{ data, error }, contactResult] = await Promise.all([
         supabase.from("prizes").select("*,wins!prize_id(count)").eq("id", prizeId).single(),
-        supabase.from("prize_contacts").select("contact_name,contact_email").eq("prize_id", prizeId).maybeSingle(),
+        supabase.from("prize_contacts").select("*").eq("prize_id", prizeId).maybeSingle(),
       ]);
+      if (contactResult.error) { toast.error("Unable to load private prize contact settings."); setFailed(true); return; }
       if (error) { toast.error("Prize not found."); setFailed(true); return; }
+      setNotificationsReady(contactResult.data ? "notification_email" in contactResult.data : false);
+      if (!contactResult.data) {
+        const check = await supabase.from("prize_contacts").select("notification_email").limit(0);
+        setNotificationsReady(!check.error);
+      }
       setPrize({
         name: data.name,
         quantity: data.original_quantity ?? data.quantity + (data.wins[0]?.count ?? 0),
@@ -32,6 +39,7 @@ export default function EditPrizePage() {
         delivery_instructions: data.delivery_instructions ?? "",
         contact_name: contactResult.data?.contact_name ?? "",
         contact_email: contactResult.data?.contact_email ?? "",
+        notification_email: contactResult.data?.notification_email ?? "",
       });
     }
     void loadPrize();
@@ -45,7 +53,7 @@ export default function EditPrizePage() {
           <h1 className="mt-1 text-4xl font-black">Edit Prize</h1>
           <p className="mt-2 text-slate-500">Update inventory, presentation, and fulfillment details.</p>
         </section>
-        {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
+        {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} notificationsReady={notificationsReady} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
         {prize && <GiftCards prizeId={prizeId} />}
       </div>
     </main>

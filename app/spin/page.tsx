@@ -2,13 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Confetti from "react-confetti";
 import toast from "react-hot-toast";
 import {
-  ArrowRight,
   DollarSign,
   Gift,
-  Sparkles,
   Ticket,
   Trophy,
   X,
@@ -41,10 +40,8 @@ type SpinResponse = {
   };
 };
 
-const SPIN_DURATION = 7500;
-
 export default function SpinPage() {
-  const [rotation, setRotation] = useState(0);
+  const [rotation, setRotation] = useState(8);
   const [spinning, setSpinning] = useState(false);
   const [spinPhase, setSpinPhase] = useState<
     "idle" | "requesting" | "revealing"
@@ -61,9 +58,10 @@ export default function SpinPage() {
   const [totalDonations, setTotalDonations] = useState(0);
   const [totalWins, setTotalWins] = useState(0);
 
-  const spinSound = useRef<HTMLAudioElement>(null);
+  const audioContext = useRef<AudioContext | null>(null);
+  const actualRotation = useRef(8);
+  const pendingResult = useRef<(() => void) | null>(null);
   const winSound = useRef<HTMLAudioElement>(null);
-  const resultTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const confettiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resultCardRef = useRef<HTMLDivElement>(null);
   const [confettiSize, setConfettiSize] = useState({ width: 0, height: 0 });
@@ -76,10 +74,23 @@ export default function SpinPage() {
     outcomes.length > 0;
 
   useEffect(() => {
+    if (spinning || winner || loadingPrizes || outcomes.length === 0) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const timer = window.setInterval(() => {
+      if (!document.hidden && !reducedMotion.matches) {
+        setRotation((current) => current + 0.5);
+      }
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [spinning, winner, loadingPrizes, outcomes.length]);
+
+  useEffect(() => {
     void Promise.all([loadOutcomes(), loadUserStats()]);
 
     return () => {
-      if (resultTimer.current) clearTimeout(resultTimer.current);
+      pendingResult.current = null;
+      void audioContext.current?.close();
+      audioContext.current = null;
       if (confettiTimer.current) clearTimeout(confettiTimer.current);
     };
   }, []);
@@ -178,6 +189,10 @@ export default function SpinPage() {
       return;
     }
 
+    try {
+      audioContext.current ??= new AudioContext();
+      void audioContext.current.resume().catch(() => undefined);
+    } catch { /* A blocked audio device must not prevent a spin. */ }
     void spin();
   }
 
@@ -189,7 +204,7 @@ export default function SpinPage() {
     setWinner("");
     setDidWin(false);
     setShowConfetti(false);
-    const preSpinRotation = rotation + 360 * 5;
+    const preSpinRotation = actualRotation.current + 360 * 5;
     setRotation(preSpinRotation);
 
     // Let the browser paint the first movement before session/network work.
@@ -197,17 +212,12 @@ export default function SpinPage() {
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
     });
 
-    if (spinSound.current) {
-      spinSound.current.currentTime = 0;
-      void spinSound.current.play().catch(() => undefined);
-    }
-
     const {
       data: { session },
     } = await supabase.auth.getSession();
 
     if (!session) {
-      stopSpinAudio();
+      stopSpinFeedback();
       toast.error("Your session expired. Please log in again.");
       setSpinning(false);
       setSpinPhase("idle");
@@ -225,7 +235,7 @@ export default function SpinPage() {
         },
       });
     } catch {
-      stopSpinAudio();
+      stopSpinFeedback();
       toast.error("Could not connect. Your spin was not used.");
       setSpinning(false);
       setSpinPhase("idle");
@@ -235,7 +245,7 @@ export default function SpinPage() {
     const data = (await response.json()) as SpinResponse;
 
     if (!response.ok || !data.success || data.outcomeId === undefined) {
-      stopSpinAudio();
+      stopSpinFeedback();
       toast.error(data.error ?? "Unable to spin right now.");
       setSpinning(false);
       setSpinPhase("idle");
@@ -247,7 +257,7 @@ export default function SpinPage() {
     );
 
     if (index === -1) {
-      stopSpinAudio();
+      stopSpinFeedback();
       toast.error("The wheel changed. Please try again.");
       await loadOutcomes();
       setSpinning(false);
@@ -257,19 +267,20 @@ export default function SpinPage() {
 
     const sliceAngle = 360 / outcomes.length;
     const desiredAngle =
-      360 - (index * sliceAngle + sliceAngle / 2);
-    const currentAngle = ((preSpinRotation % 360) + 360) % 360;
+      90 - (index * sliceAngle + sliceAngle / 2);
+    const landingStart = actualRotation.current;
+    const currentAngle = ((landingStart % 360) + 360) % 360;
     const landingOffset =
       ((desiredAngle - currentAngle) % 360 + 360) % 360;
 
     setSpinPhase("revealing");
-    setRotation(preSpinRotation + 360 * 7 + landingOffset);
+    setRotation(landingStart + 360 * 5 + landingOffset);
     setRemainingSpins(
       data.remainingSpins ?? Math.max(remainingSpins - 1, 0)
     );
 
-    resultTimer.current = setTimeout(() => {
-      stopSpinAudio();
+    pendingResult.current = () => {
+      stopSpinFeedback();
 
       const won = Boolean(data.won);
       const spinAgain = Boolean(data.spinAgain ?? data.winner?.spinAgain);
@@ -299,13 +310,30 @@ export default function SpinPage() {
       if (spinAgain) {
         toast.success("Spin again — this spin was returned to your balance.");
       }
-    }, SPIN_DURATION);
+    };
   }
 
-  function stopSpinAudio() {
-    if (!spinSound.current) return;
-    spinSound.current.pause();
-    spinSound.current.currentTime = 0;
+  function stopSpinFeedback() {
+    setRotation(actualRotation.current);
+    pendingResult.current = null;
+  }
+
+  function playWheelTick() {
+    const context = audioContext.current;
+    if (!context || context.state !== "running") return;
+    const start = context.currentTime;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "triangle";
+    oscillator.frequency.setValueAtTime(1600, start);
+    oscillator.frequency.exponentialRampToValueAtTime(500, start + 0.014);
+    gain.gain.setValueAtTime(0.035, start);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.018);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+    oscillator.start(start);
+    oscillator.stop(start + 0.02);
   }
 
   function closeResult() {
@@ -315,47 +343,40 @@ export default function SpinPage() {
 
   return (
     <ProtectedRoute>
-      <div className="relative min-h-screen overflow-hidden bg-[#071628]">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute left-[-14rem] top-[-10rem] h-[34rem] w-[34rem] rounded-full bg-[#2F6ED8]/16 blur-[110px]" />
-          <div className="absolute bottom-[-14rem] right-[-10rem] h-[32rem] w-[32rem] rounded-full bg-[#C9A44D]/10 blur-[110px]" />
-          <div className="absolute left-1/2 top-[26rem] h-[28rem] w-[28rem] -translate-x-1/2 rounded-full border border-[#C9A44D]/10 bg-[#2F6ED8]/10 blur-3xl" />
-          <div className="absolute inset-0 opacity-[0.045] [background-image:linear-gradient(rgba(255,255,255,.4)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.4)_1px,transparent_1px)] [background-size:64px_64px]" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#5E9CF4]/35 to-transparent" />
+      <div className="relative h-[calc(100dvh-5rem)] overflow-hidden bg-[#071628] sm:h-[calc(100dvh-6rem)]">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,#0C1C32_0%,#09182C_45%,#061222_80%)]" />
+          <div className="absolute left-1/2 top-28 h-[min(110vw,900px)] w-[min(110vw,900px)] -translate-x-1/2 rounded-full border border-[#8DB9F4]/[0.08] bg-[conic-gradient(from_20deg,transparent,rgba(94,156,244,.08),transparent_35%,rgba(216,179,79,.06),transparent_75%)]" />
+          <div className="absolute left-1/2 top-36 h-[min(95vw,800px)] w-[min(95vw,800px)] -translate-x-1/2 rounded-full border border-[#D8B34F]/[0.07]" />
+          <div className="absolute -left-40 top-1/3 h-96 w-96 rounded-full bg-[#2F6ED8]/10 blur-[100px]" />
+          <div className="absolute -right-40 top-1/2 h-96 w-96 rounded-full bg-[#C9A44D]/[0.08] blur-[100px]" />
+          <div className="absolute -left-56 top-16 h-[640px] w-[640px] -rotate-[25deg] rounded-full border-[55px] border-[#527FD1]/[0.04]" />
+          <div className="absolute -right-64 top-[420px] h-[700px] w-[700px] rounded-full border-[70px] border-[#D8B34F]/[0.035]" />
+          <div className="absolute -left-32 top-52 h-24 w-[55%] -rotate-[35deg] bg-gradient-to-r from-transparent via-[#477FDA]/[0.12] to-transparent blur-3xl" />
+          <div className="absolute -right-32 top-96 h-24 w-[50%] -rotate-[35deg] bg-gradient-to-r from-transparent via-[#D8B34F]/[0.08] to-transparent blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(141,185,244,.18)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:linear-gradient(to_right,black,transparent_28%,transparent_72%,black)]" />
+          <span className="absolute left-[8%] top-[20%] h-3 w-3 rotate-[25deg] rounded-sm border border-[#D8B34F]/30" />
+          <span className="absolute right-[10%] top-[32%] h-2 w-2 rounded-full bg-[#8DB9F4]/30" />
+          <span className="absolute bottom-[18%] left-[14%] h-2 w-2 rounded-full bg-[#D8B34F]/30" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="bg-gradient-to-r from-white via-white to-[#E8CD7A] bg-clip-text text-4xl font-black tracking-[-0.04em] text-transparent sm:text-6xl">
-                Spin to win
-              </h1>
-            </div>
+        <div className="relative mx-auto flex h-full w-full flex-col justify-center px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+          <h1 className="sr-only">Spin the prize wheel</h1>
 
-            <Link
-              href="/prizes"
-              className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-5 py-3 text-sm font-bold text-white transition hover:border-[#5E9CF4]/35 hover:bg-white/[0.1]"
-            >
-              View all prizes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </header>
 
-          <section className="relative mx-auto grid max-w-7xl rounded-[34px] border border-[#C9A44D]/20 bg-[#0C1F38]/90 shadow-[0_30px_110px_rgba(0,0,0,.38),0_0_70px_rgba(47,110,216,.12)] backdrop-blur-xl lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="relative flex items-center justify-center px-3 pb-4 pt-10 sm:px-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(201,164,77,.12),rgba(47,110,216,.14)_34%,transparent_68%)]" />
-              <Sparkles className="absolute left-7 top-7 h-6 w-6 text-[#C9A44D]/55" />
-              <Sparkles className="absolute bottom-8 right-8 h-5 w-5 text-[#5E9CF4]/55" />
+          <section className="relative mx-auto flex w-full flex-col items-center xl:grid xl:grid-cols-[minmax(240px,1fr)_minmax(0,min(1100px,calc(100dvh-136px)))_minmax(240px,1fr)] xl:gap-10 2xl:gap-14">
+            <div className="relative flex w-full min-w-0 flex-col items-center justify-center px-0 pb-3 sm:px-6 sm:pb-4 xl:col-start-2 xl:px-0 xl:pb-0">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,.4),transparent_65%)]" />
 
               {loadingPrizes ? (
-                <div className="relative flex flex-col items-center text-center">
+                <div className="relative flex h-[min(320px,calc(100dvh-240px))] flex-col items-center justify-center text-center sm:h-[min(480px,calc(100dvh-256px))]">
                   <div className="h-11 w-11 animate-spin rounded-full border-2 border-[#5E9CF4]/25 border-t-[#5E9CF4]" />
                   <p className="mt-4 font-semibold text-[#BFD2EB]">
                     Loading the prize wheel
                   </p>
                 </div>
               ) : outcomes.length === 0 ? (
-                <div className="relative max-w-sm text-center">
+                <div className="relative flex h-[min(320px,calc(100dvh-240px))] max-w-sm flex-col items-center justify-center px-4 text-center sm:h-[min(480px,calc(100dvh-256px))]">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/[0.07] text-[#8DB9F4]">
                     <Gift className="h-7 w-7" />
                   </div>
@@ -363,25 +384,37 @@ export default function SpinPage() {
                     The wheel is unavailable
                   </h2>
                   <p className="mt-2 text-[#9DB2CE]">
-                    No active outcomes were found. Please check the wheel setup
-                    in Supabase.
+                    Please check back shortly or explore the available prizes.
                   </p>
                 </div>
               ) : (
-                <div className="relative mx-auto w-full max-w-[720px]">
+                <div className="relative isolate mx-auto w-full max-w-[calc(100dvh-216px)] sm:max-w-[calc(100dvh-232px)] xl:max-w-[calc(100dvh-136px)] drop-shadow-[0_24px_36px_rgba(0,0,0,.65)]">
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-[3%] -z-10 rounded-full shadow-[0_0_0_2px_rgba(240,212,127,.35),0_0_28px_6px_rgba(216,179,79,.2),0_0_70px_16px_rgba(94,156,244,.12)]" />
                   <PrizeWheel
                     rotation={rotation}
                     spinning={spinning}
                     spinPhase={spinPhase}
                     prizes={outcomes}
-                    canSpin={!spinning}
+                    canSpin={readyToSpin}
+                    showBuySpins={!loadingStats && remainingSpins <= 0 && !spinning}
                     onSpin={requestSpin}
+                    onRotationUpdate={(angle) => { actualRotation.current = angle; }}
+                    onTick={playWheelTick}
+                    onSpinComplete={() => {
+                      const reveal = pendingResult.current;
+                      pendingResult.current = null;
+                      reveal?.();
+                    }}
                   />
                 </div>
               )}
+              {outcomes.length > 0 && !loadingPrizes && <p role="status" className="relative mt-1 px-2 text-center text-xs sm:text-sm font-medium text-[#AFC3DD]">
+                {loadingStats ? "Loading your spins..." : ""}
+              </p>}
             </div>
 
-            <aside className="grid grid-cols-2 gap-3 border-t border-white/10 p-4 sm:p-6 lg:grid-cols-1 lg:border-l lg:border-t-0 lg:content-center">
+            <aside aria-label="Spin statistics" className="flex w-full max-w-[640px] flex-col gap-3 px-1 sm:px-6 xl:col-start-3 xl:w-full xl:max-w-[260px] xl:justify-self-start xl:gap-4 xl:px-0">
+              <dl className="grid grid-cols-3 overflow-hidden rounded-[24px] border border-[#E8CD7A]/25 bg-gradient-to-br from-[#203854]/95 via-[#142A44]/95 to-[#0D2038]/95 shadow-[inset_0_1px_0_rgba(255,255,255,.1),0_16px_36px_rgba(0,0,0,.2)] xl:grid-cols-1">
               {[
                 {
                   label: "Spins left",
@@ -402,121 +435,30 @@ export default function SpinPage() {
               ].map(({ label, value, icon: Icon, accent }) => (
                 <div
                   key={label}
-                  className={`rounded-2xl border p-4 shadow-lg transition duration-300 hover:-translate-y-1 ${
-                    accent
-                      ? "border-[#C9A44D]/35 bg-[#C9A44D]/[0.09]"
-                      : "border-white/10 bg-white/[0.055]"
+                  className={`relative overflow-hidden px-3 py-3 sm:px-4 ${accent
+                    ? "bg-gradient-to-br from-[#D8B34F]/[0.2] via-[#D8B34F]/[0.07] to-transparent xl:px-5 xl:py-6"
+                    : "border-l border-white/[0.08] xl:border-l-0 xl:border-t xl:px-5 xl:py-4"
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8FA8C8]">{label}</p>
-                      <p className="mt-2 text-2xl font-black text-white">{value}</p>
+                  {accent && <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                    <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full border-[16px] border-[#F0D47F]/[0.045]" />
+                    <div className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-[#F0D47F]/50 to-transparent" />
+                  </div>}
+                  <div className={`relative flex min-w-0 items-center justify-between gap-2 ${accent ? "" : "xl:gap-3"}`}>
+                    <div className={`min-w-0 ${accent ? "" : "xl:flex xl:flex-1 xl:items-center xl:justify-between xl:gap-3"}`}>
+                      <dt className={`whitespace-nowrap text-[10px] font-semibold tracking-wide ${accent ? "uppercase text-[#E5CC8A]" : "text-[#AFC1D9] xl:text-sm"}`}>{!accent && <Icon aria-hidden="true" className="mr-2 hidden h-3.5 w-3.5 text-[#8DB9F4] xl:inline-block" strokeWidth={1.7} />}{label}</dt>
+                      <dd className={`mt-1 whitespace-nowrap font-bold leading-tight tracking-tight tabular-nums ${accent ? "bg-gradient-to-b from-[#FFF3C6] to-[#E5BF62] bg-clip-text text-2xl text-transparent xl:mt-2 xl:text-5xl" : "text-xl text-[#F0F5FC] xl:mt-0 xl:text-xl"}`}>{value}</dd>
                     </div>
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                      accent
-                        ? "bg-[#C9A44D]/15 text-[#E8CD7A]"
-                        : "bg-[#2F6ED8]/15 text-[#8DB9F4]"
-                    }`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
+                    {accent && <div aria-hidden="true" className="hidden h-11 w-11 -rotate-6 shrink-0 items-center justify-center rounded-2xl border border-[#F0D47F]/40 bg-gradient-to-br from-[#F5DE98] to-[#BD9438] text-[#17304D] shadow-[inset_0_1px_0_rgba(255,255,255,.4),0_5px_14px_rgba(0,0,0,.15)] sm:flex">
+                      <Icon className="h-5 w-5" strokeWidth={1.6} />
+                    </div>}
                   </div>
                 </div>
               ))}
+              </dl>
+
             </aside>
 
-            {/* Wheel controls live in the center button; the former side panel was intentionally removed. */}
-            {/*
-            <aside className="flex flex-col justify-between p-6 sm:p-8 lg:p-9">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8DB9F4]">
-                  Ready when you are
-                </p>
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-white">
-                  One click. One reveal.
-                </h2>
-                <p className="mt-3 leading-7 text-[#9DB2CE]">
-                  Press the center of the wheel. Your spin is deducted only
-                  after the server confirms the result.
-                </p>
-
-                <div className="mt-7 rounded-2xl border border-white/10 bg-[#071628]/55 p-5">
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        spinning
-                          ? "animate-pulse bg-[#C9A44D]"
-                          : readyToSpin
-                            ? "bg-emerald-400"
-                            : "bg-[#6D83A1]"
-                      }`}
-                    />
-                    <p className="font-bold text-white">{statusText}</p>
-                  </div>
-                  <p className="mt-4 border-t border-white/10 pt-3 text-xs leading-5 text-[#8FA8C8]">
-                    Outcomes have different selection weights. Equal-sized
-                    wheel sections do not represent equal chances of winning.
-                  </p>
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#8DB9F4]">
-                    Selection profile
-                  </p>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between gap-4 rounded-xl bg-[#071628]/65 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="h-3 w-3 rounded-full bg-slate-500" />
-                        <span className="font-semibold text-white">Try Again</span>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wide text-[#C9A44D]">Higher weight</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-4 rounded-xl bg-[#071628]/65 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="h-3 w-3 rounded-full bg-[#2F6ED8]" />
-                        <span className="font-semibold text-white">Each prize</span>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wide text-[#8DB9F4]">Lower weight</span>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs leading-5 text-[#7F97B6]">
-                    Relative weighting is shown without displaying exact odds.
-                  </p>
-                </div>
-
-                <div className="mt-7 space-y-4 text-sm text-[#BFD2EB]">
-                  <div className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2F6ED8]/15 text-xs font-black text-[#8DB9F4]">
-                      1
-                    </span>
-                    <p className="pt-1">Press the center button.</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2F6ED8]/15 text-xs font-black text-[#8DB9F4]">
-                      2
-                    </span>
-                    <p className="pt-1">Watch the wheel reveal your result.</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#2F6ED8]/15 text-xs font-black text-[#8DB9F4]">
-                      3
-                    </span>
-                    <p className="pt-1">Wins are saved automatically.</p>
-                  </div>
-                </div>
-              </div>
-
-              {remainingSpins <= 0 && !loadingStats && (
-                <Link
-                  href="/buy-spins"
-                  className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] px-5 py-4 font-black text-white shadow-lg shadow-[#2F6ED8]/20 transition hover:-translate-y-0.5"
-                >
-                  Get spins
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              )}
-            </aside>
-            */}
           </section>
 
 
@@ -529,7 +471,12 @@ export default function SpinPage() {
             aria-modal="true"
             aria-labelledby="spin-result-title"
           >
-            <div ref={resultCardRef} className="relative w-full max-w-md overflow-hidden rounded-[30px] border border-white/10 bg-[#0C1F38] shadow-[0_32px_100px_rgba(0,0,0,.55)]">
+            <div ref={resultCardRef} className="relative max-h-[90dvh] w-full max-w-[480px] overflow-y-auto rounded-[32px] border border-[#D8B34F]/25 bg-gradient-to-br from-[#1C3453] via-[#10243E] to-[#0A192D] shadow-[0_32px_100px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.1)]">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[32px]">
+                <div className="absolute -right-28 -top-28 h-72 w-72 rounded-full border-[35px] border-[#8DB9F4]/[0.035]" />
+                <div className="absolute -bottom-40 -left-32 h-80 w-80 rounded-full border-[40px] border-[#D8B34F]/[0.04]" />
+                <div className="absolute left-1/2 top-32 h-40 w-64 -translate-x-1/2 rounded-full bg-[#D8B34F]/[0.07] blur-3xl" />
+              </div>
               {showConfetti && confettiSize.width > 0 && (
                 <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden="true">
                   <Confetti
@@ -560,63 +507,51 @@ export default function SpinPage() {
                 }`}
               />
 
-              <div className="p-8 text-center sm:p-10">
-                <div
-                  className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
-                    didWin
-                      ? "bg-[#C9A44D]/15 text-[#E8CD7A]"
-                      : "bg-[#2F6ED8]/15 text-[#8DB9F4]"
-                  }`}
-                >
-                  {didWin ? (
-                    <Trophy className="h-8 w-8" />
-                  ) : (
-                    <Sparkles className="h-8 w-8" />
-                  )}
+              <div className="relative px-8 pb-6 pt-12 sm:px-10 sm:pb-7 sm:pt-12">
+                <Image src="/navbar_logo.png" alt="Spin for Chinuch" width={700} height={170} className="mx-auto h-auto w-[360px] max-w-full" />
+              </div>
+              <div className="relative mx-6 border-t border-white/[0.08] pb-6 pt-6 text-center sm:mx-8 sm:pb-7 sm:pt-7">
+                <div aria-hidden="true" className="relative mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border border-[#E8CD7A]/15" />
+                  <div className="absolute -left-6 top-3 h-2 w-2 rotate-[25deg] rounded-sm bg-[#E8CD7A]/60" />
+                  <div className="absolute -right-5 bottom-4 h-1.5 w-1.5 rounded-full bg-[#8DB9F4]/70" />
+                  <div className={`relative flex h-12 w-12 items-center justify-center rounded-full border shadow-[inset_0_1px_0_rgba(255,255,255,.2),0_8px_20px_rgba(0,0,0,.15)] ${didWin ? "border-[#F4DE97]/60 bg-gradient-to-br from-[#F6E3A2] to-[#BF9636] text-[#203149]" : "border-[#8DB9F4]/30 bg-gradient-to-br from-[#34567F] to-[#1B3555] text-[#D5E5FB]"}`}>
+                    {didWin ? <Trophy className="h-6 w-6" strokeWidth={1.5} /> : <Gift className="h-6 w-6" strokeWidth={1.5} />}
+                  </div>
                 </div>
-
-                <p className="mt-6 text-xs font-bold uppercase tracking-[0.25em] text-[#8DB9F4]">
-                  {didWin ? "Congratulations" : "Thank you for spinning"}
-                </p>
-                <h2
-                  id="spin-result-title"
-                  className="mt-3 text-4xl font-black tracking-[-0.04em] text-white"
-                >
-                  {didWin ? "You won" : "Not this time"}
+                <h2 id="spin-result-title" className={`mx-auto max-w-sm text-balance text-3xl font-black leading-[1.15] tracking-[-0.035em] sm:text-4xl ${didWin ? "bg-gradient-to-r from-[#FFF1BD] to-[#E0BB57] bg-clip-text text-transparent" : "text-white"}`}>
+                  {didWin ? "You won!" : winner}
                 </h2>
+                {didWin && <p className="mt-3 text-sm leading-6 text-[#A4BAD5]">Congratulations!</p>}
+                {didWin && <div className="relative mt-6 overflow-hidden rounded-2xl border border-[#E8CD7A]/25 bg-gradient-to-br from-[#E8CD7A]/[0.09] to-[#E8CD7A]/[0.02] px-5 py-6">
+                  <div aria-hidden="true" className="absolute -right-5 -top-5 h-20 w-20 rounded-full border-[12px] border-[#E8CD7A]/[0.06]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#B9B18D]">Your prize</p>
+                  <p className="relative mt-2 break-words text-xl font-bold leading-snug tracking-[-0.02em] text-[#F2DE9F] sm:text-2xl">{winner}</p>
+                </div>}
 
-                <div className="mt-7 rounded-2xl border border-white/10 bg-[#071628]/60 p-5">
-                  <p className="text-sm font-bold uppercase tracking-[0.15em] text-[#7F97B6]">
-                    {didWin ? "Your prize" : "Your result"}
-                  </p>
-                  <p className="mt-2 text-2xl font-black text-white">
-                    {winner}
-                  </p>
-                </div>
-
-                <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                <div className="mt-6 flex flex-col gap-2">
                   {remainingSpins > 0 ? (
                     <button
                       type="button"
                       onClick={closeResult}
-                      className="rounded-2xl bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] px-5 py-4 font-black text-white transition hover:-translate-y-0.5"
+                      className="flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#D8B34F] to-[#F3D77E] px-3 py-3 text-sm font-bold text-[#102743] shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_5px_16px_rgba(216,179,79,.12)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F]"
                     >
                       Spin again
                     </button>
                   ) : (
                     <Link
                       href="/buy-spins"
-                      className="rounded-2xl bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] px-5 py-4 font-black text-white transition hover:-translate-y-0.5"
+                      className="flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#D8B34F] to-[#F3D77E] px-3 py-3 text-sm font-bold text-[#102743] shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_5px_16px_rgba(216,179,79,.12)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F]"
                     >
-                      Get more spins
+                      Buy spins
                     </Link>
                   )}
 
                   <Link
                     href="/dashboard"
-                    className="rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-4 font-black text-white transition hover:bg-white/[0.09]"
+                    className="mx-auto inline-flex min-h-10 items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-[#A4BAD5] underline-offset-4 transition hover:text-white hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8DB9F4]"
                   >
-                    Dashboard
+                    Back to dashboard
                   </Link>
                 </div>
               </div>
@@ -624,7 +559,6 @@ export default function SpinPage() {
           </div>
         )}
 
-        <audio ref={spinSound} src="/sounds/spin.mp3" preload="auto" />
         <audio ref={winSound} src="/sounds/win.mp3" preload="auto" />
       </div>
     </ProtectedRoute>

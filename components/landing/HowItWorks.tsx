@@ -12,25 +12,21 @@ import {
 export default function HowItWorks() {
   const { user } = useAuth();
   return (
-    <section className="mx-auto max-w-7xl px-6 pt-12 pb-16">
+    <section className="mx-auto site-width px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
       {/* Section Header */}
-      <div className="mx-auto mb-16 max-w-3xl text-center">
+      <div className="mx-auto mb-8 max-w-2xl text-center sm:mb-10">
         <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-[#4267A8]">
           How It Works
         </span>
 
-        <h2 className="mt-6 text-4xl font-black text-[#142A52] md:text-5xl">
+        <h2 className="mt-4 text-3xl font-black tracking-[-0.035em] text-[#142A52] sm:text-4xl">
           Four Simple Steps
         </h2>
 
-        <p className="mt-6 text-lg leading-8 text-slate-600">
-          Supporting Chinuch has never been easier. Purchase spins, spin the
-          wheel, win exciting prizes, and make a meaningful impact.
-        </p>
       </div>
 
       {/* Cards */}
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <LandingCard
           title="1. Buy Spins"
           href="/buy-spins"

@@ -12,7 +12,7 @@ import {
 export default function Hero() {
   const { user } = useAuth();
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#142A52] via-[#28457C] to-[#4267A8]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0D203B] via-[#19365F] to-[#284C82]">
 
       {/* Background Glow */}
       <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-white/10 blur-3xl" />
@@ -36,15 +36,15 @@ export default function Hero() {
         />
       </div>
 
-<div className="relative mx-auto flex min-h-[calc(100svh-5rem)] max-w-7xl flex-col items-center justify-center gap-10 px-6 py-12 sm:min-h-[calc(100svh-6rem)] md:flex-row md:justify-between lg:gap-12 lg:py-16">
+<div className="relative mx-auto grid site-width items-center gap-10 px-5 py-14 sm:px-8 sm:py-20 lg:min-h-[620px] lg:grid-cols-[1.15fr_1fr] lg:gap-16 lg:px-10 lg:py-24">
 
 
         {/* LEFT */}
-        <div className="w-full min-w-0 max-w-2xl md:flex-1">
+        <div className="w-full min-w-0 max-w-2xl">
 
-          <h1 className="text-4xl font-bold leading-[1.15] tracking-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="text-5xl font-black leading-[1.04] tracking-[-0.045em] text-white sm:text-6xl lg:text-7xl">
             <span className="block">Take a Spin.</span>
-            <span className="mt-3 block sm:mt-4">Win a Prize.</span>
+            <span className="mt-2 block text-[#F0D47F]">Win a Prize.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-blue-100">
@@ -52,7 +52,7 @@ export default function Hero() {
             drawings.
           </p>
 
-          <div className="mt-10 flex items-center gap-6">
+          <div className="mt-8 flex flex-wrap items-center gap-6">
 
             <Button href={user ? "/spin" : "/login?redirect=/spin"} variant="gold">
               Spin
@@ -68,7 +68,7 @@ export default function Hero() {
 
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-8">
+          <div className="mt-9 flex flex-wrap gap-x-6 gap-y-4 border-t border-white/15 pt-6 text-sm">
 
             <div className="flex items-center gap-3">
               <HeartHandshake
@@ -98,10 +98,10 @@ export default function Hero() {
         </div>
 
         {/* RIGHT */}
-        <div className="relative grid w-full max-w-[420px] shrink-0 gap-4 md:block md:h-[360px] md:w-[320px] lg:w-[420px]">
+        <div className="relative grid w-full gap-4 sm:grid-cols-2 lg:mx-auto lg:max-w-[420px] lg:grid-cols-1 lg:gap-5">
 
           {/* Floating Card */}
-          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-7 shadow-2xl backdrop-blur-xl md:absolute md:right-0 md:top-8 md:w-80">
+          <div className="w-full rounded-3xl border border-white/15 bg-white/[0.08] p-6 shadow-xl backdrop-blur-xl lg:ml-4">
 
             <div className="flex items-center gap-4">
 
@@ -129,7 +129,7 @@ export default function Hero() {
           </div>
 
           {/* Second Card */}
-          <div className="w-full rounded-3xl border border-white/10 bg-white/10 p-6 shadow-xl backdrop-blur-xl md:absolute md:bottom-10 md:left-0 md:w-72">
+          <div className="w-full rounded-3xl border border-[#E7C96D]/20 bg-[#E7C96D]/[0.07] p-6 shadow-xl backdrop-blur-xl lg:-ml-4">
 
             <div className="flex items-center gap-3">
 

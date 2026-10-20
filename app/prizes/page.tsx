@@ -37,7 +37,7 @@ export default function PrizesPage() {
   }, []);
 
   return (
-    <div className="app-page">
+    <main className="app-page">
       {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl" />
@@ -45,75 +45,29 @@ export default function PrizesPage() {
       </div>
 
       <div className="app-container">
-        {/* Hero */}
-        <section className="page-hero">
-
-
-
-          {/* Wheel Watermark */}
-          <div
-            className="absolute right-[-80px] top-0 h-full w-[50%] bg-contain bg-right bg-no-repeat opacity-[0.025] pointer-events-none"
-            style={{
-              backgroundImage: "url('/wheel-watermark.png')",
-            }}
-          />
-
-          {/* Background Glows */}
-          <div className="absolute -left-28 -top-28 h-64 w-64 rounded-full bg-blue-200/25 blur-3xl" />
-          <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-yellow-200/20 blur-3xl" />
-
+        <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-[#142E50] via-[#10233D] to-[#09182C] px-6 py-8 text-white shadow-[0_16px_40px_rgba(13,32,59,.12)] sm:rounded-[32px] sm:px-9 sm:py-10 lg:px-12">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-40 h-96 w-96 rounded-full border-[45px] border-white/[0.035]" />
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-[20%] h-36 w-56 rounded-full bg-[#D8B34F]/10 blur-3xl" />
           <div className="relative flex items-center justify-between gap-6">
-
-            {/* Title */}
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-none text-[#142A52]">
-                All <span className="text-[#C9A44D]">Prizes</span>
-              </h1>
+            <h1 className="text-4xl font-black leading-tight tracking-[-0.04em] sm:text-5xl">All <span className="text-[#F0D47F]">Prizes</span></h1>
+            <div aria-hidden="true" className="flex h-16 w-16 shrink-0 -rotate-6 items-center justify-center rounded-[20px] border border-[#E8C761]/25 bg-[#E8C761]/10 text-[#F0D47F] sm:h-20 sm:w-20 sm:rounded-3xl">
+              <Gift className="h-8 w-8 sm:h-10 sm:w-10" strokeWidth={1.5} />
             </div>
-
-            {/* Gift */}
-            <div
-              className="
-        relative
-        flex
-        h-20
-        w-20
-        items-center
-        justify-center
-        rounded-2xl
-        bg-gradient-to-br
-        from-[#142A52]
-        to-[#23457F]
-        shadow-lg
-      "
-            >
-
-              <div className="absolute inset-0 rounded-2xl bg-[#C9A44D]/20 blur-xl" />
-
-              <div className="relative rounded-xl bg-white/10 p-3 backdrop-blur-sm">
-                <Gift
-                  className="h-8 w-8 text-[#E7C45B]"
-                  strokeWidth={2}
-                />
-              </div>
-
-            </div>
-
           </div>
-
         </section>
 
         {/* Prize Grid */}
-        <section>
+        <section aria-label="All prizes" aria-busy={loading}>
           {loading ? (
             <div className="rounded-3xl border border-blue-100 bg-white py-16 text-center text-slate-500 shadow-lg">Loading prizes…</div>
           ) : error ? (
             <div role="alert" className="rounded-3xl border border-red-100 bg-white py-16 text-center text-red-600 shadow-lg">{error}</div>
           ) : prizes.length === 0 ? (
             <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">New prizes will be announced soon.</div>
-          ) : <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          ) : <div className="grid items-stretch gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {prizes.map((prize) => (
               <PrizeCard
+                gallery
                 key={prize.id}
                 name={prize.name}
                 imageUrl={prize.image_url}
@@ -124,6 +78,6 @@ export default function PrizesPage() {
           </div>}
         </section>
       </div>
-    </div>
+    </main>
   );
 }

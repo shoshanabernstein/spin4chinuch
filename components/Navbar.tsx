@@ -39,8 +39,16 @@ export default function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-blue-200/10 bg-[#071628]/95 shadow-lg backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:h-24 sm:px-6 lg:px-8">
-        <Link href="/" aria-label="Spin for Chinuch home" className="shrink-0">
+      <div className="mx-auto flex h-20 site-width items-center justify-between px-4 sm:h-24 sm:px-6 lg:px-8">
+        <Link href="/" aria-label="Spin for Chinuch home" className="shrink-0" onClick={(event) => {
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          setMobileOpen(false);
+          setAccountOpen(false);
+          if (window.location.pathname === "/") {
+            event.preventDefault();
+            window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+          }
+        }}>
           <Image src="/navbar_logo.png" alt="Spin for Chinuch" width={700} height={170} priority className="h-auto w-[210px] sm:w-[270px] lg:w-[310px]" />
         </Link>
 

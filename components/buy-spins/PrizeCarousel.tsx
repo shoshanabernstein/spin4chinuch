@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight, Gift } from "lucide-react";
+import { Gift } from "lucide-react";
 import Panel from "@/components/ui/Panel";
 import PrizeCard from "./PrizeCard";
 
@@ -21,24 +21,6 @@ interface PrizeCarouselProps {
 
 export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
-  const resumeAtRef = useRef(0);
-
-  function scrollLeft() {
-    resumeAtRef.current = performance.now() + 3000;
-    containerRef.current?.scrollBy({
-      left: -334,
-      behavior: "smooth",
-    });
-  }
-
-  function scrollRight() {
-    resumeAtRef.current = performance.now() + 3000;
-    containerRef.current?.scrollBy({
-      left: 334,
-      behavior: "smooth",
-    });
-  }
 
   useEffect(() => {
     const el = containerRef.current;
@@ -58,7 +40,7 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
       const overflowing = firstGroup.offsetWidth > el!.clientWidth;
       duplicate.style.display = overflowing ? "flex" : "none";
 
-      if (!reducedMotion.matches && overflowing && !pausedRef.current && time >= resumeAtRef.current && !document.hidden) {
+      if (!reducedMotion.matches && overflowing && !document.hidden) {
         // Keep fractional pixels so the speed is consistent on every display.
         position = (position + elapsed * 0.035) % firstGroup.offsetWidth;
         el!.scrollLeft = position;
@@ -92,12 +74,7 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
 
   return (
     <Panel title="" subtitle="">
-      <div className="space-y-4"
-        onMouseEnter={() => { pausedRef.current = true; }}
-        onMouseLeave={() => { pausedRef.current = false; }}
-        onFocusCapture={() => { pausedRef.current = true; }}
-        onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) pausedRef.current = false; }}
-      >
+      <div className="space-y-4">
 
         {/* Header row */}
         <div className="flex items-start justify-between">
@@ -105,35 +82,11 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
             Prizes
           </h2>
 
-          {/* Buttons */}
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={scrollLeft}
-              aria-label="Show previous prizes"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
-            >
-              <ChevronLeft size={18} />
-            </button>
-
-            <button
-              type="button"
-              onClick={scrollRight}
-              aria-label="Show next prizes"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
         </div>
 
         {/* Carousel */}
         <div
           ref={containerRef}
-          onTouchStart={() => { pausedRef.current = true; }}
-          onTouchEnd={() => { pausedRef.current = false; resumeAtRef.current = performance.now() + 3000; }}
-          onTouchCancel={() => { pausedRef.current = false; }}
-          onWheel={() => { resumeAtRef.current = performance.now() + 3000; }}
           className="
             flex
             overflow-x-auto

@@ -174,7 +174,7 @@ export default function AdminPrizesPage() {
         </section>
 
         <section className="grid gap-5 sm:grid-cols-3">
-          <StatCard label="Total Prizes" value={prizes.length} icon={<Gift />} />
+          <StatCard label="Total Prizes" value={prizes.reduce((total, prize) => total + prize.original_quantity, 0)} icon={<Gift />} />
           <StatCard label="Active" value={prizes.filter((prize) => prize.active).length} icon={<PackageCheck />} />
           <StatCard label="Archived" value={prizes.filter((prize) => !prize.active).length} icon={<PackageX />} />
         </section>
@@ -197,7 +197,7 @@ export default function AdminPrizesPage() {
         ) : prizes.length === 0 ? (
           <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-white py-16 text-center text-slate-500">No prizes have been created.</div>
         ) : (
-          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {prizes.map((prize, index) => (
               <div key={prize.id} onDragOver={(event) => { if (draggedId !== null && !savingOrder) { event.preventDefault(); setDropId(prize.id); } }} onDrop={(event) => { event.preventDefault(); if (draggedId !== null) reorder(draggedId, prize.id); setDraggedId(null); setDropId(null); }} className={`flex min-w-0 flex-col rounded-3xl ${dropId === prize.id ? "ring-4 ring-blue-400" : ""} ${draggedId === prize.id ? "opacity-50" : ""}`}>
                 <div className="mb-2 flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2">
@@ -207,8 +207,8 @@ export default function AdminPrizesPage() {
                     <button type="button" disabled={index === prizes.length - 1 || savingOrder || !orderReady} onClick={() => reorder(prize.id, prizes[index + 1].id)} aria-label={`Move ${prize.name} later`} className="rounded p-2 hover:bg-blue-100 disabled:opacity-30"><ArrowRight size={18} /></button>
                   </div>
                 </div>
-              <PrizeCard name={prize.name} imageUrl={prize.image_url} originalQuantity={prize.original_quantity} sponsorName={prize.sponsor_name}>
-                <div className="border-t border-blue-100 p-6">
+              <PrizeCard compact name={prize.name} imageUrl={prize.image_url} originalQuantity={prize.original_quantity} sponsorName={prize.sponsor_name}>
+                <div className="border-t border-blue-100 p-3">
                   <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${prize.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>{prize.active ? "Active" : "Archived"}</span>
                   {contacts.find((contact) => contact.prizeId === prize.id) && (
                     <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-3 text-xs text-slate-600">
@@ -217,18 +217,18 @@ export default function AdminPrizesPage() {
                       <p className="break-all">{contacts.find((contact) => contact.prizeId === prize.id)?.contactEmail || "No email provided"}</p>
                     </div>
                   )}
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-400">Original Quantity</p><p className="text-xl font-black">{prize.original_quantity}</p></div>
-                    <div className="rounded-2xl bg-slate-50 p-3"><p className="text-slate-400">Value</p><p className="text-xl font-black">{prize.retail_value == null ? "—" : `$${prize.retail_value}`}</p></div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-xl bg-slate-50 p-2"><p className="text-slate-400">Original Quantity</p><p className="text-lg font-black">{prize.original_quantity}</p></div>
+                    <div className="rounded-xl bg-slate-50 p-2"><p className="text-slate-400">Value</p><p className="text-lg font-black">{prize.retail_value == null ? "—" : `$${prize.retail_value}`}</p></div>
                   </div>
-                  <div className="mt-6 grid grid-cols-2 gap-3">
-                    <Link href={`/admin/edit/${prize.id}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2F6ED8] px-4 py-3 font-bold text-white"><Pencil size={17} /> Edit</Link>
-                    <button onClick={() => void setPrizeActive(prize, !prize.active)} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold ${prize.active ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>{prize.active ? <Archive size={17} /> : <RotateCcw size={17} />}{prize.active ? "Archive" : "Restore"}</button>
+                  <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                    <Link href={`/admin/edit/${prize.id}`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2F6ED8] px-2 py-2 font-bold text-white"><Pencil size={17} /> Edit</Link>
+                    <button onClick={() => void setPrizeActive(prize, !prize.active)} className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-2 py-2 font-bold ${prize.active ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>{prize.active ? <Archive size={17} /> : <RotateCcw size={17} />}{prize.active ? "Archive" : "Restore"}</button>
                     <button
                       type="button"
                       disabled={deletingId === prize.id}
                       onClick={() => void deletePrize(prize)}
-                      className="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-3 font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="col-span-2 flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-2 py-2 font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Trash2 size={17} />
                       {deletingId === prize.id ? "Deleting…" : "Delete Permanently"}

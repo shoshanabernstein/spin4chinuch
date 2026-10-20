@@ -27,7 +27,7 @@ test('existing email stays standard; gift email attaches PDF and uses a stable k
   assert.equal(calls[0][1], undefined);
   const content = Buffer.from('%PDF-test');
   await sendWinEmail('winner@example.invalid', 'Prize A', null, { content, id: 'unique-card' });
-  assert.match(calls[1][0].html, /Below is your e-gift card/);
+  assert.match(calls[1][0].html, /Your E-Gift Card Is Here!/);
   assert.doesNotMatch(calls[1][0].html, /What happens next\?/);
   assert.match(calls[1][0].text, /attached.*PDF/);
   assert.equal(calls[1][0].attachments[0].content, content);
@@ -121,10 +121,69 @@ test('disabled feature keeps the original spin RPC and original email', async ()
       },
     },
     '@/lib/server/win-email': { sendWinEmail: async () => { emails++; } },
+    '@/lib/server/sponsor-notification': { notifyPrizeSponsor: async () => {} },
     '@/lib/server/gift-cards': { giftCardsEnabled: () => false, deliverGiftCard: () => { throw new Error('Disabled feature was invoked'); } },
   });
   const response = await routes.POST({});
   assert.equal(response.success, true);
   assert.equal(usedRpc, 'perform_spin');
   assert.equal(emails, 1);
+});
+
+
+test('sponsor email uses requested copy, escapes winner details, and has no PDF', async () => {
+  const calls = [];
+  class Resend { emails = { send: async (...args) => { calls.push(args); return { data: { id: 'receipt' } }; } }; }
+  const { sendSponsorWinEmail } = load('lib/server/win-email.ts', { resend: { Resend } }, { RESEND_API_KEY: 'fake', WIN_EMAIL_FROM: 'test@example.invalid' });
+  await sendSponsorWinEmail('sponsor@example.invalid', '<Winner>', 'winner@example.invalid', 'Prize <A>', 42);
+  const [message, options] = calls[0];
+  assert.equal(message.to, 'sponsor@example.invalid');
+  assert.equal(message.subject, 'Chinuch Yehudi Campaign – Winner Prize Delivery');
+  assert.match(message.html, /&lt;Winner&gt;/);
+  assert.match(message.html, /&lt;A&gt;/);
+  assert.match(message.text, /Please email the prize directly to the winner/);
+  assert.match(message.text, /winner@example.invalid/);
+  assert.equal(message.attachments, undefined);
+  assert.equal(options.idempotencyKey, 'sponsor-win/42');
+});
+
+test('sponsor notifications are opt-in and use the profile name', async () => {
+  const calls = [];
+  let address = null;
+  const client = { from(table) { return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { notification_email: address } }), single: async () => ({ data: { first_name: 'First', last_name: 'Last' } }) }; } };
+  const { notifyPrizeSponsor } = load('lib/server/sponsor-notification.ts', {
+    '@/lib/server/supabase': { supabaseAdmin: client },
+    '@/lib/server/win-email': { sendSponsorWinEmail: async (...args) => calls.push(args) },
+  });
+  await notifyPrizeSponsor(1, 'user', 'winner@example.invalid', 'Prize', 42);
+  assert.equal(calls.length, 0);
+  address = 'sponsor@example.invalid';
+  await notifyPrizeSponsor(1, 'user', 'winner@example.invalid', 'Prize', 42);
+  assert.equal(calls[0][1], 'First Last');
+  assert.equal(calls[0][2], 'winner@example.invalid');
+});
+
+
+test('spin notifies sponsors only for standard delivery, never assigned or failed PDF delivery', async () => {
+  for (const delivery of ['standard', 'pdf', 'failed']) {
+    let winnerEmails = 0;
+    let sponsorEmails = 0;
+    const routes = load('app/api/spin/route.ts', {
+      'next/server': { NextResponse: { json: body => body } },
+      '@/lib/server/supabase': {
+        getRequestUser: async () => ({ id: 'user', email: 'winner@example.invalid' }),
+        supabaseAdmin: {
+          rpc: async () => ({ data: { won: true, winId: 42, prize: { id: 1, name: 'Prize A' } } }),
+          from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { image_url: null } }) }),
+        },
+      },
+      '@/lib/server/win-email': { sendWinEmail: async () => { winnerEmails++; } },
+      '@/lib/server/sponsor-notification': { notifyPrizeSponsor: async () => { sponsorEmails++; } },
+      '@/lib/server/gift-cards': { giftCardsEnabled: () => true, deliverGiftCard: async () => { if (delivery === 'failed') throw new Error('Simulated PDF failure'); return delivery === 'pdf'; } },
+    });
+    const response = await routes.POST({});
+    assert.equal(response.success, true);
+    assert.equal(winnerEmails, delivery === 'standard' ? 1 : 0);
+    assert.equal(sponsorEmails, delivery === 'standard' ? 1 : 0);
+  }
 });

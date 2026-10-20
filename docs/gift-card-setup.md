@@ -31,7 +31,7 @@ PDF when the win is inserted. Reservation rolls back if the spin fails. PDFs are
 assigned only to the matching prize. The old spin RPC never reserves PDFs.
 
 If no unused PDF is available, the old winner email is sent. An assigned PDF is
-attached to the email, whose heading reads “Below is your e-gift card”. A win is
+attached to the email, whose heading reads “Your E-Gift Card Is Here!”. A win is
 marked Fulfilled only after Resend accepts the email and returns its receipt.
 Acceptance does not prove inbox delivery; bounces still need review in Resend.
 Fulfillment is shown on the **admin** Winners page. No PDF or redemption details
@@ -84,3 +84,18 @@ Before production, test against a staging Supabase database:
 
 Local tests do not replace a staging test of concurrent Supabase sessions or
 actual email delivery.
+
+
+## Optional sponsor notifications
+
+Apply `supabase/migrations/20261018192350_prize_sponsor_notification_email.sql`
+before deploying the sponsor notification form. In Add/Edit Prize, set
+**Sponsor notification email** to opt in. Leaving it blank disables notifications;
+existing contact email addresses do not opt in automatically.
+
+When a win has no assigned PDF, the original winner email is sent and the sponsor
+receives the winner's profile name, email address, and prize details with instructions
+to deliver the gift directly. Assigned PDFs, including failed PDF deliveries, never
+trigger this notification. A sponsor email does not mark the prize fulfilled.
+Notifications are sent for future wins only. Send errors are recorded in server logs;
+there is no automatic retry for sponsor notifications.
