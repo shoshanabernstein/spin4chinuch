@@ -1,44 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="rim" x1="13" y1="10" x2="51" y2="54">
-      <stop stop-color="#A9D2FA"/>
-      <stop offset="0.52" stop-color="#70ABE7"/>
-      <stop offset="1" stop-color="#4F8FD2"/>
-    </linearGradient>
-    <linearGradient id="blade" x1="24" y1="16" x2="41" y2="49">
-      <stop stop-color="#F9FCFF"/>
-      <stop offset="0.7" stop-color="#E5F2FF"/>
-      <stop offset="1" stop-color="#C6E1FA"/>
-    </linearGradient>
-    <linearGradient id="hub" x1="27" y1="26" x2="38" y2="39">
-      <stop stop-color="#D9ECFF"/>
-      <stop offset="1" stop-color="#609EE0"/>
-    </linearGradient>
-  </defs>
-
-  <circle cx="32" cy="33" r="26" fill="url(#rim)"/>
-  <circle cx="32" cy="33" r="22" fill="#5C9BDE"/>
-
-  <path d="M32 33V11a22 22 0 0 1 15.56 6.44Z" fill="url(#blade)"/>
-  <path d="M32 33h22a22 22 0 0 1-6.44 15.56Z" fill="url(#blade)"/>
-  <path d="M32 33v22a22 22 0 0 1-15.56-6.44Z" fill="url(#blade)"/>
-  <path d="M32 33H10a22 22 0 0 1 6.44-15.56Z" fill="url(#blade)"/>
-
-  <g fill="none" stroke="#D6EAFD" stroke-linecap="round" stroke-width="1.25" opacity=".9">
-    <path d="M32 12v15"/>
-    <path d="M32 39v15"/>
-    <path d="M11 33h15"/>
-    <path d="M38 33h15"/>
-    <path d="m17.15 18.15 10.6 10.6"/>
-    <path d="m36.25 37.25 10.6 10.6"/>
-    <path d="m46.85 18.15-10.6 10.6"/>
-    <path d="m27.75 37.25-10.6 10.6"/>
+  <rect width="64" height="64" rx="15" fill="#0D203B"/>
+  <circle cx="32" cy="33" r="23" fill="#173B66" stroke="#E4C56F" stroke-width="3"/>
+  <g fill="#4878C3">
+    <path d="M32 33V13a20 20 0 0 1 14.14 5.86Z"/>
+    <path d="M32 33h20a20 20 0 0 1-5.86 14.14Z"/>
+    <path d="M32 33v20a20 20 0 0 1-14.14-5.86Z"/>
+    <path d="M32 33H12a20 20 0 0 1 5.86-14.14Z"/>
   </g>
-
-  <circle cx="32" cy="33" r="7" fill="#FFFFFF" stroke="#75AADE" stroke-width="1.25"/>
-  <circle cx="32" cy="33" r="4.2" fill="url(#hub)"/>
-  <circle cx="30.8" cy="31.8" r="1.1" fill="#FFFFFF" opacity=".9"/>
-
-  <path d="M28.6 4.5h6.8L32 14Z" fill="#F8FCFF" stroke="#78ACE0" stroke-width="1.2" stroke-linejoin="round"/>
-  <circle cx="32" cy="33" r="25.3" fill="none" stroke="#D8EBFC" stroke-width="1.2"/>
+  <g stroke="#E4C56F" stroke-width="1" opacity=".55">
+    <path d="M32 13v40M12 33h40M17.86 18.86l28.28 28.28M46.14 18.86L17.86 47.14"/>
+  </g>
+  <circle cx="32" cy="33" r="7.5" fill="#0D203B" stroke="#E4C56F" stroke-width="2"/>
+  <circle cx="32" cy="33" r="3" fill="#F2D989"/>
+  <path d="M27 5h10l-5 12Z" fill="#F2D989" stroke="#0D203B" stroke-width="1.5" stroke-linejoin="round"/>
 </svg>
