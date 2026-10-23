@@ -1,6 +1,7 @@
+import { settlePayment } from "@/lib/server/settle-payment";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
+import { getRequestUser } from "@/lib/server/supabase";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
@@ -40,21 +41,13 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Invalid payment details." }, { status: 400 });
       }
 
-      const { error: creditError } = await supabaseAdmin.rpc(
-        "credit_completed_payment",
-        {
-          p_payment_intent_id: paymentIntent.id,
-          p_user_id: user.id,
-          p_spins: spins,
-          p_amount: paymentIntent.amount_received,
-        }
-      );
-
-      if (creditError) {
-        console.error("Unable to credit verified payment", paymentIntent.id, creditError);
+      try {
+        return NextResponse.json(await settlePayment(stripe, paymentIntent));
+      } catch (error) {
+        console.error("Unable to settle verified payment", paymentIntent.id, error);
         return NextResponse.json(
-          { error: "Payment was verified, but spins could not be credited yet." },
-          { status: 500 }
+          { error: "Payment received, but confirmation needs another attempt. Please check your dashboard or contact support before purchasing again." },
+          { status: 503 }
         );
       }
     }

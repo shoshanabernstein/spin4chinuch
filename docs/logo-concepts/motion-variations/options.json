@@ -1,0 +1,38 @@
+[
+  {
+    "id": "01",
+    "title": "Clean sweep",
+    "mark": "01-mark.svg",
+    "logo": "01-logo.svg"
+  },
+  {
+    "id": "02",
+    "title": "Twin trails",
+    "mark": "02-mark.svg",
+    "logo": "02-logo.svg"
+  },
+  {
+    "id": "03",
+    "title": "Comet",
+    "mark": "03-mark.svg",
+    "logo": "03-logo.svg"
+  },
+  {
+    "id": "04",
+    "title": "Double orbit",
+    "mark": "04-mark.svg",
+    "logo": "04-logo.svg"
+  },
+  {
+    "id": "05",
+    "title": "Fast turn",
+    "mark": "05-mark.svg",
+    "logo": "05-logo.svg"
+  },
+  {
+    "id": "06",
+    "title": "Blue sweep",
+    "mark": "06-mark.svg",
+    "logo": "06-logo.svg"
+  }
+]

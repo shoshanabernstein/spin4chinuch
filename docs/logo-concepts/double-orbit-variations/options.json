@@ -1,0 +1,38 @@
+[
+  {
+    "id": "01",
+    "title": "Close sweep",
+    "mark": "01-mark.svg",
+    "logo": "01-logo.svg"
+  },
+  {
+    "id": "02",
+    "title": "Open sweep",
+    "mark": "02-mark.svg",
+    "logo": "02-logo.svg"
+  },
+  {
+    "id": "03",
+    "title": "Tapered motion",
+    "mark": "03-mark.svg",
+    "logo": "03-logo.svg"
+  },
+  {
+    "id": "04",
+    "title": "Long orbit",
+    "mark": "04-mark.svg",
+    "logo": "04-logo.svg"
+  },
+  {
+    "id": "05",
+    "title": "Twin crescents",
+    "mark": "05-mark.svg",
+    "logo": "05-logo.svg"
+  },
+  {
+    "id": "06",
+    "title": "Lightweight",
+    "mark": "06-mark.svg",
+    "logo": "06-logo.svg"
+  }
+]

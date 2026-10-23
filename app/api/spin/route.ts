@@ -5,6 +5,7 @@ import { deliverGiftCard, giftCardsEnabled } from "@/lib/server/gift-cards";
 import { notifyPrizeSponsor } from "@/lib/server/sponsor-notification";
 
 type SpinResult = {
+  replayed?: boolean;
   winId?: number | null;
   outcomeId: number;
   outcomeLabel: string;
@@ -25,9 +26,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let requestId: unknown;
+  try {
+    ({ requestId } = await req.json());
+  } catch {
+    return NextResponse.json({ error: "A valid spin request ID is required." }, { status: 400 });
+  }
+  if (typeof requestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {
+    return NextResponse.json({ error: "A valid spin request ID is required." }, { status: 400 });
+  }
+
   const useGiftCards = giftCardsEnabled();
-  const { data, error } = await supabaseAdmin.rpc(useGiftCards ? "perform_spin_with_gift_cards" : "perform_spin", {
+  const { data, error } = await supabaseAdmin.rpc("perform_spin_once", {
     p_user_id: user.id,
+    p_request_id: requestId,
+    p_gift_cards: useGiftCards,
   });
 
   if (error) {
@@ -36,12 +49,12 @@ export async function POST(req: Request) {
       ? "No spins remaining."
       : error.message.includes("No eligible")
         ? "No prizes are currently available."
-        : "Spin failed. Your balance was not changed.";
+        : "Unable to confirm the spin. Retry to recover the same result.";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
   const result = data as SpinResult;
-  if (result.won && result.prize?.name && user.email) {
+  if (!result.replayed && result.won && result.prize?.name && user.email) {
     let useStandardEmail = !useGiftCards;
     if (useGiftCards) {
       try {

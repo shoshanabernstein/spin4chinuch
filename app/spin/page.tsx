@@ -41,6 +41,8 @@ type SpinResponse = {
 };
 
 export default function SpinPage() {
+  const inFlight = useRef(false);
+  const [hasPendingSpin, setHasPendingSpin] = useState(false);
   const [rotation, setRotation] = useState(8);
   const [spinning, setSpinning] = useState(false);
   const [spinPhase, setSpinPhase] = useState<
@@ -70,8 +72,8 @@ export default function SpinPage() {
     !spinning &&
     !loadingPrizes &&
     !loadingStats &&
-    remainingSpins > 0 &&
-    outcomes.length > 0;
+    (remainingSpins > 0 || hasPendingSpin) &&
+    (outcomes.length > 0 || hasPendingSpin);
 
   useEffect(() => {
     if (spinning || winner || loadingPrizes || outcomes.length === 0) return;
@@ -137,6 +139,10 @@ export default function SpinPage() {
       return;
     }
 
+    try {
+      setHasPendingSpin(Boolean(localStorage.getItem(`pending-spin/${user.id}`)));
+    } catch { /* Storage availability is checked before submitting a spin. */ }
+
     const [profileResult, winsResult, paymentsResult] = await Promise.all([
       supabase
         .from("profiles")
@@ -179,12 +185,12 @@ export default function SpinPage() {
       return;
     }
 
-    if (outcomes.length === 0) {
+    if (outcomes.length === 0 && !hasPendingSpin) {
       toast.error("No wheel outcomes are available right now.");
       return;
     }
 
-    if (remainingSpins <= 0) {
+    if (remainingSpins <= 0 && !hasPendingSpin) {
       toast.error("You’re out of spins. Purchase another spin to continue.");
       return;
     }
@@ -197,7 +203,8 @@ export default function SpinPage() {
   }
 
   async function spin() {
-    if (!readyToSpin) return;
+    if (!readyToSpin || inFlight.current) return;
+    inFlight.current = true;
 
     setSpinning(true);
     setSpinPhase("requesting");
@@ -219,34 +226,42 @@ export default function SpinPage() {
     if (!session) {
       stopSpinFeedback();
       toast.error("Your session expired. Please log in again.");
+      inFlight.current = false;
       setSpinning(false);
       setSpinPhase("idle");
       return;
     }
 
     let response: Response;
+    let data: SpinResponse;
+    const storageKey = `pending-spin/${session.user.id}`;
 
     try {
+      const requestId = localStorage.getItem(storageKey) ?? crypto.randomUUID();
+      localStorage.setItem(storageKey, requestId);
+      setHasPendingSpin(true);
       response = await fetch("/api/spin", {
         method: "POST",
+        body: JSON.stringify({ requestId }),
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
       });
+      data = (await response.json()) as SpinResponse;
     } catch {
       stopSpinFeedback();
-      toast.error("Could not connect. Your spin was not used.");
+      toast.error("Could not confirm your spin. Try again to recover the same result.");
+      inFlight.current = false;
       setSpinning(false);
       setSpinPhase("idle");
       return;
     }
 
-    const data = (await response.json()) as SpinResponse;
-
     if (!response.ok || !data.success || data.outcomeId === undefined) {
       stopSpinFeedback();
       toast.error(data.error ?? "Unable to spin right now.");
+      inFlight.current = false;
       setSpinning(false);
       setSpinPhase("idle");
       return;
@@ -257,11 +272,16 @@ export default function SpinPage() {
     );
 
     if (index === -1) {
+      // A replay can refer to a prize that is now sold out or archived.
       stopSpinFeedback();
-      toast.error("The wheel changed. Please try again.");
-      await loadOutcomes();
+      setWinner(data.winner?.prize?.name ?? data.outcomeLabel ?? "Better luck next time");
+      setDidWin(Boolean(data.won));
+      try { localStorage.removeItem(storageKey); } catch { /* Replaying is safe. */ }
+      setHasPendingSpin(false);
+      inFlight.current = false;
       setSpinning(false);
       setSpinPhase("idle");
+      void loadUserStats();
       return;
     }
 
@@ -280,6 +300,8 @@ export default function SpinPage() {
     );
 
     pendingResult.current = () => {
+      try { localStorage.removeItem(storageKey); } catch { /* Replaying is safe. */ }
+      setHasPendingSpin(false);
       stopSpinFeedback();
 
       const won = Boolean(data.won);
@@ -296,6 +318,7 @@ export default function SpinPage() {
       setWinner(resultLabel);
       setDidWin(won);
       setShowConfetti(won);
+      inFlight.current = false;
       setSpinning(false);
       setSpinPhase("idle");
       void loadUserStats();
@@ -396,7 +419,7 @@ export default function SpinPage() {
                     spinPhase={spinPhase}
                     prizes={outcomes}
                     canSpin={readyToSpin}
-                    showBuySpins={!loadingStats && remainingSpins <= 0 && !spinning}
+                    showBuySpins={!loadingStats && remainingSpins <= 0 && !hasPendingSpin && !spinning}
                     onSpin={requestSpin}
                     onRotationUpdate={(angle) => { actualRotation.current = angle; }}
                     onTick={playWheelTick}

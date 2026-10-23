@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#102743"/>
-  <circle cx="32" cy="33" r="22" fill="none" stroke="#E5C777" stroke-width="3"/>
-  <g fill="#7099D4">
-    <path d="M32 33V15a18 18 0 0 1 15.59 9Z"/>
-    <path d="M32 33l15.59 9A18 18 0 0 1 32 51Z"/>
-    <path d="M32 33l-15.59 9a18 18 0 0 1 0-18Z"/>
-  </g>
-  <circle cx="32" cy="33" r="6" fill="#102743"/>
-  <circle cx="32" cy="33" r="3" fill="#E5C777"/>
-  <path d="M27.5 7h9L32 16Z" fill="#E5C777" stroke="#102743" stroke-width="1.5" stroke-linejoin="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none"><title>Spin for Chinuch ? Open sweep</title><path d="M48 17a21 21 0 1 0 3 25" stroke="#102A52" stroke-width="7" stroke-linecap="round" fill="none"/><path d="M23 58a29 29 0 0 0 37-23" stroke="#649CD3" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M4 37a29 29 0 0 0 8 17" stroke="#649CD3" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M3 47a35 35 0 0 0 7 11" stroke="#BFD7EF" stroke-width="2" stroke-linecap="round" fill="none"/></svg>

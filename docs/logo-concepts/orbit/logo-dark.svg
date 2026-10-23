@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="180" viewBox="0 0 840 180" fill="none">
+  <title>Spin for Chinuch</title>
+  <desc>A navy open orbit with a sky-blue satellite beside the Spin for Chinuch wordmark.</desc>
+  <g transform="translate(18 20) scale(2.15)">
+    <path d="M48 17a22 22 0 1 0 5 25" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="50" cy="16" r="5" fill="#649CD3"/>
+  </g>
+  <text x="190" y="103" font-family="Arial,Helvetica,sans-serif" font-size="66" font-weight="700" letter-spacing="-2" fill="#FFFFFF">Spin<tspan font-size="39" font-weight="400" letter-spacing="-1" fill="#BFD7EF"> for </tspan><tspan>Chinuch</tspan></text>
+  <text x="194" y="139" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="600" letter-spacing="3" fill="#BFD7EF">A SPIN THAT MAKES A DIFFERENCE</text>
+</svg>

@@ -108,7 +108,7 @@ test('admin PDF routes reject non-admin access before touching storage or data',
   }
 });
 
-test('disabled feature keeps the original spin RPC and original email', async () => {
+test('disabled feature uses replay-safe spin RPC and original email', async () => {
   let usedRpc;
   let emails = 0;
   const routes = load('app/api/spin/route.ts', {
@@ -124,9 +124,9 @@ test('disabled feature keeps the original spin RPC and original email', async ()
     '@/lib/server/sponsor-notification': { notifyPrizeSponsor: async () => {} },
     '@/lib/server/gift-cards': { giftCardsEnabled: () => false, deliverGiftCard: () => { throw new Error('Disabled feature was invoked'); } },
   });
-  const response = await routes.POST({});
+  const response = await routes.POST({ json: async () => ({ requestId: '11111111-1111-4111-8111-111111111111' }) });
   assert.equal(response.success, true);
-  assert.equal(usedRpc, 'perform_spin');
+  assert.equal(usedRpc, 'perform_spin_once');
   assert.equal(emails, 1);
 });
 
@@ -181,7 +181,7 @@ test('spin notifies sponsors only for standard delivery, never assigned or faile
       '@/lib/server/sponsor-notification': { notifyPrizeSponsor: async () => { sponsorEmails++; } },
       '@/lib/server/gift-cards': { giftCardsEnabled: () => true, deliverGiftCard: async () => { if (delivery === 'failed') throw new Error('Simulated PDF failure'); return delivery === 'pdf'; } },
     });
-    const response = await routes.POST({});
+    const response = await routes.POST({ json: async () => ({ requestId: '11111111-1111-4111-8111-111111111111' }) });
     assert.equal(response.success, true);
     assert.equal(winnerEmails, delivery === 'standard' ? 1 : 0);
     assert.equal(sponsorEmails, delivery === 'standard' ? 1 : 0);

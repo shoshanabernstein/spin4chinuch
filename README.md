@@ -39,3 +39,55 @@ Manage Prizes supports dragging cards or using move arrows, followed by Save Ord
 - `credit_completed_payment` idempotently records a Stripe payment and credits spins.
 
 Wheel odds are managed from `/admin/outcomes`; the old `prizes.probability` field is intentionally not used by the application.
+
+## Checkout sales-cap recovery
+
+The campaign sales cap remains 2,000 spins. Overlapping checkouts can finish
+payment after the cap is reached. Both the Stripe webhook and payment return
+page use `settlePayment`: the specific database sales-cap rejection requests a
+full Stripe refund with a stable idempotency key. Existing campaign-cap refunds
+are checked before crediting so later retries do not grant spins to that purchase.
+Pending refunds are shown as pending; failed refunds require operator review.
+Other database failures retry settlement rather than refunding an uncertain credit.
+Monitor webhook failures in Stripe and application logs, including refund failures.
+
+Before deploying, use Stripe test mode to finish two checkouts with only enough
+capacity for one. Verify one purchase receives spins and the other receives a full
+refund; replay both webhooks and reload both confirmation pages. Confirm balances
+and refunds do not duplicate. Repeat with a refund API failure and verify webhook
+retry recovery. No live payments or refunds are needed for local tests:
+
+```bash
+node --test tests/payment-settlement.test.cjs
+```
+
+## Safe spin retries
+
+Apply `supabase/idempotent-spins.sql` in the Supabase SQL Editor **before deploying**
+the new spin API and browser code. It requires the existing gift-card migration.
+The new `perform_spin_once` function is callable only by the service role. It locks
+the user's profile and records the request ID and result in the same transaction
+as the spin. An identical request returns that saved result, including when the
+balance is now zero. The original spin routines remain unchanged.
+
+The browser saves unfinished request IDs per user in local storage until the
+result is revealed. Reloading and clicking again recovers that result. Browsers
+without writable local storage do not submit spins. Clearing browser storage or
+switching devices loses this browser recovery ID. Old tabs must be refreshed;
+requests without a valid ID are rejected rather than executing an unsafe spin.
+
+Replays skip email notifications to avoid duplicate winner/sponsor emails. If a
+request stops after the spin commits but before email delivery, use the existing
+admin gift-card retry controls; standard/sponsor email recovery is still a
+separate launch task. Do not delete spin request records while retries may occur.
+
+Test the SQL in isolation with `PGLITE_TEST_MODULE` configured as described in
+`docs/gift-card-setup.md`:
+
+```bash
+node --test tests/spin-idempotency.test.cjs tests/gift-card-database.test.cjs
+```
+
+Before public launch, also test simultaneous requests using separate Supabase
+connections, and interrupt/reload the browser after the last-credit spin commits.
+Verify only one balance deduction, prize allocation, history row and saved result.

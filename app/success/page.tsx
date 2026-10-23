@@ -37,20 +37,33 @@ function PaymentResult() {
         return;
       }
 
-      const response = await fetch(
-        `/api/payment-status?payment_intent=${encodeURIComponent(paymentIntent)}`,
-        { headers: { Authorization: `Bearer ${session.access_token}` } }
-      );
-      const data = await response.json();
+      try {
+        const response = await fetch(
+          `/api/payment-status?payment_intent=${encodeURIComponent(paymentIntent)}`,
+          { headers: { Authorization: `Bearer ${session.access_token}` } }
+        );
+        const data = await response.json();
 
-      if (!response.ok) {
-        setFailureMessage(data.error || "The payment could not be verified.");
+        if (!response.ok) {
+          setFailureMessage(data.error || "The payment could not be verified.");
+          setState("failed");
+          return;
+        }
+
+        if (data.status === "refunded" || data.status === "refund_pending") {
+          setFailureMessage(data.status === "refunded"
+            ? "The remaining spins sold out while your payment was processing. Your payment was refunded; no spins were added. Your bank may take several days to show the refund."
+            : "The remaining spins sold out while your payment was processing. A full refund is pending; no spins were added. Please contact support if you need help.");
+          setState("failed");
+          return;
+        }
+
+        setSpins(data.spins ?? 0);
+        setState(data.status === "succeeded" ? "succeeded" : "processing");
+      } catch {
+        setFailureMessage("We could not confirm your purchase. Check your dashboard or contact support before purchasing again.");
         setState("failed");
-        return;
       }
-
-      setSpins(data.spins ?? 0);
-      setState(data.status === "succeeded" ? "succeeded" : "processing");
     }
 
     void verifyPayment();

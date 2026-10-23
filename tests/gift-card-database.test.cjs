@@ -25,6 +25,7 @@ test('gift card reservation, permissions, fulfillment, retries and rollback', as
     `);
     await db.exec(fs.readFileSync('supabase/migrations/20260825_spin_again.sql', 'utf8'));
     await db.exec(fs.readFileSync('supabase/migrations/20261011_prize_gift_cards.sql', 'utf8'));
+    await db.exec(fs.readFileSync('supabase/idempotent-spins.sql', 'utf8'));
     const uid = '11111111-1111-1111-1111-111111111111';
     await db.exec(`insert into profiles values ('${uid}', 'test@example.invalid', 20, now());
       insert into prizes values (1,'Prize A',true,10,5,null,null,null,null),(2,'Prize B',true,10,5,null,null,null,null);
@@ -34,7 +35,16 @@ test('gift card reservation, permissions, fulfillment, retries and rollback', as
     async function spin(enabled = true) { return scalar(`select public.${enabled ? 'perform_spin_with_gift_cards' : 'perform_spin'}('${uid}') as value`); }
     await spin(false);
     assert.equal(await scalar('select count(*)::int as value from prize_gift_cards where win_id is not null'), 0, 'disabled feature does not reserve');
-    const first = await spin();
+    const replayKey = '44444444-4444-4444-8444-444444444444';
+    const replaySql = `select perform_spin_once('${uid}','${replayKey}',true) as value`;
+    const first = await scalar(replaySql);
+    const stockBeforeReplay = await scalar('select quantity as value from prizes where id=1');
+    const historyBeforeReplay = await scalar('select count(*)::int as value from spin_history');
+    const replay = await scalar(replaySql);
+    assert.equal(replay.replayed, true);
+    assert.equal(replay.winId, first.winId);
+    assert.equal(await scalar('select quantity as value from prizes where id=1'), stockBeforeReplay);
+    assert.equal(await scalar('select count(*)::int as value from spin_history'), historyBeforeReplay);
     const second = await spin();
     const third = await spin();
     assert.notEqual(first.winId, second.winId);

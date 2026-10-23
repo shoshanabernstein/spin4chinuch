@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <title>Spin4Chinuch — gold prize wheel</title>
+  <defs>
+    <linearGradient id="navy" x1="8" y1="0" x2="56" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#17385D"/><stop offset="1" stop-color="#071628"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="15" y1="13" x2="49" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F3DE9D"/><stop offset="1" stop-color="#C9A44D"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#navy)"/>
+  <circle cx="32" cy="35" r="20" stroke="url(#gold)" stroke-width="4"/>
+  <path d="M32 15v40M14.68 25l34.64 20M14.68 45l34.64-20" stroke="url(#gold)" stroke-width="2.5"/>
+  <circle cx="32" cy="35" r="6" fill="#102743"/>
+  <circle cx="32" cy="35" r="3.5" fill="#F3DE9D"/>
+  <path d="M25 7h14l-7 13Z" fill="#F3DE9D" stroke="#102743" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

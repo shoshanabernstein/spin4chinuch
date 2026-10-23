@@ -1,0 +1,74 @@
+[
+  {
+    "id": "color-a",
+    "title": "Color / bright",
+    "svg": "color-a.svg",
+    "png": "color-a.png"
+  },
+  {
+    "id": "color-b",
+    "title": "Color / cool",
+    "svg": "color-b.svg",
+    "png": "color-b.png"
+  },
+  {
+    "id": "minimal-a",
+    "title": "Minimal / ring",
+    "svg": "minimal-a.svg",
+    "png": "minimal-a.png"
+  },
+  {
+    "id": "minimal-b",
+    "title": "Minimal / wheel",
+    "svg": "minimal-b.svg",
+    "png": "minimal-b.png"
+  },
+  {
+    "id": "playful-a",
+    "title": "Playful / coral",
+    "svg": "playful-a.svg",
+    "png": "playful-a.png"
+  },
+  {
+    "id": "playful-b",
+    "title": "Playful / violet",
+    "svg": "playful-b.svg",
+    "png": "playful-b.png"
+  },
+  {
+    "id": "classic-a",
+    "title": "Classic / navy",
+    "svg": "classic-a.svg",
+    "png": "classic-a.png"
+  },
+  {
+    "id": "classic-b",
+    "title": "Classic / cream",
+    "svg": "classic-b.svg",
+    "png": "classic-b.png"
+  },
+  {
+    "id": "electric-a",
+    "title": "Electric / lime",
+    "svg": "electric-a.svg",
+    "png": "electric-a.png"
+  },
+  {
+    "id": "electric-b",
+    "title": "Electric / blue",
+    "svg": "electric-b.svg",
+    "png": "electric-b.png"
+  },
+  {
+    "id": "bold-a",
+    "title": "Bold / blue",
+    "svg": "bold-a.svg",
+    "png": "bold-a.png"
+  },
+  {
+    "id": "bold-b",
+    "title": "Bold / orange",
+    "svg": "bold-b.svg",
+    "png": "bold-b.png"
+  }
+]

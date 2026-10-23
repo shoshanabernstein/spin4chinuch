@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/lib/server/supabase";
+import { settlePayment } from "@/lib/server/settle-payment";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -44,16 +44,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payment metadata" }, { status: 400 });
   }
 
-  const { error } = await supabaseAdmin.rpc("credit_completed_payment", {
-    p_payment_intent_id: paymentIntent.id,
-    p_user_id: userId,
-    p_spins: spins,
-    p_amount: paymentIntent.amount_received,
-  });
-
-  if (error) {
-    console.error("Unable to credit completed payment", paymentIntent.id, error);
-    return NextResponse.json({ error: "Unable to credit payment" }, { status: 500 });
+  try {
+    await settlePayment(stripe, paymentIntent);
+  } catch (error) {
+    console.error("Unable to settle completed payment", paymentIntent.id, error);
+    return NextResponse.json({ error: "Unable to settle payment" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

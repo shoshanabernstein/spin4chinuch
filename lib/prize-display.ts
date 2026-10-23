@@ -12,5 +12,13 @@ export function getPrizeDisplay(name: string, sponsorName?: string | null) {
     ?? title.match(/^(.+?\bmembership)\s+to\s+(.+)$/i);
   if (service) return { title: service[1], provider: service[2] };
 
-  return { title, provider: sponsorName?.trim() || null };
+  const provider = sponsorName?.trim() || null;
+  if (provider && title.toLowerCase().endsWith(provider.toLowerCase())) {
+    const shortTitle = title.slice(0, -provider.length).trim().replace(/[,:;\-?]+$/, "").trim();
+    if (shortTitle) return {
+      title: shortTitle.replace(/\b([2-9]\d*) Free Night\b/i, "$1 Free Nights"),
+      provider,
+    };
+  }
+  return { title, provider };
 }
