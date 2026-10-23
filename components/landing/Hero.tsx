@@ -2,7 +2,6 @@
 
 import Button from "@/components/ui/Button";
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
 import {
   ArrowRight,
   Gift,
@@ -10,7 +9,6 @@ import {
 } from "lucide-react";
 
 export default function Hero() {
-  const { user } = useAuth();
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#0D203B] via-[#19365F] to-[#284C82]">
 
@@ -54,7 +52,7 @@ export default function Hero() {
 
           <div className="mt-8 flex flex-wrap items-center gap-6">
 
-            <Button href={user ? "/spin" : "/login?redirect=/spin"} variant="gold">
+            <Button href="/spin" variant="gold">
               Spin
             </Button>
 

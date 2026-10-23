@@ -1,14 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/components/AuthProvider";
 import {
   Ticket,
   CircleDashed,
 } from "lucide-react";
 
 export default function Actions() {
-  const { user } = useAuth();
   return (
     <section id="actions" className="mx-auto site-width scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
       <div className="mx-auto mb-8 max-w-2xl text-center">
@@ -49,7 +47,7 @@ export default function Actions() {
         </Link>
 
         {/* Spin */}
-        <Link href={user ? "/spin" : "/login?redirect=/spin"} className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-[#142A52] via-[#28457B] to-[#4267A8] p-6 sm:p-8 text-white shadow-lg transition-all duration-300 motion-safe:hover:-translate-y-1 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4267A8]">
+        <Link href="/spin" className="group relative overflow-hidden rounded-[32px] border border-blue-100 bg-gradient-to-br from-[#142A52] via-[#28457B] to-[#4267A8] p-6 sm:p-8 text-white shadow-lg transition-all duration-300 motion-safe:hover:-translate-y-1 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#4267A8]">
           <div className="absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-[#C9A44D]/20 blur-3xl" />
 
           <div className="relative">

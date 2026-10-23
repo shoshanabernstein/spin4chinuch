@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/components/AuthProvider";
 import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
 import { supabase } from "@/lib/supabase";
 
@@ -41,6 +41,7 @@ type SpinResponse = {
 };
 
 export default function SpinPage() {
+  const { user, loading: loadingAuth } = useAuth();
   const inFlight = useRef(false);
   const [hasPendingSpin, setHasPendingSpin] = useState(false);
   const [rotation, setRotation] = useState(8);
@@ -69,6 +70,8 @@ export default function SpinPage() {
   const [confettiSize, setConfettiSize] = useState({ width: 0, height: 0 });
 
   const readyToSpin =
+    Boolean(user) &&
+    !loadingAuth &&
     !spinning &&
     !loadingPrizes &&
     !loadingStats &&
@@ -365,7 +368,7 @@ export default function SpinPage() {
   }
 
   return (
-    <ProtectedRoute>
+    <>
       <div className="relative h-[calc(100dvh-5rem)] overflow-hidden bg-[#071628] sm:h-[calc(100dvh-6rem)]">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,#0C1C32_0%,#09182C_45%,#061222_80%)]" />
@@ -419,7 +422,7 @@ export default function SpinPage() {
                     spinPhase={spinPhase}
                     prizes={outcomes}
                     canSpin={readyToSpin}
-                    showBuySpins={!loadingStats && remainingSpins <= 0 && !hasPendingSpin && !spinning}
+                    showBuySpins={!loadingAuth && !spinning && (!user || (!loadingStats && remainingSpins <= 0 && !hasPendingSpin))}
                     onSpin={requestSpin}
                     onRotationUpdate={(angle) => { actualRotation.current = angle; }}
                     onTick={playWheelTick}
@@ -584,6 +587,6 @@ export default function SpinPage() {
 
         <audio ref={winSound} src="/sounds/win.mp3" preload="auto" />
       </div>
-    </ProtectedRoute>
+    </>
   );
 }
