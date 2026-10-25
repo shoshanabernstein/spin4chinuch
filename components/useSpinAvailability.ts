@@ -21,12 +21,13 @@ export function useSpinAvailability() {
     }
   }, []);
   useEffect(() => {
-    void check();
     const refresh = () => { void check(); };
+    const initialCheck = window.setTimeout(refresh, 0);
     const timer = window.setInterval(refresh, 15000);
     window.addEventListener("focus", refresh);
     return () => {
       window.clearInterval(timer);
+      window.clearTimeout(initialCheck);
       window.removeEventListener("focus", refresh);
     };
   }, [check]);
