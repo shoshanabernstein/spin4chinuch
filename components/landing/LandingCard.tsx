@@ -15,7 +15,7 @@ export default function LandingCard({
   href,
 }: LandingCardProps) {
   return (
-    <Link
+    <Link data-landing="step"
       href={href}
       className="
         group

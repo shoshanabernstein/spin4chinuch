@@ -1,6 +1,6 @@
 export default function About() {
   return (
-    <section
+    <section data-landing="about"
       id="about"
       className="mx-auto site-width scroll-mt-28 px-5 py-14 sm:px-8 sm:py-18 lg:px-10 lg:py-20"
     >

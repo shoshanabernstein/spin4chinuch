@@ -1,0 +1,162 @@
+.page {
+  --ink: #102a52;
+  --blue: #649cd3;
+  --paper: #faf8f3;
+  --line: #dbe2e9;
+  background: var(--paper);
+}
+
+.page [data-landing] { position: relative; }
+.page [data-landing] h2 { letter-spacing: -.045em; font-weight: 650; }
+.page [data-landing] a { transition: background .2s, color .2s, transform .2s; }
+
+/* A spacious opening with the campaign's orbit framing its existing cards. */
+.page [data-landing="hero"] {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.page [data-landing="hero"] > :nth-child(-n+3) { display: none; }
+.page [data-landing="hero"] > :last-child {
+  min-height: 680px;
+  padding-block: 100px;
+  max-width: 1440px;
+  gap: 72px;
+}
+.page [data-landing="hero"] h1 {
+  color: var(--ink);
+  font-size: clamp(3.5rem, 6.6vw, 7rem);
+  font-weight: 600;
+  line-height: .99;
+  letter-spacing: -.065em;
+}
+.page [data-landing="hero"] h1 > :last-child { color: #467eb3; margin-top: 12px; }
+.page [data-landing="hero"] h1 + p { color: #52657b; max-width: 440px; margin-top: 30px; }
+.page [data-landing="hero"] h1 + p + div { margin-top: 34px; }
+.page [data-landing="hero"] a[href="/spin"] {
+  background: var(--ink); color: white; padding-inline: 38px;
+  border-radius: 8px; box-shadow: none;
+}
+.page [data-landing="hero"] a[href="#about"] { color: var(--ink); }
+.page [data-landing="hero"] h1 ~ div:last-child { border-color: var(--line); margin-top: 42px; }
+.page [data-landing="hero"] h1 ~ div:last-child span,
+.page [data-landing="hero"] a[href="/prizes"] { color: var(--ink); }
+.page [data-landing="hero"] h1 ~ div:last-child svg { color: #467eb3; }
+.page [data-landing="hero"] > :last-child > :last-child {
+  isolation: isolate;
+  min-height: 400px;
+  max-width: 470px;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 24px;
+}
+.page [data-landing="hero"] > :last-child > :last-child::before,
+.page [data-landing="hero"] > :last-child > :last-child::after {
+  content: ""; position: absolute; z-index: -1;
+  width: 390px; height: 390px; border-radius: 50%;
+  border: 32px solid #e0eaf3; border-right-color: transparent;
+  transform: rotate(-30deg); left: 12%; top: 0;
+}
+.page [data-landing="hero"] > :last-child > :last-child::after {
+  width: 455px; height: 455px; border-width: 2px;
+  border-color: #8fb5d8; border-top-color: transparent;
+  left: 5%; top: -32px; transform: rotate(-25deg);
+}
+.page [data-landing="hero"] > :last-child > :last-child > div {
+  border-radius: 14px; padding: 30px; margin: 0;
+  background: white; border: 1px solid #d9e3ed;
+  box-shadow: 0 16px 45px #102a5209; backdrop-filter: none;
+}
+.page [data-landing="hero"] > :last-child > :last-child > div:first-child { margin-left: -24px; margin-right: 20px; }
+.page [data-landing="hero"] > :last-child > :last-child > div:last-child { margin-left: 40px; background: var(--ink); border-color: var(--ink); }
+.page [data-landing="hero"] h3 { color: var(--ink); font-weight: 650; }
+.page [data-landing="hero"] h3 + p { color: #607086; line-height: 1.65; }
+.page [data-landing="hero"] > :last-child > :last-child > div:first-child svg { color: #467eb3; }
+.page [data-landing="hero"] > :last-child > :last-child > div:first-child > div > div:first-child { background: #eef4fa; border-radius: 50%; }
+.page [data-landing="hero"] > :last-child > :last-child > div:last-child p:first-child { color: white; }
+.page [data-landing="hero"] > :last-child > :last-child > div:last-child p:last-child { color: #c2d3e5; line-height: 1.65; }
+
+/* Editorial story layout and a framed, fully functional video. */
+.page [data-landing="about"] { max-width: 1360px; padding-block: 100px; }
+.page [data-landing="about"] > :first-child { max-width: none; text-align: left; margin-bottom: 45px; }
+.page [data-landing="about"] > :first-child > p,
+.page [data-landing="steps"] > :first-child > span,
+.page [data-landing="actions"] > :first-child > span,
+.page [data-landing="contact"] > div:last-child > div > span {
+  background: transparent; border-radius: 0; padding: 0;
+  color: #527ca4; font-size: 11px; letter-spacing: .2em;
+}
+.page [data-landing="about"] h2 { margin-left: 0; max-width: 660px; font-size: clamp(2rem, 3.5vw, 3.25rem); }
+.page [data-landing="about"] > :last-child { background: transparent; border: 0; padding: 0; border-radius: 0; gap: 65px; }
+.page [data-landing="about"] > :last-child > :first-child { border-left: 3px solid #9cbcd9; padding: 0 0 0 28px; }
+.page [data-landing="about"] > :last-child > :first-child > div { display: none; }
+.page [data-landing="about"] > :last-child > :first-child > p:last-child { margin-top: 22px; }
+.page [data-landing="about"] > :last-child > :last-child { padding: 24px; background: #edf2f7; border-radius: 16px; }
+.page [data-landing="about"] h3 { text-align: left; margin-left: 0; }
+.page [data-landing="about"] video { border-radius: 8px; }
+
+/* Four connected steps on a single navy field. */
+.page > div:has([data-landing="steps"]) { background: var(--ink); border: 0; }
+.page [data-landing="steps"] { padding-block: 82px; max-width: 1360px; }
+.page [data-landing="steps"] > :first-child { text-align: left; max-width: none; margin-bottom: 45px; }
+.page [data-landing="steps"] > :first-child > span { color: #9dbfdf; }
+.page [data-landing="steps"] h2 { color: white; }
+.page [data-landing="steps"] > :last-child { gap: 0; }
+.page [data-landing="step"] { border: 0; border-top: 1px solid #ffffff35; border-radius: 0; padding: 30px 24px 12px 0; background: transparent; box-shadow: none; }
+.page [data-landing="step"] > :first-child { display: none; }
+.page [data-landing="step"] > :last-child > :first-child { background: transparent; box-shadow: none; border: 1px solid #ffffff30; color: #a5c8e8; border-radius: 50%; width: 56px; height: 56px; }
+.page [data-landing="step"] h3 { color: white; font-size: 19px; }
+.page [data-landing="step"] p { color: #bfd0e2; max-width: 260px; }
+.page [data-landing="step"]:hover { background: #ffffff05; transform: translateY(-4px); }
+
+.page [data-landing="actions"] { padding-block: 94px; max-width: 1360px; }
+.page [data-landing="actions"] > :first-child { text-align: left; margin-left: 0; margin-bottom: 36px; }
+.page [data-landing="actions"] > :last-child { gap: 24px; }
+.page [data-landing="actions"] > :last-child > a { border-radius: 16px; padding: 38px; box-shadow: none; }
+.page [data-landing="actions"] > :last-child > a:first-child { background: #e9f0f7; border-color: #d7e1eb; }
+.page [data-landing="actions"] > :last-child > a:last-child { background: var(--ink); border-color: var(--ink); }
+.page [data-landing="actions"] > :last-child > a > :first-child { display: none; }
+.page [data-landing="actions"] > :last-child > a > :last-child > :first-child { background: transparent; box-shadow: none; border-radius: 0; color: #467eb3; justify-content: start; height: 38px; }
+.page [data-landing="actions"] > :last-child > a:last-child > :last-child > :first-child { color: #a5c8e8; }
+.page [data-landing="actions"] h3 { font-size: 30px; letter-spacing: -.04em; }
+.page [data-landing="actions"] p { max-width: 400px; }
+.page [data-landing="actions"] a span { border-radius: 8px; box-shadow: none; }
+.page [data-landing="actions"] a:first-child span { background: var(--ink); color: white; }
+
+.page [data-landing="contact"] { max-width: 1360px; padding-bottom: 90px; }
+.page [data-landing="contact"] > :first-child { display: none; }
+.page [data-landing="contact"] > :last-child { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; padding: 48px 0 0; }
+.page [data-landing="contact"] > :last-child > div { max-width: none; text-align: left; }
+.page [data-landing="contact"] h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+.page [data-landing="contact"] p { max-width: 650px; }
+.page [data-landing="contact"] p + div { max-width: none; margin-top: 32px; gap: 24px; }
+.page [data-landing="contact"] a { position: relative; padding: 24px 24px 24px 86px; border-radius: 12px; background: white; border-color: var(--line); }
+.page [data-landing="contact"] a > div { position: absolute; left: 24px; top: 28px; width: 40px; height: 40px; border-radius: 50%; background: #edf3f9; color: #467eb3; }
+.page [data-landing="contact"] a h3 { margin-top: 0; }
+.page [data-landing="contact"] a span { font-size: 14px; }
+
+@media (max-width: 1023px) {
+  .page [data-landing="hero"] > :last-child { padding-block: 64px; gap: 60px; }
+  .page [data-landing="hero"] > :last-child > :last-child { min-height: 340px; max-width: 470px; margin-block: 20px; }
+  .page [data-landing="hero"] > :last-child > :last-child::before { width: 320px; height: 320px; }
+  .page [data-landing="hero"] > :last-child > :last-child::after { width: 385px; height: 385px; }
+  .page [data-landing="about"] > :last-child { gap: 35px; }
+}
+@media (max-width: 639px) {
+  .page [data-landing="hero"] > :last-child { padding-block: 48px 42px; gap: 28px; }
+  .page [data-landing="hero"] h1 { font-size: clamp(3.2rem, 12vw, 4rem); }
+  .page [data-landing="hero"] > :last-child > :last-child { min-height: 320px; padding: 12px 0; margin-block: 12px; }
+  .page [data-landing="hero"] > :last-child > :last-child > div { padding: 22px; }
+  .page [data-landing="hero"] > :last-child > :last-child > div:first-child { margin-left: 0; margin-right: 12px; }
+  .page [data-landing="hero"] > :last-child > :last-child > div:last-child { margin-left: 20px; }
+  .page [data-landing="hero"] > :last-child > :last-child::before { width: 270px; height: 270px; left: 10%; }
+  .page [data-landing="hero"] > :last-child > :last-child::after { width: 315px; height: 315px; top: -16px; left: 5%; }
+  .page [data-landing="about"], .page [data-landing="steps"], .page [data-landing="actions"] { padding-block: 58px; }
+  .page [data-landing="about"] > :last-child > :last-child { padding: 16px; }
+  .page [data-landing="actions"] > :last-child > a { padding: 26px; }
+  .page [data-landing="contact"] { padding-bottom: 50px; }
+  .page [data-landing="contact"] a { padding-left: 74px; padding-right: 14px; }
+  .page [data-landing="contact"] a > div { left: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page [data-landing] a { transition: none; }
+  .page [data-landing="step"]:hover { transform: none; }
+}

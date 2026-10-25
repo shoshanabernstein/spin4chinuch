@@ -2,7 +2,7 @@ import { Globe, Mail } from "lucide-react";
 
 export default function Contact() {
   return (
-    <section id="contact" className="relative mx-auto site-width scroll-mt-28 px-5 pb-12 sm:px-8 sm:pb-16 lg:px-10">
+    <section data-landing="contact" id="contact" className="relative mx-auto site-width scroll-mt-28 px-5 pb-12 sm:px-8 sm:pb-16 lg:px-10">
       {/* Background Glow */}
       <div className="absolute left-1/2 top-1/2 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#80A8F7]/10 blur-3xl" />
 

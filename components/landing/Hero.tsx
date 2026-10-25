@@ -10,7 +10,7 @@ import {
 
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#0D203B] via-[#19365F] to-[#284C82]">
+    <section data-landing="hero" className="relative overflow-hidden bg-gradient-to-br from-[#0D203B] via-[#19365F] to-[#284C82]">
 
       {/* Background Glow */}
       <div className="absolute -left-40 -top-40 h-[500px] w-[500px] rounded-full bg-white/10 blur-3xl" />

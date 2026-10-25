@@ -8,7 +8,7 @@ import {
 
 export default function Actions() {
   return (
-    <section id="actions" className="mx-auto site-width scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
+    <section data-landing="actions" id="actions" className="mx-auto site-width scroll-mt-28 px-5 py-12 sm:px-8 sm:py-16 lg:px-10">
       <div className="mx-auto mb-8 max-w-2xl text-center">
         <span className="inline-block rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold uppercase tracking-widest text-[#4267A8]">
           Get Started
