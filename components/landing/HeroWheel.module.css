@@ -1,0 +1,22 @@
+.illustration {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  pointer-events: none;
+}
+.wheel { display: block; width: 100%; height: auto; overflow: visible; }
+.outerOrbit, .innerOrbit { transform-origin: 240px 240px; }
+.outerOrbit { animation: orbit 70s linear infinite; }
+.innerOrbit { animation: orbit 100s linear infinite reverse; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+@media (max-width: 1023px) {
+  .illustration { max-width: 440px; }
+}
+@media (max-width: 639px) {
+  .illustration { max-width: 360px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .outerOrbit, .innerOrbit { animation: none; }
+}

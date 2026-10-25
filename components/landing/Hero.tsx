@@ -2,6 +2,7 @@
 
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import HeroWheel from "./HeroWheel";
 import {
   ArrowRight,
   Gift,
@@ -95,64 +96,7 @@ export default function Hero() {
 
         </div>
 
-        {/* RIGHT */}
-        <div className="relative grid w-full gap-4 sm:grid-cols-2 lg:mx-auto lg:max-w-[420px] lg:grid-cols-1 lg:gap-5">
-
-          {/* Floating Card */}
-          <div className="w-full rounded-3xl border border-white/15 bg-white/[0.08] p-6 shadow-xl backdrop-blur-xl lg:ml-4">
-
-            <div className="flex items-center gap-4">
-
-              <div className="rounded-2xl bg-[#E7C96D]/20 p-3">
-                <Gift
-                  size={28}
-                  className="text-[#E7C96D]"
-                />
-              </div>
-
-              <div>
-
-                <h3 className="text-xl font-bold text-white">
-                  Amazing Prizes
-                </h3>
-
-                <p className="mt-1 text-sm text-blue-100">
-                  Every spin gives you another opportunity to win.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* Second Card */}
-          <div className="w-full rounded-3xl border border-[#E7C96D]/20 bg-[#E7C96D]/[0.07] p-6 shadow-xl backdrop-blur-xl lg:-ml-4">
-
-            <div className="flex items-center gap-3">
-
-              <HeartHandshake
-                size={26}
-                className="text-[#E7C96D]"
-              />
-
-              <div>
-
-                <p className="font-semibold text-white">
-                  Every Spin Matters
-                </p>
-
-                <p className="text-sm text-blue-100">
-                  Helping support Chinuch Yehudi.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
+        <HeroWheel />
 
       </div>
     </section>
