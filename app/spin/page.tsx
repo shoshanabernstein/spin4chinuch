@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useSpinAvailability } from "@/components/useSpinAvailability";
 import Confetti from "react-confetti";
 import toast from "react-hot-toast";
 import {
@@ -41,6 +43,8 @@ type SpinResponse = {
 };
 
 export default function SpinPage() {
+  const router = useRouter();
+  const sales = useSpinAvailability();
   const { user, loading: loadingAuth } = useAuth();
   const inFlight = useRef(false);
   const [hasPendingSpin, setHasPendingSpin] = useState(false);
@@ -367,6 +371,14 @@ export default function SpinPage() {
     setShowConfetti(false);
   }
 
+  async function buySpins(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    const remaining = await sales.check();
+    if (remaining === null) toast.error("Unable to check availability. Please try again.");
+    else if (remaining === 0) toast.error("All 1,100 spins have been sold.");
+    else router.push("/buy-spins");
+  }
+
   return (
     <>
       <div className="relative h-[calc(100dvh-5rem)] overflow-hidden bg-[#071628] sm:h-[calc(100dvh-6rem)]">
@@ -422,6 +434,8 @@ export default function SpinPage() {
                     spinPhase={spinPhase}
                     prizes={outcomes}
                     canSpin={readyToSpin}
+                    purchaseBlockedLabel={sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : undefined}
+                    onBuySpins={buySpins}
                     showBuySpins={!loadingAuth && !spinning && (!user || (!loadingStats && remainingSpins <= 0 && !hasPendingSpin))}
                     onSpin={requestSpin}
                     onRotationUpdate={(angle) => { actualRotation.current = angle; }}
@@ -567,9 +581,11 @@ export default function SpinPage() {
                   ) : (
                     <Link
                       href="/buy-spins"
+                      onClick={buySpins}
+                      aria-disabled={sales.remaining === 0}
                       className="flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#D8B34F] to-[#F3D77E] px-3 py-3 text-sm font-bold text-[#102743] shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_5px_16px_rgba(216,179,79,.12)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F]"
                     >
-                      Buy spins
+                      {sales.remaining === 0 ? "Sold out" : "Buy spins"}
                     </Link>
                   )}
 

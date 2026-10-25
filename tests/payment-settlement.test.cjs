@@ -25,10 +25,14 @@ test('successful credit and duplicate database delivery do not refund', async ()
   assert.equal(calls.filter(c => c[0] === 'refund').length, 0);
 });
 test('losing checkout at the sales cap requests a full refund with stable key', async () => {
-  const { settle, calls } = setup({ code: 'P0001', message: 'The 2000 spin limit has been reached' });
+  const { settle, calls } = setup({ code: 'P0001', message: 'The 1100 spin limit has been reached' });
   assert.equal((await settle()).status, 'refunded');
   assert.equal(calls[1][1].amount, 3600);
   assert.equal(calls[1][2].idempotencyKey, 'spin-limit-refund/pi_test');
+});
+
+test('legacy cap rejections are still refunded during rollout', async () => {
+  assert.equal((await setup({ code: 'P0001', message: 'The 2000 spin limit has been reached' }).settle()).status, 'refunded');
 });
 test('recorded refunds prevent future credit even after key expiry', async () => {
   for (const status of ['succeeded', 'pending']) {

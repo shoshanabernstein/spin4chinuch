@@ -22,6 +22,8 @@ type PrizeWheelProps = {
   spinPhase: "idle" | "requesting" | "revealing";
   canSpin: boolean;
   showBuySpins?: boolean;
+  purchaseBlockedLabel?: string;
+  onBuySpins?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   onSpin: () => void;
   prizes: Prize[];
   onRotationUpdate: (angle: number) => void;
@@ -49,6 +51,8 @@ export default function PrizeWheel({
   spinPhase,
   canSpin,
   showBuySpins = false,
+  purchaseBlockedLabel,
+  onBuySpins,
   onSpin,
   prizes,
   onRotationUpdate,
@@ -226,9 +230,14 @@ export default function PrizeWheel({
         </svg>
       </motion.div>
 
-      {showBuySpins && !spinning ? (
+      {showBuySpins && !spinning && purchaseBlockedLabel ? (
+        <div role="status" className="absolute left-1/2 top-1/2 z-30 flex h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#E8CD7A]/40 bg-[#102743] p-2 text-center text-[clamp(.6rem,2.6cqw,1.5rem)] font-bold leading-tight text-[#F0D47F]">
+          {purchaseBlockedLabel}
+        </div>
+      ) : showBuySpins && !spinning ? (
         <Link
           href="/buy-spins"
+          onClick={onBuySpins}
           aria-label="No spins left. Buy spins"
           className="absolute left-1/2 top-1/2 z-30 flex h-[24%] w-[24%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-[#FFF0B5]/70 bg-gradient-to-br from-[#FAE8A8] via-[#E8C761] to-[#C9A44D] text-center text-[clamp(.7rem,3cqw,1.75rem)] font-black leading-tight tracking-wide text-[#102743] shadow-[0_0_28px_rgba(232,199,97,.35)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F] motion-safe:animate-[wheel-buy-pulse_2.4s_ease-in-out_infinite]"
         >

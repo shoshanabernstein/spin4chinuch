@@ -9,6 +9,7 @@ interface OrderSummaryProps {
   setQuantity: React.Dispatch<React.SetStateAction<number>>;
   total: number;
   loading: boolean;
+  purchaseBlockedLabel?: string;
   onStartCheckout: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function OrderSummary({
   quantity,
   total,
   loading,
+  purchaseBlockedLabel,
   onStartCheckout,
 }: OrderSummaryProps) {
   const PRICE_PER_SPIN = 18;
@@ -74,15 +76,15 @@ export default function OrderSummary({
 
         <Button
           onClick={onStartCheckout}
-          disabled={loading || quantity < 1}
+          disabled={loading || Boolean(purchaseBlockedLabel) || quantity < 1}
           variant="gold"
           className="w-full py-4 text-lg"
         >
           <CreditCard size={20} />
 
-          {loading
+          {purchaseBlockedLabel || (loading
             ? "Preparing Checkout..."
-            : " Continue to Secure Checkout"}
+            : " Continue to Secure Checkout")}
         </Button>
 
         <p className="text-center text-sm text-slate-500">

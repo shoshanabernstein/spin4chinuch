@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useSpinAvailability } from "@/components/useSpinAvailability";
 import { supabase } from "@/lib/supabase";
 import BuySpinsHero from "@/components/buy-spins/BuySpinsHero";
 import SpinSelectorPanel from "@/components/buy-spins/SpinSelectorPanel";
@@ -24,6 +25,7 @@ interface Prize {
 }
 
 export default function BuySpinsPage() {
+  const sales = useSpinAvailability();
   const PRICE_PER_SPIN = 18;
 
   const [quantity, setQuantity] = useState(1);
@@ -64,6 +66,10 @@ export default function BuySpinsPage() {
     setLoading(true);
 
     try {
+      const available = await sales.check();
+      if (available === null) throw new Error("Unable to check availability. Please try again.");
+      if (available === 0) throw new Error("All 1,100 spins have been sold.");
+      if (quantity > available) throw new Error(`Only ${available} spins remain.`);
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -118,6 +124,8 @@ export default function BuySpinsPage() {
 
           {/* Hero */}
           <BuySpinsHero />
+          {sales.remaining === 0 && <p role="status" className="rounded-2xl bg-[#142A52] p-5 text-center font-bold text-white">Sold out — all 1,100 spins have been purchased.</p>}
+          {sales.unavailable && <p role="status" className="p-4 text-center">Spin sales are temporarily unavailable. Please try again shortly.</p>}
 
           {/* Purchase Section */}
           <section
@@ -134,6 +142,7 @@ export default function BuySpinsPage() {
               setQuantity={setQuantity}
               total={total}
               loading={loading}
+              purchaseBlockedLabel={sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : quantity > sales.remaining ? `Only ${sales.remaining} spins remain` : undefined}
               onStartCheckout={startCheckout}
             />
           </section>

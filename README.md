@@ -42,7 +42,10 @@ Wheel odds are managed from `/admin/outcomes`; the old `prizes.probability` fiel
 
 ## Checkout sales-cap recovery
 
-The campaign sales cap remains 2,000 spins. Overlapping checkouts can finish
+The campaign sales cap is 1,100 spins. Apply `supabase/campaign-1100-spin-limit.sql`
+after deploying the app to update the database's transactional limit. The spin page
+and checkout refresh availability and block new purchases when sold out; already
+purchased spins remain usable. Overlapping checkouts can finish
 payment after the cap is reached. Both the Stripe webhook and payment return
 page use `settlePayment`: the specific database sales-cap rejection requests a
 full Stripe refund with a stable idempotency key. Existing campaign-cap refunds

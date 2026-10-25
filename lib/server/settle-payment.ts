@@ -26,7 +26,7 @@ export async function settlePayment(stripe: Stripe, payment: Stripe.PaymentInten
 
   // Only this specific transactional rejection is safe to refund automatically.
   // Timeouts and other unknown failures must retry crediting instead.
-  if (error.code !== "P0001" || error.message !== "The 2000 spin limit has been reached") {
+  if (error.code !== "P0001" || !["The 1100 spin limit has been reached", "The 2000 spin limit has been reached"].includes(error.message)) {
     throw new Error(`Unable to credit payment: ${error.message}`);
   }
   const refund = await stripe.refunds.create({
