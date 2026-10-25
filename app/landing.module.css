@@ -38,14 +38,6 @@
 }
 .page [data-landing="hero"] a[href="/spin"]:hover { background: #f0d580; }
 .page [data-landing="hero"] a[href="#about"] { color: var(--ink); }
-.page [data-landing="hero"] h1 ~ div:last-child {
-  border: 0; margin-top: 24px; padding-top: 0; column-gap: 24px; row-gap: 12px;
-  font-size: 12px; line-height: 1.5;
-}
-.page [data-landing="hero"] h1 ~ div:last-child > div { gap: 8px; }
-.page [data-landing="hero"] h1 ~ div:last-child span,
-.page [data-landing="hero"] a[href="/prizes"] { color: #52657b; }
-.page [data-landing="hero"] h1 ~ div:last-child svg { color: #527fa8; width: 17px; height: 17px; flex-shrink: 0; }
 /* Editorial story layout and a framed, fully functional video. */
 .page [data-landing="about"] { max-width: 1360px; padding-block: 100px; }
 .page [data-landing="about"] > :first-child { max-width: none; text-align: left; margin-bottom: 45px; }

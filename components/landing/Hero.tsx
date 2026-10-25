@@ -1,13 +1,8 @@
 "use client";
 
 import Button from "@/components/ui/Button";
-import Link from "next/link";
 import HeroWheel from "./HeroWheel";
-import {
-  ArrowRight,
-  Gift,
-  HeartHandshake,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function Hero() {
   return (
@@ -67,32 +62,6 @@ export default function Hero() {
 
           </div>
 
-          <div className="mt-9 flex flex-wrap gap-x-6 gap-y-4 border-t border-white/15 pt-6 text-sm">
-
-            <div className="flex items-center gap-3">
-              <HeartHandshake
-                className="text-[#E7C96D]"
-                size={22}
-              />
-              <span className="text-white">
-                Supporting Chinuch
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Gift
-                className="text-[#E7C96D]"
-                size={22}
-              />
-              <Link
-                href="/prizes"
-                className="rounded-sm text-white transition hover:text-[#E7C96D] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E7C96D]"
-              >
-                Premium Prizes
-              </Link>
-            </div>
-
-          </div>
 
         </div>
 
