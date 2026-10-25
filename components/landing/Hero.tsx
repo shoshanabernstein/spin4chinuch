@@ -54,7 +54,7 @@ export default function Hero() {
           <div className="mt-8 flex flex-wrap items-center gap-6">
 
             <Button href="/spin" variant="gold">
-              Spin
+              Spin the Wheel
             </Button>
 
             <a

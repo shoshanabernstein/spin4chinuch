@@ -31,16 +31,21 @@
 }
 .page [data-landing="hero"] h1 > :last-child { color: #467eb3; margin-top: 12px; }
 .page [data-landing="hero"] h1 + p { color: #52657b; max-width: 440px; margin-top: 30px; }
-.page [data-landing="hero"] h1 + p + div { margin-top: 34px; }
+.page [data-landing="hero"] h1 + p + div { margin-top: 24px; gap: 24px; }
 .page [data-landing="hero"] a[href="/spin"] {
-  background: var(--ink); color: white; padding-inline: 38px;
-  border-radius: 8px; box-shadow: none;
+  background: #e7c96d; color: var(--ink); padding-inline: 28px;
+  border-radius: 8px; box-shadow: 0 4px 12px #c9a44d15;
 }
+.page [data-landing="hero"] a[href="/spin"]:hover { background: #f0d580; }
 .page [data-landing="hero"] a[href="#about"] { color: var(--ink); }
-.page [data-landing="hero"] h1 ~ div:last-child { border-color: var(--line); margin-top: 42px; }
+.page [data-landing="hero"] h1 ~ div:last-child {
+  border: 0; margin-top: 24px; padding-top: 0; column-gap: 24px; row-gap: 12px;
+  font-size: 12px; line-height: 1.5;
+}
+.page [data-landing="hero"] h1 ~ div:last-child > div { gap: 8px; }
 .page [data-landing="hero"] h1 ~ div:last-child span,
-.page [data-landing="hero"] a[href="/prizes"] { color: var(--ink); }
-.page [data-landing="hero"] h1 ~ div:last-child svg { color: #467eb3; }
+.page [data-landing="hero"] a[href="/prizes"] { color: #52657b; }
+.page [data-landing="hero"] h1 ~ div:last-child svg { color: #527fa8; width: 17px; height: 17px; flex-shrink: 0; }
 /* Editorial story layout and a framed, fully functional video. */
 .page [data-landing="about"] { max-width: 1360px; padding-block: 100px; }
 .page [data-landing="about"] > :first-child { max-width: none; text-align: left; margin-bottom: 45px; }
