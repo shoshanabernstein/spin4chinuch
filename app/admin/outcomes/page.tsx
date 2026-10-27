@@ -16,6 +16,8 @@ type Outcome = {
   active: boolean;
 };
 
+type Pool = { remaining: number; limit: number; entries: { outcomeId: number; initial: number; remaining: number }[] };
+
 export default function OutcomesAdminPage() {
   const [outcomes, setOutcomes] = useState<Outcome[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
@@ -23,8 +25,20 @@ export default function OutcomesAdminPage() {
   const [type, setType] = useState<"prize" | "loss">("loss");
   const [prizeId, setPrizeId] = useState("");
   const [probability, setProbability] = useState(1);
+  const [pool, setPool] = useState<Pool | null>(null);
+  const [poolChecked, setPoolChecked] = useState(false);
 
   async function load() {
+    setPoolChecked(false);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch("/api/admin/spin-pool", { cache: "no-store", headers: { Authorization: `Bearer ${session?.access_token}` } });
+      if (!response.ok) throw new Error("Unable to check drawing mode");
+      setPool((await response.json()).pool);
+      setPoolChecked(true);
+    } catch {
+      toast.error("Drawing mode could not be checked. Editing is temporarily disabled.");
+    }
     const [outcomeResult, prizeResult] = await Promise.all([
       supabase.from("wheel_outcomes").select("*").order("id"),
       supabase.from("prizes").select("id,name,active,quantity").order("name"),
@@ -41,6 +55,7 @@ export default function OutcomesAdminPage() {
   useEffect(() => { void load(); }, []);
 
   async function createOutcome() {
+    if (!poolChecked || pool) return;
     const outcomeLabel = type === "prize"
       ? prizes.find((prize) => prize.id === Number(prizeId))?.name ?? ""
       : label.trim();
@@ -74,6 +89,7 @@ export default function OutcomesAdminPage() {
   }
 
   async function updateOutcome(id: number, patch: Partial<Outcome>) {
+    if (!poolChecked || pool) return;
     if (
       patch.probability !== undefined &&
       (!Number.isInteger(patch.probability) || patch.probability < 1)
@@ -99,12 +115,13 @@ export default function OutcomesAdminPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[.24em] text-[#4267A8]">Administration</p>
             <h1 className="mt-2 text-4xl font-black">Wheel outcomes</h1>
-            <p className="mt-2 text-slate-500">Weights are relative. A weight of 2 is twice as likely as 1.</p>
+            <p className="mt-2 text-slate-500">{pool ? `Fixed pool: ${pool.remaining} of ${pool.limit} results remain. Each draw removes one result; inventory and weights are locked.` : "Weights are relative. A weight of 2 is twice as likely as 1."}</p>
           </div>
           <Link href="/admin" className="rounded-full border border-slate-200 bg-white px-5 py-3 font-bold">Back to admin</Link>
+          <button type="button" onClick={() => void load()} className="rounded-full border border-slate-200 bg-white px-5 py-3 font-bold">Refresh counts</button>
         </header>
 
-        <section className="grid gap-4 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg md:grid-cols-5">
+        <fieldset disabled={!poolChecked || Boolean(pool)} className="grid gap-4 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg disabled:opacity-50 md:grid-cols-5">
           <input value={type === "prize" ? prizes.find((prize) => prize.id === Number(prizeId))?.name ?? "" : label} disabled={type === "prize"} onChange={(event) => setLabel(event.target.value)} placeholder={type === "prize" ? "Uses the selected prize name" : "Wheel label"} className="rounded-xl border border-slate-300 px-4 py-3 disabled:bg-slate-100" />
           <select value={type} onChange={(event) => setType(event.target.value as "prize" | "loss")} className="rounded-xl border border-slate-300 px-4 py-3">
             <option value="loss">Non-winning</option>
@@ -116,11 +133,14 @@ export default function OutcomesAdminPage() {
           </select>
           <input type="number" min={1} step={1} value={probability} onChange={(event) => setProbability(Number(event.target.value))} className="rounded-xl border border-slate-300 px-4 py-3" />
           <button onClick={createOutcome} className="rounded-xl bg-[#2F6ED8] px-5 py-3 font-bold text-white">Add outcome</button>
-        </section>
+        </fieldset>
 
         <section className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg">
           {outcomes.map((outcome) => {
-            const chance = totalWeight > 0 && outcome.active
+            const entry = pool?.entries.find((entry) => entry.outcomeId === outcome.id);
+            const chance = pool
+              ? (pool.remaining > 0 ? ((entry?.remaining ?? 0) / pool.remaining * 100).toFixed(2) : "0.00")
+              : totalWeight > 0 && outcome.active
               ? ((outcome.probability / totalWeight) * 100).toFixed(1)
               : "0.0";
             return (
@@ -129,8 +149,8 @@ export default function OutcomesAdminPage() {
                   <p className="font-bold">{prizes.find((prize) => prize.id === outcome.prize_id)?.name ?? outcome.label}</p>
                   <p className="text-sm text-slate-500">{outcome.type === "prize" ? "Prize outcome" : "Non-winning outcome"} · {chance}% current share</p>
                 </div>
-                <input type="number" min={1} step={1} value={outcome.probability} onChange={(event) => setOutcomes((current) => current.map((item) => item.id === outcome.id ? { ...item, probability: Number(event.target.value) } : item))} onBlur={() => void updateOutcome(outcome.id, { probability: outcome.probability })} className="rounded-xl border border-slate-300 px-3 py-2" />
-                <button onClick={() => void updateOutcome(outcome.id, { active: !outcome.active })} className={`rounded-full px-4 py-2 text-sm font-bold ${outcome.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{outcome.active ? "Active" : "Inactive"}</button>
+                {pool ? <span className="text-sm font-semibold">{entry?.remaining ?? 0} results left</span> : <input disabled={!poolChecked} type="number" min={1} step={1} value={outcome.probability} onChange={(event) => setOutcomes((current) => current.map((item) => item.id === outcome.id ? { ...item, probability: Number(event.target.value) } : item))} onBlur={() => void updateOutcome(outcome.id, { probability: outcome.probability })} className="rounded-xl border border-slate-300 px-3 py-2" />}
+                <button disabled={!poolChecked || Boolean(pool)} onClick={() => void updateOutcome(outcome.id, { active: !outcome.active })} className={`rounded-full px-4 py-2 text-sm font-bold ${outcome.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{outcome.active ? "Active" : "Inactive"}</button>
                 <span className="text-right text-sm text-slate-400">ID {outcome.id}</span>
               </div>
             );

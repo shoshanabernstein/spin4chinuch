@@ -40,6 +40,30 @@ Manage Prizes supports dragging cards or using move arrows, followed by Save Ord
 
 Wheel odds are managed from `/admin/outcomes`; the old `prizes.probability` field is intentionally not used by the application.
 
+## Fixed prize pool
+
+Run `supabase/fixed-prize-pool.sql` once as `postgres` in Supabase SQL Editor,
+before any campaign spins are used. It reads the current active prize quantities
+at execution time, creates that many prize results, and fills the rest of the
+1,100-result pool with Try Again. It does not reset purchases or user balances.
+The script aborts if results already exist, inventory exceeds 1,100, or any
+stocked prize has missing/duplicate wheel outcomes. It cannot be rerun to refill
+the pool. Do not run the older soft-launch or reset scripts after installation.
+
+Each successful spin consumes one random remaining result atomically. The
+existing request-ID replay protection, gift-card reservations and rollback
+behavior still apply. All allocated prizes are awarded if all 1,100 spins are
+used. The private pool cannot be read or changed by browser clients. Inventory,
+outcome eligibility and manual weights are locked to prevent the pool drifting
+from stock; prize names, images and delivery details remain editable. Changing
+campaign stock afterward requires a reviewed pool adjustment.
+
+Admin → Wheel outcomes shows results remaining and their current shares after
+installation; use Refresh counts to update the view. Before installation it
+continues to show the legacy weights. Deployment alone does not activate the
+pool: the SQL installation must complete. Verify the installation summary and
+confirm `fixed_pool_status()` returns the expected remaining counts as postgres.
+
 ## Checkout sales-cap recovery
 
 The campaign sales cap is 1,100 spins. Apply `supabase/campaign-1100-spin-limit.sql`
