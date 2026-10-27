@@ -90,8 +90,7 @@
 .page [data-landing="contact"] > :last-child { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: transparent; padding: 48px 0 0; }
 .page [data-landing="contact"] > :last-child > div { max-width: none; text-align: left; }
 .page [data-landing="contact"] h2 { font-size: clamp(1.8rem, 3vw, 2.5rem); }
-.page [data-landing="contact"] p { max-width: 650px; }
-.page [data-landing="contact"] p + div { max-width: none; margin-top: 32px; gap: 24px; }
+.page [data-landing="contact"] h2 + div { max-width: none; margin-top: 32px; gap: 24px; }
 .page [data-landing="contact"] a { position: relative; padding: 24px 24px 24px 86px; border-radius: 12px; background: white; border-color: var(--line); }
 .page [data-landing="contact"] a > div { position: absolute; left: 24px; top: 28px; width: 40px; height: 40px; border-radius: 50%; background: #edf3f9; color: #467eb3; }
 .page [data-landing="contact"] a h3 { margin-top: 0; }

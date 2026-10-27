@@ -16,11 +16,6 @@ export default function Contact() {
             We&apos;d Love to Hear From You
           </h2>
 
-          <p className="mt-4 text-base leading-7 text-slate-600">
-            Have questions about Spin for Chinuch, prizes, donations, or sponsorship
-            opportunities? Reach out—we&apos;re happy to help.
-          </p>
-
             <div className="mx-auto mt-6 grid max-w-2xl gap-4 md:grid-cols-2">
             <a href="mailto:spinforchinuchyehudi@gmail.com" className="group block rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#2F6ED8]">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4267A8] to-[#80A8F7] text-white">
