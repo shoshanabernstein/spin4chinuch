@@ -2,20 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  HeartHandshake,
-  Loader2,
-  ShieldCheck,
-  Sparkles,
-  Ticket,
-  TriangleAlert,
-} from "lucide-react";
+import { ArrowRight, Check, HeartHandshake, Loader2, TriangleAlert } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { supabase } from "@/lib/supabase";
 
 type VerificationState = "checking" | "succeeded" | "processing" | "failed";
@@ -23,30 +13,40 @@ type VerificationState = "checking" | "succeeded" | "processing" | "failed";
 function PaymentResult() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const paymentIntent = searchParams.get("payment_intent");
   const [state, setState] = useState<VerificationState>("checking");
   const [spins, setSpins] = useState(0);
   const [failureMessage, setFailureMessage] = useState("");
 
   useEffect(() => {
+    let active = true;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const controller = new AbortController();
+
     async function verifyPayment() {
-      const paymentIntent = searchParams.get("payment_intent");
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!paymentIntent || !session) {
-        setFailureMessage("This page is missing a valid payment confirmation.");
-        setState("failed");
-        return;
-      }
-
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!active) return;
+
+        if (!paymentIntent || !session) {
+          setFailureMessage("This page is missing a valid payment confirmation.");
+          setState("failed");
+          return;
+        }
+
         const response = await fetch(
           `/api/payment-status?payment_intent=${encodeURIComponent(paymentIntent)}`,
-          { headers: { Authorization: `Bearer ${session.access_token}` } }
+          {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            signal: controller.signal,
+          }
         );
         const data = await response.json();
+        if (!active) return;
 
         if (!response.ok) {
-          setFailureMessage(data.error || "The payment could not be verified.");
+          setFailureMessage(data.error || "The payment could not be verified. Check your dashboard before purchasing again.");
           setState("failed");
           return;
         }
@@ -59,112 +59,96 @@ function PaymentResult() {
           return;
         }
 
-        setSpins(data.spins ?? 0);
-        setState(data.status === "succeeded" ? "succeeded" : "processing");
+        if (data.status === "succeeded") {
+          // The server only returns success after the purchased spins are credited.
+          setSpins(data.spins ?? 0);
+          setState("succeeded");
+          router.replace("/spin");
+          return;
+        }
+
+        if (data.status === "processing") {
+          setState("processing");
+          attempts += 1;
+          // Recheck pending payments for up to a minute without overlapping requests.
+          if (attempts < 20) timer = setTimeout(() => void verifyPayment(), 3000);
+          return;
+        }
+
+        setFailureMessage("Your payment has not completed. Check your dashboard before trying again, or contact us for help.");
+        setState("failed");
       } catch {
+        if (!active) return;
         setFailureMessage("We could not confirm your purchase. Check your dashboard or contact support before purchasing again.");
         setState("failed");
       }
     }
 
     void verifyPayment();
-  }, [searchParams]);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [paymentIntent, router]);
 
-  useEffect(() => {
-    if (state !== "succeeded") return;
-    const timer = setTimeout(() => {
-      router.push("/dashboard");
-      router.refresh();
-    }, 8000);
-    return () => clearTimeout(timer);
-  }, [router, state]);
+  const confirmed = state === "succeeded";
+  const failed = state === "failed";
 
   return (
-    <main className="relative min-h-[calc(100vh-5rem)] overflow-hidden bg-[#071628] px-4 py-12 sm:px-6 sm:py-16">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-10rem] top-[-10rem] h-[34rem] w-[34rem] rounded-full bg-[#2F6ED8]/25 blur-[120px]" />
-        <div className="absolute bottom-[-12rem] right-[-8rem] h-[30rem] w-[30rem] rounded-full bg-[#C9A44D]/18 blur-[110px]" />
-        <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:56px_56px]" />
-      </div>
+    <main className="relative flex min-h-[calc(100svh-6rem)] items-center justify-center overflow-hidden bg-[#FAF8F3] px-4 py-16 text-[#102A52] sm:px-6 sm:py-24">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-48 -top-52 h-[38rem] w-[38rem] rounded-full border border-[#649CD3]/20" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-64 -left-44 h-[36rem] w-[36rem] rounded-full border-[48px] border-[#649CD3]/[0.07]" />
 
-      <div className="relative mx-auto flex min-h-[620px] max-w-5xl items-center justify-center">
-        <section className="w-full overflow-hidden rounded-[36px] border border-white/10 bg-[#0C1F38]/90 shadow-[0_35px_120px_rgba(0,0,0,.45)] backdrop-blur-xl">
-          <div className="h-1.5 bg-gradient-to-r from-[#2F6ED8] via-[#F5DE98] to-[#2F6ED8]" />
+      <section aria-live="polite" aria-atomic="true" className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-[#DBE2E9] bg-white shadow-[0_20px_70px_#102a5208]">
+        <div className="px-6 py-12 text-center sm:px-14 sm:py-16">
+          <div aria-hidden="true" className="relative mx-auto flex h-28 w-28 items-center justify-center">
+            <svg viewBox="0 0 112 112" className="absolute inset-0 h-full w-full fill-none">
+              <circle cx="56" cy="56" r="50" stroke="#DCE7F1" strokeWidth="2" />
+              <circle cx="56" cy="56" r="50" stroke="#649CD3" strokeWidth="4" strokeDasharray="95 220" strokeLinecap="round" transform="rotate(-55 56 56)" />
+              <circle cx="56" cy="56" r="38" stroke="#E7C96D" strokeWidth="3" strokeDasharray="65 175" strokeLinecap="round" transform="rotate(95 56 56)" />
+            </svg>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#EDF3F8] text-[#467EB3]">
+              {confirmed ? <Check className="h-8 w-8" /> : failed ? <TriangleAlert className="h-7 w-7" /> : <Loader2 className="h-7 w-7 motion-safe:animate-spin" />}
+            </div>
+          </div>
 
-          {state === "checking" && (
-            <div className="px-6 py-20 text-center sm:px-12">
-              <div className="relative mx-auto h-24 w-24">
-                <div className="absolute inset-0 animate-ping rounded-full bg-[#2F6ED8]/20" />
-                <div className="relative flex h-24 w-24 items-center justify-center rounded-full border border-[#5E9CF4]/25 bg-[#2F6ED8]/15">
-                  <Loader2 className="h-10 w-10 animate-spin text-[#8DB9F4]" />
-                </div>
-              </div>
-              <p className="mt-8 text-xs font-bold uppercase tracking-[0.28em] text-[#8DB9F4]">Secure verification</p>
-              <h1 className="mt-3 text-4xl font-black tracking-[-0.04em] text-white sm:text-5xl">Confirming your payment</h1>
-              <p className="mx-auto mt-4 max-w-md text-lg leading-8 text-[#9DB2CE]">Stripe is securely confirming the purchase. Please keep this page open.</p>
+          <p className="mt-8 text-[11px] font-bold uppercase tracking-[0.2em] text-[#527CA4]">
+            {confirmed ? "Payment confirmed" : failed ? "A little help needed" : state === "processing" ? "Payment processing" : "One moment"}
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold leading-[1.08] tracking-[-0.045em] sm:text-5xl">
+            {confirmed ? "You're ready to spin." : failed ? "Let's check your payment." : state === "processing" ? "Almost ready to spin." : "Getting your spins ready."}
+          </h1>
+          <p className="mx-auto mt-5 max-w-md text-base leading-7 text-[#52657B] sm:text-lg">
+            {confirmed
+              ? `Your ${spins === 1 ? "spin is" : `${spins} spins are`} ready. Taking you straight to the wheel...`
+              : failed
+                ? failureMessage
+                : state === "processing"
+                  ? "Your payment is still processing. Some payments take a little longer. Please check your dashboard before purchasing again."
+                  : "We're confirming your purchase. You'll go straight to the wheel once your spins are ready."}
+          </p>
+
+          {confirmed && (
+            <Link href="/spin" replace className="mt-8 inline-flex items-center justify-center gap-3 rounded-lg bg-[#E7C96D] px-7 py-4 font-semibold transition hover:bg-[#F0D580]">
+              Spin the Wheel <ArrowRight className="h-5 w-5" />
+            </Link>
+          )}
+          {(failed || state === "processing") && (
+            <div className="mt-8 flex flex-col items-center justify-center gap-5 sm:flex-row">
+              <Link href="/dashboard" className="inline-flex items-center justify-center gap-3 rounded-lg bg-[#102A52] px-7 py-4 font-semibold text-white transition hover:bg-[#1C3D68]">
+                Check dashboard <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/#contact" className="font-semibold text-[#467EB3] underline-offset-4 hover:underline">Contact us</Link>
             </div>
           )}
+        </div>
 
-          {state === "succeeded" && (
-            <div className="grid lg:grid-cols-[1.1fr_.9fr]">
-              <div className="relative overflow-hidden px-6 py-12 text-center sm:px-12 sm:py-16 lg:text-left">
-                <Sparkles className="absolute right-10 top-10 h-8 w-8 text-[#C9A44D]/60" />
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-400/15 text-emerald-300 shadow-[0_0_45px_rgba(52,211,153,.15)] lg:mx-0">
-                  <CheckCircle2 className="h-10 w-10" />
-                </div>
-                <p className="mt-8 text-xs font-bold uppercase tracking-[0.28em] text-[#E8CD7A]">Payment confirmed</p>
-                <h1 className="mt-3 text-5xl font-black tracking-[-0.05em] text-white sm:text-6xl">You’re ready to spin.</h1>
-                <p className="mt-5 max-w-xl text-lg leading-8 text-[#BFD2EB]">
-                  Your purchase supports Chinuch Yehudi and brings you one step closer to an exciting prize reveal.
-                </p>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                  <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#2F6ED8] to-[#5E9CF4] px-7 py-4 font-black text-white shadow-lg shadow-[#2F6ED8]/25 transition hover:-translate-y-0.5">
-                    Go to dashboard <ArrowRight className="h-4 w-4" />
-                  </Link>
-                  <Link href="/prizes" className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/[0.06] px-7 py-4 font-bold text-white transition hover:bg-white/[0.1]">View prizes</Link>
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 bg-[#071628]/55 p-6 sm:p-10 lg:border-l lg:border-t-0">
-                <div className="rounded-[28px] border border-[#C9A44D]/25 bg-gradient-to-br from-[#C9A44D]/15 to-[#2F6ED8]/10 p-7 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#C9A44D]/15 text-[#F5DE98]"><Ticket className="h-7 w-7" /></div>
-                  <p className="mt-5 text-6xl font-black text-white">{spins}</p>
-                  <p className="mt-2 text-xs font-bold uppercase tracking-[0.25em] text-[#E8CD7A]">{spins === 1 ? "Spin purchased" : "Spins purchased"}</p>
-                </div>
-                <div className="mt-6 space-y-3 text-sm text-[#BFD2EB]">
-                  <div className="flex items-center gap-3"><Check className="h-5 w-5 text-emerald-300" /><span>Payment securely verified</span></div>
-                  <div className="flex items-center gap-3"><HeartHandshake className="h-5 w-5 text-[#E8CD7A]" /><span>Supporting Jewish education</span></div>
-                  <div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-[#8DB9F4]" /><span>Spins credited through Stripe confirmation</span></div>
-                </div>
-                <p className="mt-6 text-center text-xs leading-5 text-[#7F97B6]">Redirecting to your dashboard in a few seconds…</p>
-              </div>
-            </div>
-          )}
-
-          {state === "processing" && (
-            <div className="px-6 py-20 text-center sm:px-12">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#C9A44D]/15 text-[#F5DE98]"><Loader2 className="h-9 w-9 animate-spin" /></div>
-              <p className="mt-8 text-xs font-bold uppercase tracking-[0.28em] text-[#E8CD7A]">Still processing</p>
-              <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Your payment is on its way.</h1>
-              <p className="mx-auto mt-4 max-w-lg text-lg leading-8 text-[#9DB2CE]">Stripe has not completed confirmation yet. Your dashboard will update as soon as processing finishes.</p>
-              <Link href="/dashboard" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#2F6ED8] px-7 py-4 font-black text-white">Check dashboard <ArrowRight className="h-4 w-4" /></Link>
-            </div>
-          )}
-
-          {state === "failed" && (
-            <div className="px-6 py-20 text-center sm:px-12">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-amber-400/15 text-amber-300"><TriangleAlert className="h-9 w-9" /></div>
-              <p className="mt-8 text-xs font-bold uppercase tracking-[0.28em] text-amber-300">Verification needed</p>
-              <h1 className="mt-3 text-4xl font-black text-white sm:text-5xl">Payment could not be confirmed.</h1>
-              <p className="mx-auto mt-4 max-w-lg text-lg leading-8 text-[#9DB2CE]">{failureMessage || "No verified successful payment was found for this page."}</p>
-              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link href="/buy-spins" className="rounded-full bg-[#2F6ED8] px-7 py-4 font-black text-white">Return to checkout</Link>
-                <Link href="/dashboard" className="rounded-full border border-white/15 bg-white/[0.05] px-7 py-4 font-bold text-white">Dashboard</Link>
-              </div>
-            </div>
-          )}
-        </section>
-      </div>
+        <div className="flex items-center justify-center gap-3 border-t border-[#DBE2E9] bg-[#F5F8FB] px-6 py-5 text-center text-sm text-[#52657B]">
+          <HeartHandshake aria-hidden="true" className="h-5 w-5 shrink-0 text-[#527CA4]" />
+          <p>Thank you for supporting Chinuch Yehudi.</p>
+        </div>
+      </section>
     </main>
   );
 }
@@ -172,7 +156,7 @@ function PaymentResult() {
 export default function SuccessPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="min-h-screen bg-[#071628]" />}>
+      <Suspense fallback={<div className="min-h-screen bg-[#FAF8F3]" />}>
         <PaymentResult />
       </Suspense>
     </ProtectedRoute>
