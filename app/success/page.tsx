@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -52,8 +53,8 @@ function PaymentResult() {
 
         if (data.status === "refunded" || data.status === "refund_pending") {
           setFailureMessage(data.status === "refunded"
-            ? "The remaining spins sold out while your payment was processing. Your payment was refunded; no spins were added. Your bank may take several days to show the refund."
-            : "The remaining spins sold out while your payment was processing. A full refund is pending; no spins were added. Please contact support if you need help.");
+            ? `${SOLD_OUT_MESSAGE} Your payment was refunded; no spins were added. Your bank may take several days to show the refund.`
+            : `${SOLD_OUT_MESSAGE} A full refund is pending; no spins were added. Please contact support if you need help.`);
           setState("failed");
           return;
         }

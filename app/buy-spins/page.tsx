@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import toast from "react-hot-toast";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -68,7 +69,7 @@ export default function BuySpinsPage() {
     try {
       const available = await sales.check();
       if (available === null) throw new Error("Unable to check availability. Please try again.");
-      if (available === 0) throw new Error("All 1,100 spins have been sold.");
+      if (available === 0) throw new Error(SOLD_OUT_MESSAGE);
       if (quantity > available) throw new Error(`Only ${available} spins remain.`);
       const {
         data: { user },
@@ -124,7 +125,7 @@ export default function BuySpinsPage() {
 
           {/* Hero */}
           <BuySpinsHero />
-          {sales.remaining === 0 && <p role="status" className="rounded-2xl bg-[#142A52] p-5 text-center font-bold text-white">Sold out — all 1,100 spins have been purchased.</p>}
+          {sales.remaining === 0 && <p role="status" className="rounded-2xl bg-[#142A52] p-5 text-center font-bold text-white">{SOLD_OUT_MESSAGE}</p>}
           {sales.unavailable && <p role="status" className="p-4 text-center">Spin sales are temporarily unavailable. Please try again shortly.</p>}
 
           {/* Purchase Section */}

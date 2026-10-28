@@ -1,4 +1,5 @@
 export const TOTAL_SPIN_LIMIT = 1100;
+export const SOLD_OUT_MESSAGE = "Thank you for supporting Chinuch Yehudi! All spins are sold out.";
 
 export function remainingSpinsForSale(sold: unknown) {
   if (sold === null || sold === undefined || sold === "") throw new Error("Missing sold spin count");

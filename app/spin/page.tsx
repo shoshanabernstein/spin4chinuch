@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { useRouter } from "next/navigation";
 import { useSpinAvailability } from "@/components/useSpinAvailability";
 import Confetti from "react-confetti";
@@ -375,7 +376,7 @@ export default function SpinPage() {
     event.preventDefault();
     const remaining = await sales.check();
     if (remaining === null) toast.error("Unable to check availability. Please try again.");
-    else if (remaining === 0) toast.error("All 1,100 spins have been sold.");
+    else if (remaining === 0) toast(SOLD_OUT_MESSAGE);
     else router.push("/buy-spins");
   }
 
@@ -449,7 +450,7 @@ export default function SpinPage() {
                 </div>
               )}
               {outcomes.length > 0 && !loadingPrizes && <p role="status" className="relative mt-1 px-2 text-center text-xs sm:text-sm font-medium text-[#AFC3DD]">
-                {loadingStats ? "Loading your spins..." : ""}
+                {sales.remaining === 0 ? SOLD_OUT_MESSAGE : loadingStats ? "Loading your spins..." : ""}
               </p>}
             </div>
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
-import { remainingSpinsForSale } from "@/lib/spin-sales";
+import { remainingSpinsForSale, SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     const spinsRemaining = remainingSpinsForSale(soldSpins);
     if (quantity > spinsRemaining) {
       return NextResponse.json(
-        { error: spinsRemaining === 0 ? "All 1,100 spins have been sold." : `Only ${spinsRemaining} spins remain.` },
+        { error: spinsRemaining === 0 ? SOLD_OUT_MESSAGE : `Only ${spinsRemaining} spins remain.` },
         { status: 409 }
       );
     }
