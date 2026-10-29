@@ -88,6 +88,36 @@ retry recovery. No live payments or refunds are needed for local tests:
 node --test tests/payment-settlement.test.cjs
 ```
 
+## Purchase confirmation emails
+
+Successful purchases send the selected bold navy email with the subject
+**Your Purchase is Confirmed**, the actual purchased spin count and total, and a
+direct link to the wheel. The signed Stripe webhook sends it after settlement
+and verifies the matching `payment_logs` record. Failed payments and campaign-cap
+refunds do not send a purchase confirmation. The return page does not send email
+or wait for email delivery before opening the wheel.
+
+This uses the existing `RESEND_API_KEY` and `WIN_EMAIL_FROM` campaign sender;
+no new environment variable or database migration is required. HTML and six
+inline PNGs are bundled from
+`lib/server/email-templates/purchase-confirmation-v1/`. The finalized preview is
+`docs/email-campaign/purchase-confirmation-preview.html`.
+
+Stripe metadata stores the initial recipient, first attempt time, template
+version and accepted Resend receipt. A stable per-payment Resend idempotency key
+protects concurrent requests and retries after an uncertain response. Webhook
+failures return 500 for Stripe to retry while credited spins remain usable.
+Resend retains keys for 24 hours, so uncertain sends stop automatic delivery
+after 23 hours from the first attempt. If logs report **Purchase email requires
+manual review**, check Resend for the matching purchase email before any manual
+send. Do not clear the Stripe metadata or change idempotency keys to force a
+retry without checking whether the email was already accepted. No past payments
+are deliberately replayed or backfilled by deployment.
+
+Run `node --test tests/purchase-email.test.cjs` for mocked delivery, duplicate
+webhook, refund, missing-credit, and retry-failure coverage without live purchases
+or emails.
+
 ## Safe spin retries
 
 Apply `supabase/idempotent-spins.sql` in the Supabase SQL Editor **before deploying**

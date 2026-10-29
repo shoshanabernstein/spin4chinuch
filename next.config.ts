@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingIncludes: {
+    "/api/webhook": ["./lib/server/email-templates/purchase-confirmation-v1/**/*"],
+  },
 };
 
 export default nextConfig;

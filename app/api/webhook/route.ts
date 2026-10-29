@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { settlePayment } from "@/lib/server/settle-payment";
+import { deliverPurchaseEmail } from "@/lib/server/deliver-purchase-email";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -44,11 +45,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid payment metadata" }, { status: 400 });
   }
 
+  let settlement;
   try {
-    await settlePayment(stripe, paymentIntent);
+    settlement = await settlePayment(stripe, paymentIntent);
   } catch (error) {
     console.error("Unable to settle completed payment", paymentIntent.id, error);
     return NextResponse.json({ error: "Unable to settle payment" }, { status: 500 });
+  }
+
+  if (settlement.status === "succeeded") {
+    try {
+      await deliverPurchaseEmail(stripe, paymentIntent.id);
+    } catch (error) {
+      // Keep credited spins available while Stripe retries email delivery.
+      console.error("Purchase confirmation email needs another attempt", paymentIntent.id, error);
+      return NextResponse.json({ error: "Unable to confirm purchase email delivery" }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ received: true });

@@ -1,0 +1,14 @@
+Subject: Your Purchase is Confirmed
+
+You're ready to spin.
+
+Spins purchased: {{spins}}
+Total paid: {{amount}}
+
+Spin the Wheel: https://www.spinforchinuchyehudi.com/spin
+
+Every spin supports Jewish education.
+Thank you for supporting Chinuch Yehudi: https://chinuchyehudiusa.org/
+
+Spin for Chinuch - Presented by Chinuch Yehudi
+Questions about your purchase? spinforchinuchyehudi@gmail.com
