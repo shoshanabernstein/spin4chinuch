@@ -24,6 +24,7 @@ export default function OrderSummary({
   purchaseBlockedLabel,
   onStartCheckout,
 }: OrderSummaryProps) {
+  const pricePerSpin = (subtotal / quantity).toFixed(2);
   const savings = quantity * 18 - subtotal;
 
   return (
@@ -46,6 +47,11 @@ export default function OrderSummary({
               {quantity}
             </span>
 
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <span className="text-slate-500">Price per Spin</span>
+            <span className="font-semibold">${pricePerSpin}</span>
           </div>
 
           {savings > 0 && <div className="mt-4 flex items-center justify-between font-semibold text-[#467EB3]"><span>Package savings</span><span>${savings}</span></div>}
