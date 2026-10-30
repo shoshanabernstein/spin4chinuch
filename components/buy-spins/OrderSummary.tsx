@@ -24,7 +24,6 @@ export default function OrderSummary({
   purchaseBlockedLabel,
   onStartCheckout,
 }: OrderSummaryProps) {
-  const average = (subtotal / quantity).toFixed(2);
   const savings = quantity * 18 - subtotal;
 
   return (
@@ -45,18 +44,6 @@ export default function OrderSummary({
 
             <span className="font-semibold">
               {quantity}
-            </span>
-
-          </div>
-
-          <div className="mt-4 flex items-center justify-between">
-
-            <span className="text-slate-500">
-              Average per spin
-            </span>
-
-            <span className="font-semibold">
-              ${average}
             </span>
 
           </div>
