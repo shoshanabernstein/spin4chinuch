@@ -7,6 +7,9 @@ import { CreditCard } from "lucide-react";
 interface OrderSummaryProps {
   quantity: number;
   total: number;
+  subtotal?: number;
+  discount?: number;
+  discountBalance?: number;
   loading: boolean;
   purchaseBlockedLabel?: string;
   onStartCheckout: () => void;
@@ -15,12 +18,15 @@ interface OrderSummaryProps {
 export default function OrderSummary({
   quantity,
   total,
+  subtotal = total,
+  discount = 0,
+  discountBalance = discount,
   loading,
   purchaseBlockedLabel,
   onStartCheckout,
 }: OrderSummaryProps) {
-  const average = (total / quantity).toFixed(2);
-  const savings = quantity * 18 - total;
+  const average = (subtotal / quantity).toFixed(2);
+  const savings = quantity * 18 - subtotal;
 
   return (
     <Panel
@@ -58,6 +64,8 @@ export default function OrderSummary({
 
           {savings > 0 && <div className="mt-4 flex items-center justify-between font-semibold text-[#467EB3]"><span>Package savings</span><span>${savings}</span></div>}
 
+          {discount > 0 && <div className="mt-4 flex items-center justify-between font-semibold text-[#467EB3]"><span>Your discount</span><span>-${discount.toFixed(2)}</span></div>}
+          {discountBalance > discount && <p className="mt-3 text-sm text-slate-500">${(discountBalance - discount).toFixed(2)} remains for a future purchase.</p>}
           <div className="my-5 border-t border-slate-200" />
 
           <div className="flex items-center justify-between">
@@ -86,7 +94,7 @@ export default function OrderSummary({
 
           {purchaseBlockedLabel || (loading
             ? "Preparing Checkout..."
-            : " Continue to Secure Checkout")}
+            : total === 0 ? "Complete free purchase" : " Continue to Secure Checkout")}
         </Button>
 
         <p className="text-center text-sm text-slate-500">

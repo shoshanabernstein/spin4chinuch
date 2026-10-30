@@ -175,7 +175,7 @@ export default function PrizeWheel({
                 radius={RADIUS}
                 startAngle={index * angle}
                 endAngle={(index + 1) * angle}
-                gradientIndex={prize.prize_id ? index % COLORS.length : COLORS.length}
+                gradientIndex={prize.label === "?" ? 1 : prize.prize_id ? index % COLORS.length : COLORS.length}
               />
             ))}
 

@@ -14,10 +14,22 @@ export async function settlePayment(stripe: Stripe, payment: Stripe.PaymentInten
   // Check durable Stripe state before crediting: idempotency keys expire, and
   // inventory could have changed since a previous refund attempt.
   const refunds = await stripe.refunds.list({ payment_intent: payment.id, limit: 100 });
-  const previousRefund = refunds.data.find(refund => refund.metadata?.reason === "spin_limit_reached");
+  const previousRefund = refunds.data.find(refund => ["spin_limit_reached", "discount_balance_changed"].includes(refund.metadata?.reason ?? ""));
   if (previousRefund) return refundResult(previousRefund);
 
-  const { error } = await supabaseAdmin.rpc("credit_completed_payment", {
+  const discounted = payment.metadata.pricingVersion === "discounts-v1";
+  if (discounted) {
+    const { data: quote, error: quoteError } = await supabaseAdmin.rpc("get_discount_quote", {
+      p_id: payment.metadata.checkoutQuoteId, p_user_id: payment.metadata.userId,
+    });
+    if (quoteError || !quote || quote.spins !== spins || quote.amount !== payment.amount_received ||
+        quote.subtotal !== Number(payment.metadata.subtotalCents) || quote.discount !== Number(payment.metadata.discountCents) ||
+        quote.package_id !== payment.metadata.packageId) throw new Error("Invalid stored discount quote");
+  }
+  const { error } = discounted ? await supabaseAdmin.rpc("complete_discount_checkout", {
+    p_id: payment.metadata.checkoutQuoteId, p_user_id: payment.metadata.userId,
+    p_payment_id: payment.id, p_amount: payment.amount_received,
+  }) : await supabaseAdmin.rpc("credit_completed_payment", {
     p_payment_intent_id: payment.id,
     p_user_id: payment.metadata.userId,
     p_spins: spins,
@@ -27,13 +39,13 @@ export async function settlePayment(stripe: Stripe, payment: Stripe.PaymentInten
 
   // Only this specific transactional rejection is safe to refund automatically.
   // Timeouts and other unknown failures must retry crediting instead.
-  if (error.code !== "P0001" || !["The 1100 spin limit has been reached", "The 2000 spin limit has been reached"].includes(error.message)) {
+  if (error.code !== "P0001" || !["The 1100 spin limit has been reached", "The 2000 spin limit has been reached", "Discount balance changed"].includes(error.message)) {
     throw new Error(`Unable to credit payment: ${error.message}`);
   }
   const refund = await stripe.refunds.create({
     payment_intent: payment.id,
     amount: payment.amount_received,
-    metadata: { reason: "spin_limit_reached" },
+    metadata: { reason: error.message === "Discount balance changed" ? "discount_balance_changed" : "spin_limit_reached" },
   }, { idempotencyKey: `spin-limit-refund/${payment.id}` });
   return refundResult(refund);
 }
@@ -45,5 +57,6 @@ function refundResult(refund: Stripe.Refund) {
   return {
     status: refund.status === "succeeded" ? "refunded" as const : "refund_pending" as const,
     spins: 0,
+    ...(refund.metadata?.reason === "discount_balance_changed" ? { reason: "discount_balance_changed" } : {}),
   };
 }

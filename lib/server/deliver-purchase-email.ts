@@ -56,6 +56,9 @@ export async function deliverPurchaseEmail(stripe: Stripe, paymentId: string) {
 
   const emailId = await sendPurchaseConfirmation(recipient, {
     id: payment.id, spins, amount: payment.amount_received,
+    ...(payment.metadata.pricingVersion === "discounts-v1" ? {
+      subtotal: Number(payment.metadata.subtotalCents), discount: Number(payment.metadata.discountCents),
+    } : {}),
   });
   // If saving the receipt fails, Stripe retries the webhook; Resend's stable key
   // returns the existing receipt within the safe window instead of sending again.

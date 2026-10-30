@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useDiscountBalance } from "@/components/useDiscountBalance";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import StatCard from "@/components/ui/StatCard";
@@ -28,6 +29,7 @@ type Win = {
 };
 
 export default function DashboardPage() {
+  const discounts = useDiscountBalance();
   const [spinsLeft, setSpinsLeft] = useState(0);
   const [spinsPurchased, setSpinsPurchased] = useState(0);
   const [donations, setDonations] = useState(0);
@@ -160,6 +162,7 @@ export default function DashboardPage() {
             <StatCard label="Spins Purchased" value={spinsPurchased} icon={<Ticket />} />
             <StatCard label="Spins Left" value={spinsLeft} icon={<CircleDashed />} />
             <StatCard label="Wins" value={wins.length} icon={<Trophy />} />
+            {discounts.enabled && <StatCard label="Discount available" value={discounts.error ? "Unavailable" : `$${(discounts.balanceCents / 100).toFixed(2)}`} icon={<DollarSign />} />}
 
           </div>
 

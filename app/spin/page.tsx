@@ -6,6 +6,7 @@ import Image from "next/image";
 import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { useRouter } from "next/navigation";
 import { useSpinAvailability } from "@/components/useSpinAvailability";
+import { useDiscountBalance } from "@/components/useDiscountBalance";
 import Confetti from "react-confetti";
 import toast from "react-hot-toast";
 import {
@@ -28,6 +29,7 @@ type Outcome = {
 };
 
 type SpinResponse = {
+  discountAwardCents?: number;
   success?: boolean;
   error?: string;
   outcomeId?: number;
@@ -46,6 +48,7 @@ type SpinResponse = {
 export default function SpinPage() {
   const router = useRouter();
   const sales = useSpinAvailability();
+  const discounts = useDiscountBalance();
   const { user, loading: loadingAuth } = useAuth();
   const inFlight = useRef(false);
   const [hasPendingSpin, setHasPendingSpin] = useState(false);
@@ -282,7 +285,7 @@ export default function SpinPage() {
     if (index === -1) {
       // A replay can refer to a prize that is now sold out or archived.
       stopSpinFeedback();
-      setWinner(data.winner?.prize?.name ?? data.outcomeLabel ?? "Better luck next time");
+      setWinner(data.discountAwardCents ? `You earned $${data.discountAwardCents / 100} off your next purchase!` : data.winner?.prize?.name ?? data.outcomeLabel ?? "Better luck next time");
       setDidWin(Boolean(data.won));
       try { localStorage.removeItem(storageKey); } catch { /* Replaying is safe. */ }
       setHasPendingSpin(false);
@@ -290,6 +293,7 @@ export default function SpinPage() {
       setSpinning(false);
       setSpinPhase("idle");
       void loadUserStats();
+      void discounts.refresh();
       return;
     }
 
@@ -314,7 +318,7 @@ export default function SpinPage() {
 
       const won = Boolean(data.won);
       const spinAgain = Boolean(data.spinAgain ?? data.winner?.spinAgain);
-      const resultLabel = !won && !spinAgain
+      const resultLabel = data.discountAwardCents ? `You earned $${data.discountAwardCents / 100} off your next purchase!` : !won && !spinAgain
         ? "Better luck next time"
         : data.winner?.prize?.name ?? data.outcomeLabel ?? "Better luck next time";
 
@@ -330,6 +334,7 @@ export default function SpinPage() {
       setSpinning(false);
       setSpinPhase("idle");
       void loadUserStats();
+      void discounts.refresh();
 
       if (won) {
         confettiTimer.current = setTimeout(
@@ -455,7 +460,7 @@ export default function SpinPage() {
             </div>
 
             <aside aria-label="Spin statistics" className="flex w-full max-w-[640px] flex-col gap-3 px-1 sm:px-6 xl:col-start-3 xl:w-full xl:max-w-[260px] xl:justify-self-start xl:gap-4 xl:px-0">
-              <dl className="grid grid-cols-3 overflow-hidden rounded-[24px] border border-[#E8CD7A]/25 bg-gradient-to-br from-[#203854]/95 via-[#142A44]/95 to-[#0D2038]/95 shadow-[inset_0_1px_0_rgba(255,255,255,.1),0_16px_36px_rgba(0,0,0,.2)] xl:grid-cols-1">
+              <dl className="grid grid-cols-2 overflow-hidden sm:grid-cols-4 rounded-[24px] border border-[#E8CD7A]/25 bg-gradient-to-br from-[#203854]/95 via-[#142A44]/95 to-[#0D2038]/95 shadow-[inset_0_1px_0_rgba(255,255,255,.1),0_16px_36px_rgba(0,0,0,.2)] xl:grid-cols-1">
               {[
                 {
                   label: "Spins left",
@@ -473,6 +478,7 @@ export default function SpinPage() {
                   value: loadingStats ? "—" : `$${totalDonations.toLocaleString()}`,
                   icon: DollarSign,
                 },
+                ...(discounts.enabled ? [{ label: "Discount", value: discounts.error ? "Unavailable" : `$${(discounts.balanceCents / 100).toFixed(2)}`, icon: DollarSign, accent: false }] : []),
               ].map(({ label, value, icon: Icon, accent }) => (
                 <div
                   key={label}

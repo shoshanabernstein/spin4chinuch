@@ -36,11 +36,15 @@ let template: ReturnType<typeof loadTemplate> | undefined;
 
 export async function sendPurchaseConfirmation(
   email: string,
-  purchase: { id: string; spins: number; amount: number }
+  purchase: { id: string; spins: number; amount: number; subtotal?: number; discount?: number }
 ) {
+  const validAmount = purchase.subtotal === undefined
+    ? isSupportedSpinAmount(purchase.spins, purchase.amount)
+    : isSupportedSpinAmount(purchase.spins, purchase.subtotal) && Number.isInteger(purchase.discount) &&
+      purchase.discount! >= 0 && purchase.discount! <= purchase.subtotal && purchase.amount === purchase.subtotal - purchase.discount!;
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ||
-      !purchase.id.startsWith("pi_") || !Number.isInteger(purchase.spins) ||
-      purchase.spins < 1 || purchase.spins > 100 || !isSupportedSpinAmount(purchase.spins, purchase.amount)) {
+      (!purchase.id.startsWith("pi_") && !(purchase.id.startsWith("free_") && purchase.amount === 0 && purchase.subtotal !== undefined)) || !Number.isInteger(purchase.spins) ||
+      purchase.spins < 1 || purchase.spins > 100 || !validAmount) {
     throw new Error("Invalid purchase email details");
   }
   const apiKey = process.env.RESEND_API_KEY;

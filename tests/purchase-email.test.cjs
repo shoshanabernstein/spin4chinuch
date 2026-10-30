@@ -76,6 +76,14 @@ test('confirmation email shows discounted package totals instead of the old per-
   }
 });
 
+test('a fully discounted purchase has a zero-dollar confirmation and a stable free-order key', async () => {
+  const { sendPurchaseConfirmation, calls } = mailer();
+  await sendPurchaseConfirmation('buyer@example.invalid', { id: 'free_quote', spins: 1, amount: 0, subtotal: 1800, discount: 1800 });
+  assert.match(calls[0][0].text, /Total paid: \$0\.00/);
+  assert.equal(calls[0][1].idempotencyKey, 'purchase-confirmation/free_quote');
+  await assert.rejects(sendPurchaseConfirmation('buyer@example.invalid', { id: 'free_quote', spins: 1, amount: 0 }));
+});
+
 function delivery({ missingPayment = false, authError = false, failStart = false, failReceipt = 0, providerFailure = false, bundle } = {}) {
   let now = 1800000000000;
   let email = 'buyer@example.invalid';

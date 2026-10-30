@@ -90,6 +90,9 @@ node --test tests/payment-settlement.test.cjs
 
 ## Spin packages
 
+Question-mark discount slice setup and activation:
+[`docs/discount-slice-setup.md`](docs/discount-slice-setup.md).
+
 Checkout offers 3 spins for $50 (save $4), 6 for $95 (save $13), and 10 for $150
 (save $30). Individual spins remain $18 each. Choose a package to receive its
 discount; quantities and package IDs are validated together on the server.

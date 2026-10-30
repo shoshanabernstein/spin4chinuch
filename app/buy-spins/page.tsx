@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useDiscountBalance } from "@/components/useDiscountBalance";
 import { X } from "lucide-react";
 import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import toast from "react-hot-toast";
@@ -28,6 +30,8 @@ interface Prize {
 
 export default function BuySpinsPage() {
   const sales = useSpinAvailability();
+  const discounts = useDiscountBalance();
+  const router = useRouter();
 
   const [quantity, setQuantity] = useState(1);
   const [packageId, setPackageId] = useState<SpinPackageId>("individual");
@@ -38,7 +42,9 @@ export default function BuySpinsPage() {
   const [clientSecret, setClientSecret] = useState("");
   const [showPayment, setShowPayment] = useState(false);
 
-  const total = getSpinOrderAmount(quantity, packageId) / 100;
+  const subtotal = getSpinOrderAmount(quantity, packageId) / 100;
+  const discount = Math.min(subtotal, discounts.balanceCents / 100);
+  const total = subtotal - discount;
 
   useEffect(() => {
     async function fetchPrizes() {
@@ -84,6 +90,9 @@ export default function BuySpinsPage() {
         return;
       }
 
+      const draftKey = `checkout-request/${user.id}/${packageId}/${quantity}`;
+      let checkoutRequestId = localStorage.getItem(draftKey);
+      if (!checkoutRequestId) { checkoutRequestId = crypto.randomUUID(); localStorage.setItem(draftKey, checkoutRequestId); }
       const res = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: {
@@ -93,18 +102,26 @@ export default function BuySpinsPage() {
         body: JSON.stringify({
           quantity,
           packageId,
+          checkoutRequestId,
         }),
       });
 
       const data = await res.json();
 
+      if (res.ok && (data.free || data.alreadyCompleted)) {
+        localStorage.removeItem(draftKey); router.replace("/spin"); return;
+      }
       if (!res.ok || !data.clientSecret) {
+        if (res.status === 409) localStorage.removeItem(draftKey);
         throw new Error(data.error || "Unable to start checkout.");
       }
       if (data.amount !== Math.round(total * 100) || data.quantity !== quantity || data.packageId !== packageId) {
+        localStorage.removeItem(draftKey);
+        void discounts.refresh();
         throw new Error("The checkout price has changed. Please refresh and choose your spins again.");
       }
 
+      localStorage.removeItem(draftKey);
       setClientSecret(data.clientSecret);
       setShowPayment(true);
     } catch (err) {
@@ -150,8 +167,11 @@ export default function BuySpinsPage() {
             <OrderSummary
               quantity={quantity}
               total={total}
+              subtotal={subtotal}
+              discount={discount}
+              discountBalance={discounts.balanceCents / 100}
               loading={loading}
-              purchaseBlockedLabel={sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : quantity > sales.remaining ? `Only ${sales.remaining} spins remain` : undefined}
+              purchaseBlockedLabel={discounts.loading ? "Checking discount..." : discounts.error ? "Discount unavailable; refresh to retry" : sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : quantity > sales.remaining ? `Only ${sales.remaining} spins remain` : undefined}
               onStartCheckout={startCheckout}
             />
           </section>
@@ -213,6 +233,7 @@ export default function BuySpinsPage() {
 
                   </div>
 
+                  {discount > 0 && <div className="mt-3 flex justify-between text-[#467EB3]"><span>Discount applied</span><span>-${discount.toFixed(2)}</span></div>}
                   <div className="mt-3 flex justify-between">
 
                     <span className="text-slate-500">

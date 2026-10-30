@@ -46,7 +46,7 @@ function endpoint(file, imports) {
   }).outputText, {
     module: testModule, exports: testModule.exports, URL, console: { error() {} },
     process: { env: { STRIPE_SECRET_KEY: 'fake' } },
-    require: name => name === '@/lib/spin-pricing' ? pricing : imports[name],
+    require: name => name === '@/lib/spin-pricing' ? pricing : name === 'node:crypto' ? require('node:crypto') : imports[name],
   });
   return testModule.exports;
 }
@@ -56,7 +56,7 @@ function checkout({ available = 1100, authenticated = true } = {}) {
   class Stripe { paymentIntents = { create: async payload => { calls.push(payload); return { client_secret: 'fake-secret' }; } }; }
   const { POST } = endpoint('app/api/create-payment-intent/route.ts', {
     'next/server': { NextResponse: Response }, stripe: Stripe,
-    '@/lib/server/supabase': { getRequestUser: async () => authenticated ? { id: 'user' } : null, supabaseAdmin: { rpc: async () => ({ data: 1100 - available, error: null }) } },
+    '@/lib/server/supabase': { getRequestUser: async () => authenticated ? { id: 'user' } : null, supabaseAdmin: { rpc: async name => name === 'create_discount_quote' ? ({ data: null, error: { code: 'PGRST202' } }) : ({ data: 1100 - available, error: null }) } },
     '@/lib/spin-sales': { remainingSpinsForSale: sold => 1100 - sold, SOLD_OUT_MESSAGE: 'Sold out' },
   });
   return { calls, run: body => POST(new Request('https://example.invalid/api/create-payment-intent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })) };

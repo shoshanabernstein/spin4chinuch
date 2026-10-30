@@ -52,7 +52,7 @@ function PaymentResult() {
         }
 
         if (data.status === "refunded" || data.status === "refund_pending") {
-          setFailureMessage(data.status === "refunded"
+          setFailureMessage(data.reason === "discount_balance_changed" ? "Your discount was used on another purchase. This payment is being fully refunded; no spins were added." : data.status === "refunded"
             ? `${SOLD_OUT_MESSAGE} Your payment was refunded; no spins were added. Your bank may take several days to show the refund.`
             : `${SOLD_OUT_MESSAGE} A full refund is pending; no spins were added. Please contact support if you need help.`);
           setState("failed");

@@ -5,6 +5,7 @@ import { deliverGiftCard, giftCardsEnabled } from "@/lib/server/gift-cards";
 import { notifyPrizeSponsor } from "@/lib/server/sponsor-notification";
 
 type SpinResult = {
+  discountAwardCents?: number;
   replayed?: boolean;
   winId?: number | null;
   outcomeId: number;
@@ -84,18 +85,22 @@ export async function POST(req: Request) {
     }
   }
 
+  const resultLabel = result.discountAwardCents
+    ? `You earned $${result.discountAwardCents / 100} off your next purchase!`
+    : result.outcomeLabel;
   return NextResponse.json({
     success: true,
     outcomeId: result.outcomeId,
-    outcomeLabel: result.outcomeLabel,
+    outcomeLabel: resultLabel,
     remainingSpins: result.remainingSpins,
     won: result.won,
     spinAgain: result.spinAgain,
+    discountAwardCents: result.discountAwardCents ?? 0,
     winner: {
       won: result.won,
       spinAgain: result.spinAgain,
       outcomeId: result.outcomeId,
-      outcomeLabel: result.outcomeLabel,
+      outcomeLabel: resultLabel,
       prize: result.prize,
     },
   });

@@ -107,6 +107,10 @@ export default function OutcomesAdminPage() {
   const totalWeight = outcomes
     .filter((item) => item.active)
     .reduce((sum, item) => sum + item.probability, 0);
+  const discountOutcome = outcomes.find(item => item.active && item.label === "?" && item.type === "loss" &&
+    pool?.entries.some(entry => entry.outcomeId === item.id && entry.initial === 0));
+  const lossResults = pool?.entries.reduce((sum, entry) => sum +
+    (outcomes.some(item => item.id === entry.outcomeId && item.type === "loss") ? entry.remaining : 0), 0) ?? 0;
 
   return (
     <div className="app-page">
@@ -138,8 +142,11 @@ export default function OutcomesAdminPage() {
         <section className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-lg">
           {outcomes.map((outcome) => {
             const entry = pool?.entries.find((entry) => entry.outcomeId === outcome.id);
+            const visibleResults = discountOutcome
+              ? outcome.id === discountOutcome.id ? lossResults * 2 / 3 : outcome.type === "loss" ? (entry?.remaining ?? 0) / 3 : entry?.remaining ?? 0
+              : entry?.remaining ?? 0;
             const chance = pool
-              ? (pool.remaining > 0 ? ((entry?.remaining ?? 0) / pool.remaining * 100).toFixed(2) : "0.00")
+              ? (pool.remaining > 0 ? (visibleResults / pool.remaining * 100).toFixed(2) : "0.00")
               : totalWeight > 0 && outcome.active
               ? ((outcome.probability / totalWeight) * 100).toFixed(1)
               : "0.0";
@@ -149,7 +156,7 @@ export default function OutcomesAdminPage() {
                   <p className="font-bold">{prizes.find((prize) => prize.id === outcome.prize_id)?.name ?? outcome.label}</p>
                   <p className="text-sm text-slate-500">{outcome.type === "prize" ? "Prize outcome" : "Non-winning outcome"} · {chance}% current share</p>
                 </div>
-                {pool ? <span className="text-sm font-semibold">{entry?.remaining ?? 0} results left</span> : <input disabled={!poolChecked} type="number" min={1} step={1} value={outcome.probability} onChange={(event) => setOutcomes((current) => current.map((item) => item.id === outcome.id ? { ...item, probability: Number(event.target.value) } : item))} onBlur={() => void updateOutcome(outcome.id, { probability: outcome.probability })} className="rounded-xl border border-slate-300 px-3 py-2" />}
+                {pool ? <span className="text-sm font-semibold">{outcome.id === discountOutcome?.id ? "2/3 of non-prize draws" : `${entry?.remaining ?? 0} ${discountOutcome && outcome.type === "loss" ? "base loss slots" : "results left"}`}</span> : <input disabled={!poolChecked} type="number" min={1} step={1} value={outcome.probability} onChange={(event) => setOutcomes((current) => current.map((item) => item.id === outcome.id ? { ...item, probability: Number(event.target.value) } : item))} onBlur={() => void updateOutcome(outcome.id, { probability: outcome.probability })} className="rounded-xl border border-slate-300 px-3 py-2" />}
                 <button disabled={!poolChecked || Boolean(pool)} onClick={() => void updateOutcome(outcome.id, { active: !outcome.active })} className={`rounded-full px-4 py-2 text-sm font-bold ${outcome.active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{outcome.active ? "Active" : "Inactive"}</button>
                 <span className="text-right text-sm text-slate-400">ID {outcome.id}</span>
               </div>

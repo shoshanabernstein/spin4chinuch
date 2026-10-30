@@ -26,6 +26,13 @@ export function getSpinOrderAmount(quantity: number, packageId: unknown = "indiv
 export function isValidSpinPayment(metadata: Record<string, string | undefined>, amount: number) {
   try {
     const quantity = Number(metadata.spins);
+    if (metadata.pricingVersion === "discounts-v1") {
+      const subtotal = getSpinOrderAmount(quantity, metadata.packageId);
+      const discount = Number(metadata.discountCents);
+      return /^[0-9a-f-]{36}$/i.test(metadata.checkoutQuoteId ?? "") &&
+        Number(metadata.subtotalCents) === subtotal && Number.isInteger(discount) &&
+        discount >= 0 && discount <= subtotal && amount === subtotal - discount;
+    }
     if (metadata.pricingVersion === undefined) {
       return metadata.packageId === undefined && amount === getSpinOrderAmount(quantity);
     }
