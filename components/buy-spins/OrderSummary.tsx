@@ -2,7 +2,6 @@
 
 import Panel from "@/components/ui/Panel";
 import Button from "@/components/ui/Button";
-import { CreditCard } from "lucide-react";
 
 interface OrderSummaryProps {
   quantity: number;
@@ -90,7 +89,6 @@ export default function OrderSummary({
           variant="gold"
           className="w-full py-4 text-lg"
         >
-          <CreditCard size={20} />
 
           {purchaseBlockedLabel || (loading
             ? "Preparing Checkout..."
