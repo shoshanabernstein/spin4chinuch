@@ -26,8 +26,8 @@ test('successful credit and duplicate database delivery do not refund', async ()
 });
 
 test('all package payments credit the actual discounted amount and excess-sale refunds return that amount', async () => {
-  for (const [spins, amount, packageId] of [[3, 5000, 'three-spins'], [6, 9500, 'six-spins'], [10, 15000, 'ten-spins']]) {
-    const p = { ...payment, amount_received: amount, metadata: { userId: 'user', spins: String(spins), packageId, pricingVersion: 'packages-v1' } };
+  for (const [spins, amount, packageId] of [[3, 4500, 'three-spins'], [6, 8000, 'six-spins']]) {
+    const p = { ...payment, amount_received: amount, metadata: { userId: 'user', spins: String(spins), packageId, pricingVersion: 'packages-v2' } };
     const credited = setup();
     assert.equal((await credited.settle(p)).spins, spins);
     assert.equal(credited.calls[0][2].p_amount, amount);

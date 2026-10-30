@@ -94,10 +94,11 @@ Checkout offers 3 spins for $50 (save $4), 6 for $95 (save $13), and 10 for $150
 (save $30). Individual spins remain $18 each. Choose a package to receive its
 discount; quantities and package IDs are validated together on the server.
 `lib/spin-pricing.ts` owns the package prices and validation. New Stripe intents
-store `pricingVersion: packages-v1` and the selected `packageId`. Existing intents
+store `pricingVersion: packages-v2` and the selected `packageId`. Existing intents
 without this metadata retain their original $18-per-spin pricing. Webhooks,
 return-page verification, refunds and purchase emails use the recorded total.
-The campaign's remaining-spin limits apply to packages as well as individual
+Previously created packages-v1 payments retain their original prices, including
+the discontinued 10-spin offer. The campaign's remaining-spin limits apply to packages as well as individual
 spins. No database migration is required.
 
 ## Purchase confirmation emails

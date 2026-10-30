@@ -68,7 +68,7 @@ test('invalid email/amount cannot send; provider rejection or missing receipt mu
 });
 
 test('confirmation email shows discounted package totals instead of the old per-spin price', async () => {
-  for (const [spins, amount, total] of [[3, 5000, '$50.00'], [6, 9500, '$95.00'], [10, 15000, '$150.00']]) {
+  for (const [spins, amount, total] of [[3, 4500, '$45.00'], [6, 8000, '$80.00']]) {
     const { sendPurchaseConfirmation, calls } = mailer();
     await sendPurchaseConfirmation('buyer@example.invalid', { id: 'pi_package', spins, amount });
     assert.ok(calls[0][0].html.includes(total));
@@ -82,7 +82,7 @@ function delivery({ missingPayment = false, authError = false, failStart = false
   const payment = { id: 'pi_test', status: 'succeeded', currency: 'usd', amount_received: 3600, metadata: { userId: 'user', spins: '2' } };
   if (bundle) {
     payment.amount_received = bundle.amount;
-    Object.assign(payment.metadata, { spins: String(bundle.spins), packageId: bundle.id, pricingVersion: 'packages-v1' });
+    Object.assign(payment.metadata, { spins: String(bundle.spins), packageId: bundle.id, pricingVersion: 'packages-v2' });
   }
   const recorded = { user_id: 'user', spins: Number(payment.metadata.spins), amount: payment.amount_received };
   const clone = value => JSON.parse(JSON.stringify(value));
@@ -126,7 +126,7 @@ test('successful email stores a durable receipt and late webhook replays do not 
 });
 
 test('discounted package confirmation verifies the recorded purchase and sends its actual total', async () => {
-  for (const bundle of [{ spins: 3, amount: 5000, id: 'three-spins' }, { spins: 6, amount: 9500, id: 'six-spins' }, { spins: 10, amount: 15000, id: 'ten-spins' }]) {
+  for (const bundle of [{ spins: 3, amount: 4500, id: 'three-spins' }, { spins: 6, amount: 8000, id: 'six-spins' }]) {
     const d = delivery({ bundle });
     await d.run();
     const sent = d.calls.find(call => call[0] === 'send')[2];

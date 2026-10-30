@@ -3,9 +3,9 @@
 import { Minus, Plus } from "lucide-react";
 
 interface QuantitySelectorProps {
+  disabled?: boolean;
   quantity: number;
   setQuantity: React.Dispatch<React.SetStateAction<number>>;
-  disabled?: boolean;
 }
 
 export default function QuantitySelector({
@@ -25,7 +25,7 @@ export default function QuantitySelector({
     <div className="flex flex-col items-center">
 
       {/* Selector */}
-      <div className="mt-6 flex items-center gap-4">
+      <div className="mt-10 flex items-center gap-3 sm:gap-8">
 
         {/* Minus */}
         <button
@@ -39,11 +39,11 @@ export default function QuantitySelector({
         </button>
 
         {/* Ticket */}
-        <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-3xl border border-[#F1DEAE] bg-gradient-to-br from-[#FFFDF6] to-[#FFF4D8] shadow-lg">
+        <div className="relative flex h-28 w-28 sm:h-40 sm:w-40 flex-col items-center justify-center rounded-[32px] border border-[#F1DEAE] bg-gradient-to-br from-[#FFFDF6] to-[#FFF4D8] shadow-lg">
 
           <div
             key={quantity}
-            className="text-4xl font-black leading-none text-[#142A52]"
+            className="text-6xl font-black leading-none text-[#142A52]"
           >
             {quantity}
           </div>

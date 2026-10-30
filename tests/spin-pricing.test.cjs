@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 const pricing = require('./helpers/spin-pricing.cjs');
-const packages = [[3, 5000, 'three-spins'], [6, 9500, 'six-spins'], [10, 15000, 'ten-spins']];
+const packages = [[3, 4500, 'three-spins'], [6, 8000, 'six-spins']];
 
 test('approved packages have exact totals and increasing savings; individual pricing is preserved', () => {
   for (const [spins, amount, id] of packages) {
@@ -18,9 +18,18 @@ test('approved packages have exact totals and increasing savings; individual pri
   for (const invalid of [0, -1, 1.5, 101, NaN]) assert.throws(() => pricing.getSpinOrderAmount(invalid));
 });
 
+test('previous package payments remain valid but discontinued prices cannot start new checkouts', () => {
+  for (const [spins, amount, packageId] of [[3, 5000, 'three-spins'], [6, 9500, 'six-spins'], [10, 15000, 'ten-spins']]) {
+    assert.equal(pricing.isValidSpinPayment({ spins: String(spins), packageId, pricingVersion: 'packages-v1' }, amount), true);
+    assert.equal(pricing.isSupportedSpinAmount(spins, amount), true);
+    assert.equal(pricing.isValidSpinPayment({ spins: String(spins), packageId, pricingVersion: 'packages-v2' }, amount), false);
+  }
+  assert.throws(() => pricing.getSpinOrderAmount(10, 'ten-spins'));
+});
+
 test('versioned payment validation accepts exact bundles and rejects tampering while accepting legacy payments', () => {
   for (const [spins, amount, packageId] of packages) {
-    const metadata = { spins: String(spins), packageId, pricingVersion: 'packages-v1' };
+    const metadata = { spins: String(spins), packageId, pricingVersion: 'packages-v2' };
     assert.equal(pricing.isValidSpinPayment(metadata, amount), true);
     assert.equal(pricing.isValidSpinPayment(metadata, amount - 1), false);
     assert.equal(pricing.isValidSpinPayment({ ...metadata, spins: '100' }, amount), false);
@@ -64,7 +73,7 @@ test('checkout computes the approved package amount on the server and ignores su
     assert.equal(quote.packageId, packageId);
     assert.equal(d.calls[0].amount, amount);
     assert.equal(d.calls[0].metadata.packageId, packageId);
-    assert.equal(d.calls[0].metadata.pricingVersion, 'packages-v1');
+    assert.equal(d.calls[0].metadata.pricingVersion, 'packages-v2');
   }
 });
 
@@ -84,7 +93,7 @@ test('unauthenticated, sold-out, insufficient-stock and forged-package requests 
 
 test('return-page verification settles discounted purchases and rejects unsupported totals', async () => {
   for (const [spins, amount, packageId] of packages) {
-    const payment = { status: 'succeeded', currency: 'usd', amount_received: amount, metadata: { userId: 'user', spins: String(spins), packageId, pricingVersion: 'packages-v1' } };
+    const payment = { status: 'succeeded', currency: 'usd', amount_received: amount, metadata: { userId: 'user', spins: String(spins), packageId, pricingVersion: 'packages-v2' } };
     const calls = [];
     class Stripe { paymentIntents = { retrieve: async () => payment }; }
     const { GET } = endpoint('app/api/payment-status/route.ts', {

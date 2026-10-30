@@ -1,6 +1,10 @@
 export const INDIVIDUAL_SPIN_CENTS = 1800;
-export const SPIN_PRICING_VERSION = "packages-v1";
+export const SPIN_PRICING_VERSION = "packages-v2";
 export const SPIN_PACKAGES = [
+  { id: "three-spins", spins: 3, amount: 4500 },
+  { id: "six-spins", spins: 6, amount: 8000 },
+] as const;
+const PREVIOUS_PACKAGES = [
   { id: "three-spins", spins: 3, amount: 5000 },
   { id: "six-spins", spins: 6, amount: 9500 },
   { id: "ten-spins", spins: 10, amount: 15000 },
@@ -25,6 +29,10 @@ export function isValidSpinPayment(metadata: Record<string, string | undefined>,
     if (metadata.pricingVersion === undefined) {
       return metadata.packageId === undefined && amount === getSpinOrderAmount(quantity);
     }
+    if (metadata.pricingVersion === "packages-v1") {
+      return (metadata.packageId === "individual" && amount === getSpinOrderAmount(quantity)) ||
+        PREVIOUS_PACKAGES.some(item => item.id === metadata.packageId && item.spins === quantity && item.amount === amount);
+    }
     return metadata.pricingVersion === SPIN_PRICING_VERSION &&
       typeof metadata.packageId === "string" &&
       amount === getSpinOrderAmount(quantity, metadata.packageId);
@@ -36,7 +44,7 @@ export function isValidSpinPayment(metadata: Record<string, string | undefined>,
 export function isSupportedSpinAmount(quantity: number, amount: number) {
   try {
     return amount === getSpinOrderAmount(quantity) ||
-      SPIN_PACKAGES.some(item => item.spins === quantity && item.amount === amount);
+      [...SPIN_PACKAGES, ...PREVIOUS_PACKAGES].some(item => item.spins === quantity && item.amount === amount);
   } catch {
     return false;
   }
