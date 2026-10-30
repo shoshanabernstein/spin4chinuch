@@ -94,7 +94,7 @@ export default function OrderSummary({
 
           {purchaseBlockedLabel || (loading
             ? "Preparing Checkout..."
-            : total === 0 ? "Complete free purchase" : " Continue to Secure Checkout")}
+            : total === 0 ? "Complete free purchase" : "Continue to Checkout")}
         </Button>
 
         <p className="text-center text-sm text-slate-500">
