@@ -186,7 +186,7 @@ export default function PrizeWheel({
                 ? getPrizeDisplay(prize.label, prize.sponsor_name).title
                 : prize.label.trim().toLowerCase() === "try again"
                   ? "Better luck next time"
-                  : prize.label}
+                  : prize.label === "?" ? "????????" : prize.label}
               provider={prize.prize_id ? getPrizeDisplay(prize.label, prize.sponsor_name).provider : null}
               angle={index * angle + angle / 2}
               sliceAngle={angle}

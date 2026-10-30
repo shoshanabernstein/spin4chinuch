@@ -23,7 +23,7 @@ export default function WheelLabel({ label, provider, angle, sliceAngle }: {
       const lineHeight = provider ? Math.max(1, maxHeight / 2 - 1) : maxHeight;
       for (const text of [textRef.current, providerRef.current]) {
         if (!text) continue;
-        const fontSize = label === "?" ? 100 : 34;
+        const fontSize = /^\?+$/.test(label) ? 100 : 34;
         text.setAttribute("font-size", String(fontSize));
         const bounds = text.getBBox();
         const scale = Math.min(1, maxWidth / Math.max(bounds.width, 1), lineHeight / Math.max(bounds.height * 1.05, 1));
@@ -47,7 +47,7 @@ export default function WheelLabel({ label, provider, angle, sliceAngle }: {
         y={provider ? -maxHeight / 4 : 0}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={label === "?" ? "#102A52" : "white"}
+        fill={/^\?+$/.test(label) ? "#102A52" : "white"}
         fontSize={34}
         fontWeight={750}
         filter="url(#labelShadow)"
