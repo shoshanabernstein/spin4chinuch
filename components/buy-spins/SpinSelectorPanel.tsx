@@ -57,9 +57,19 @@ export default function SpinSelectorPanel({
             aria-label={`${bundle.spins} spins for $${bundle.amount / 100}`}
             disabled={busy || remaining === null || remaining < bundle.spins}
             onClick={() => { setQuantity(bundle.spins); setPackageId(bundle.id); }}
-            className={`flex flex-col items-center justify-center gap-2 rounded-2xl border px-4 py-5 transition focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#C9A44D] disabled:cursor-not-allowed disabled:opacity-40 sm:flex-row sm:justify-between sm:gap-4 sm:px-6 ${packageId === bundle.id ? "border-[#142A52] bg-[#142A52] text-white shadow-sm" : "border-[#E7D7A4] bg-[#FAF7F0] text-[#142A52] hover:border-[#C9A44D] hover:bg-[#FFF8E5]"}`}>
-            <span className={`text-base font-semibold ${packageId === bundle.id ? "text-blue-100" : "text-[#52657B]"}`}>{bundle.spins} spins</span>
-            <span className={`text-3xl font-bold leading-none tracking-tight ${packageId === bundle.id ? "text-[#E7C96D]" : "text-[#142A52]"}`}>${bundle.amount / 100}</span>
+            className={`group relative isolate flex items-center justify-between gap-2 overflow-hidden rounded-2xl border px-2.5 py-5 text-left shadow-md transition duration-200 motion-safe:hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#C9A44D] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 sm:px-7 sm:py-6 ${packageId === bundle.id ? "border-[#C9A44D] bg-gradient-to-br from-[#F8E5A3] via-[#E7C96D] to-[#D7AF4F] text-[#142A52] shadow-[#C9A44D]/20" : "border-[#365881] bg-gradient-to-br from-[#234F80] via-[#17375E] to-[#102A52] text-white hover:border-[#E7C96D] hover:shadow-lg"}`}>
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+              <span className={`absolute -right-10 -top-16 h-40 w-48 -rotate-[28deg] rounded-[50%] border-[10px] ${packageId === bundle.id ? "border-[#102A52]/[0.05]" : "border-[#8DB9F4]/[0.08]"}`} />
+              <span className={`absolute -right-8 -top-12 h-40 w-48 -rotate-[28deg] rounded-[50%] border ${packageId === bundle.id ? "border-[#102A52]/15" : "border-[#E7C96D]/25"}`} />
+              <Ticket className={`absolute -bottom-4 right-2 h-20 w-20 -rotate-[25deg] ${packageId === bundle.id ? "text-[#102A52]/[0.06]" : "text-[#9FC5E7]/[0.08]"}`} strokeWidth={1} />
+            </span>
+            <span aria-hidden="true" className="absolute -left-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white" />
+            <span aria-hidden="true" className="absolute -right-2 top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white" />
+            <span className="relative flex flex-col gap-1">
+              <span className="text-3xl font-black leading-none sm:text-4xl">{bundle.spins}</span>
+              <span className={`text-[9px] font-bold uppercase tracking-[0.12em] sm:text-xs sm:tracking-[0.18em] ${packageId === bundle.id ? "text-[#365477]" : "text-[#BFD7EF]"}`}>spins</span>
+            </span>
+            <span className={`relative border-l border-dashed pl-2 text-2xl font-black leading-none tracking-tight sm:pl-6 sm:text-4xl ${packageId === bundle.id ? "border-[#102A52]/25 text-[#142A52]" : "border-[#E7C96D]/35 text-[#F4D984]"}`}>${bundle.amount / 100}</span>
           </button>
         ))}
       </div>
