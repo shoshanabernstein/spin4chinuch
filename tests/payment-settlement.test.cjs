@@ -10,7 +10,7 @@ function setup(error = null, existing = [], refundStatus = 'succeeded') {
   const testModule = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/server/settle-payment.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, {
     exports: testModule.exports, module: testModule,
-    require: () => ({ supabaseAdmin: { rpc: async (...args) => { calls.push(['credit', ...args]); return { error }; } } }),
+    require: name => name === '@/lib/spin-pricing' ? require('./helpers/spin-pricing.cjs') : ({ supabaseAdmin: { rpc: async (...args) => { calls.push(['credit', ...args]); return { error }; } } }),
   });
   const stripe = { refunds: {
     list: async () => ({ data: existing }),
@@ -23,6 +23,18 @@ test('successful credit and duplicate database delivery do not refund', async ()
   assert.equal((await settle()).status, 'succeeded');
   assert.equal((await settle()).status, 'succeeded');
   assert.equal(calls.filter(c => c[0] === 'refund').length, 0);
+});
+
+test('all package payments credit the actual discounted amount and excess-sale refunds return that amount', async () => {
+  for (const [spins, amount, packageId] of [[3, 5000, 'three-spins'], [6, 9500, 'six-spins'], [10, 15000, 'ten-spins']]) {
+    const p = { ...payment, amount_received: amount, metadata: { userId: 'user', spins: String(spins), packageId, pricingVersion: 'packages-v1' } };
+    const credited = setup();
+    assert.equal((await credited.settle(p)).spins, spins);
+    assert.equal(credited.calls[0][2].p_amount, amount);
+    const capped = setup({ code: 'P0001', message: 'The 1100 spin limit has been reached' });
+    assert.equal((await capped.settle(p)).status, 'refunded');
+    assert.equal(capped.calls[1][1].amount, amount);
+  }
 });
 test('losing checkout at the sales cap requests a full refund with stable key', async () => {
   const { settle, calls } = setup({ code: 'P0001', message: 'The 1100 spin limit has been reached' });

@@ -85,14 +85,14 @@ export default function BuySpinsHero() {
               />
 
               <p className="text-xs font-bold uppercase tracking-[0.35em] text-[#B89032]">
-                Price Per Spin
+                Spin Packages
               </p>
 
             </div>
 
             {/* Price */}
             <div className="mt-4 text-6xl lg:text-7xl font-black leading-none text-[#142A52]">
-              $18
+              $15
             </div>
 
             {/* Divider */}
@@ -100,7 +100,7 @@ export default function BuySpinsHero() {
 
             {/* Subtitle */}
             <p className="mt-4 text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
-              Per Spin
+              Per spin with the 10-spin package
             </p>
 
           </div>

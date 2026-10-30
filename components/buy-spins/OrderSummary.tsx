@@ -6,7 +6,6 @@ import { CreditCard } from "lucide-react";
 
 interface OrderSummaryProps {
   quantity: number;
-  setQuantity: React.Dispatch<React.SetStateAction<number>>;
   total: number;
   loading: boolean;
   purchaseBlockedLabel?: string;
@@ -20,7 +19,8 @@ export default function OrderSummary({
   purchaseBlockedLabel,
   onStartCheckout,
 }: OrderSummaryProps) {
-  const PRICE_PER_SPIN = 18;
+  const average = (total / quantity).toFixed(2);
+  const savings = quantity * 18 - total;
 
   return (
     <Panel
@@ -35,11 +35,11 @@ export default function OrderSummary({
           <div className="flex items-center justify-between">
 
              <span className="text-slate-500">
-              Total
+              Spins
             </span>
 
             <span className="font-semibold">
-              ${total}
+              {quantity}
             </span>
 
           </div>
@@ -47,14 +47,16 @@ export default function OrderSummary({
           <div className="mt-4 flex items-center justify-between">
 
             <span className="text-slate-500">
-              Price per Spin
+              Average per spin
             </span>
 
             <span className="font-semibold">
-              ${PRICE_PER_SPIN}
+              ${average}
             </span>
 
           </div>
+
+          {savings > 0 && <div className="mt-4 flex items-center justify-between font-semibold text-[#467EB3]"><span>Package savings</span><span>${savings}</span></div>}
 
           <div className="my-5 border-t border-slate-200" />
 

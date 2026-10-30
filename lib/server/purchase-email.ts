@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Resend } from "resend";
+import { isSupportedSpinAmount } from "@/lib/spin-pricing";
 
 export const PURCHASE_EMAIL_SUBJECT = "Your Purchase is Confirmed";
 
@@ -39,7 +40,7 @@ export async function sendPurchaseConfirmation(
 ) {
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ||
       !purchase.id.startsWith("pi_") || !Number.isInteger(purchase.spins) ||
-      purchase.spins < 1 || purchase.spins > 100 || purchase.amount !== purchase.spins * 1800) {
+      purchase.spins < 1 || purchase.spins > 100 || !isSupportedSpinAmount(purchase.spins, purchase.amount)) {
     throw new Error("Invalid purchase email details");
   }
   const apiKey = process.env.RESEND_API_KEY;

@@ -2,6 +2,7 @@ import { settlePayment } from "@/lib/server/settle-payment";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getRequestUser } from "@/lib/server/supabase";
+import { isValidSpinPayment } from "@/lib/spin-pricing";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
@@ -29,13 +30,12 @@ export async function GET(req: Request) {
     const spins = Number(paymentIntent.metadata.spins);
 
     if (paymentIntent.status === "succeeded") {
-      const expectedAmount = spins * 1800;
       if (
         !Number.isInteger(spins) ||
         spins < 1 ||
         spins > 100 ||
         paymentIntent.currency !== "usd" ||
-        paymentIntent.amount_received !== expectedAmount
+        !isValidSpinPayment(paymentIntent.metadata, paymentIntent.amount_received)
       ) {
         console.error("Rejected verified payment with invalid metadata", paymentIntent.id);
         return NextResponse.json({ error: "Invalid payment details." }, { status: 400 });

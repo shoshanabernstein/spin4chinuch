@@ -14,6 +14,7 @@ import OrderSummary from "@/components/buy-spins/OrderSummary";
 import PrizeCarousel from "@/components/buy-spins/PrizeCarousel";
 import StripeCheckout from "@/components/buy-spins/StripeCheckout";
 import StripeProvider from "@/components/StripeProvider";
+import { getSpinOrderAmount, type SpinPackageId } from "@/lib/spin-pricing";
 
 interface Prize {
   id: number;
@@ -27,9 +28,9 @@ interface Prize {
 
 export default function BuySpinsPage() {
   const sales = useSpinAvailability();
-  const PRICE_PER_SPIN = 18;
 
   const [quantity, setQuantity] = useState(1);
+  const [packageId, setPackageId] = useState<SpinPackageId>("individual");
   const [loading, setLoading] = useState(false);
 
   const [prizes, setPrizes] = useState<Prize[]>([]);
@@ -37,7 +38,7 @@ export default function BuySpinsPage() {
   const [clientSecret, setClientSecret] = useState("");
   const [showPayment, setShowPayment] = useState(false);
 
-  const total = quantity * PRICE_PER_SPIN;
+  const total = getSpinOrderAmount(quantity, packageId) / 100;
 
   useEffect(() => {
     async function fetchPrizes() {
@@ -91,6 +92,7 @@ export default function BuySpinsPage() {
         },
         body: JSON.stringify({
           quantity,
+          packageId,
         }),
       });
 
@@ -98,6 +100,9 @@ export default function BuySpinsPage() {
 
       if (!res.ok || !data.clientSecret) {
         throw new Error(data.error || "Unable to start checkout.");
+      }
+      if (data.amount !== Math.round(total * 100) || data.quantity !== quantity || data.packageId !== packageId) {
+        throw new Error("The checkout price has changed. Please refresh and choose your spins again.");
       }
 
       setClientSecret(data.clientSecret);
@@ -136,11 +141,14 @@ export default function BuySpinsPage() {
             <SpinSelectorPanel
               quantity={quantity}
               setQuantity={setQuantity}
+              packageId={packageId}
+              setPackageId={setPackageId}
+              remaining={sales.remaining}
+              busy={loading}
             />
 
             <OrderSummary
               quantity={quantity}
-              setQuantity={setQuantity}
               total={total}
               loading={loading}
               purchaseBlockedLabel={sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : quantity > sales.remaining ? `Only ${sales.remaining} spins remain` : undefined}

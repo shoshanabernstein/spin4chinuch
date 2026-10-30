@@ -14,6 +14,7 @@ function load(file, imports, env = {}, clock = Date) {
     module: testModule, exports: testModule.exports, Buffer, Date: clock, Intl, console: { error() {} },
     process: { env, cwd: () => process.cwd() },
     require(name) {
+      if (name === '@/lib/spin-pricing') return require('./helpers/spin-pricing.cjs');
       if (!(name in imports)) throw new Error(`Unexpected import ${name}`);
       return imports[name];
     },
@@ -66,10 +67,24 @@ test('invalid email/amount cannot send; provider rejection or missing receipt mu
   }
 });
 
-function delivery({ missingPayment = false, authError = false, failStart = false, failReceipt = 0, providerFailure = false } = {}) {
+test('confirmation email shows discounted package totals instead of the old per-spin price', async () => {
+  for (const [spins, amount, total] of [[3, 5000, '$50.00'], [6, 9500, '$95.00'], [10, 15000, '$150.00']]) {
+    const { sendPurchaseConfirmation, calls } = mailer();
+    await sendPurchaseConfirmation('buyer@example.invalid', { id: 'pi_package', spins, amount });
+    assert.ok(calls[0][0].html.includes(total));
+    assert.ok(calls[0][0].text.includes(`Spins purchased: ${spins}`));
+  }
+});
+
+function delivery({ missingPayment = false, authError = false, failStart = false, failReceipt = 0, providerFailure = false, bundle } = {}) {
   let now = 1800000000000;
   let email = 'buyer@example.invalid';
   const payment = { id: 'pi_test', status: 'succeeded', currency: 'usd', amount_received: 3600, metadata: { userId: 'user', spins: '2' } };
+  if (bundle) {
+    payment.amount_received = bundle.amount;
+    Object.assign(payment.metadata, { spins: String(bundle.spins), packageId: bundle.id, pricingVersion: 'packages-v1' });
+  }
+  const recorded = { user_id: 'user', spins: Number(payment.metadata.spins), amount: payment.amount_received };
   const clone = value => JSON.parse(JSON.stringify(value));
   const calls = [];
   const accepted = new Map();
@@ -84,7 +99,7 @@ function delivery({ missingPayment = false, authError = false, failStart = false
     },
   } };
   const client = {
-    from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: missingPayment ? null : { user_id: 'user', spins: 2, amount: 3600 }, error: null }) }),
+    from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: missingPayment ? null : recorded, error: null }) }),
     auth: { admin: { getUserById: async id => { calls.push(['recipient', id]); return { data: { user: { email } }, error: authError }; } } },
   };
   const send = async (recipient, purchase) => {
@@ -108,6 +123,16 @@ test('successful email stores a durable receipt and late webhook replays do not 
   d.advance(48);
   await d.run();
   assert.equal(d.calls.filter(call => call[0] === 'send').length, 1);
+});
+
+test('discounted package confirmation verifies the recorded purchase and sends its actual total', async () => {
+  for (const bundle of [{ spins: 3, amount: 5000, id: 'three-spins' }, { spins: 6, amount: 9500, id: 'six-spins' }, { spins: 10, amount: 15000, id: 'ten-spins' }]) {
+    const d = delivery({ bundle });
+    await d.run();
+    const sent = d.calls.find(call => call[0] === 'send')[2];
+    assert.equal(sent.spins, bundle.spins);
+    assert.equal(sent.amount, bundle.amount);
+  }
 });
 
 test('lost receipt write retries the same purchase and freezes the original recipient', async () => {

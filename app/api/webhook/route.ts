@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { settlePayment } from "@/lib/server/settle-payment";
 import { deliverPurchaseEmail } from "@/lib/server/deliver-purchase-email";
+import { isValidSpinPayment } from "@/lib/spin-pricing";
 
 const secretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -31,7 +32,6 @@ export async function POST(req: Request) {
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const userId = paymentIntent.metadata.userId;
   const spins = Number(paymentIntent.metadata.spins);
-  const expectedAmount = spins * 1800;
 
   if (
     !userId ||
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     spins < 1 ||
     spins > 100 ||
     paymentIntent.currency !== "usd" ||
-    paymentIntent.amount_received !== expectedAmount
+    !isValidSpinPayment(paymentIntent.metadata, paymentIntent.amount_received)
   ) {
     console.error("Rejected payment with invalid Spin4Chinuch metadata", paymentIntent.id);
     return NextResponse.json({ error: "Invalid payment metadata" }, { status: 400 });

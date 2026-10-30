@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/server/supabase";
 import { sendPurchaseConfirmation } from "@/lib/server/purchase-email";
+import { isValidSpinPayment } from "@/lib/spin-pricing";
 
 // Resend retains idempotency keys for 24 hours. Stop uncertain retries earlier;
 // a later operator replay must not risk sending an already accepted email twice.
@@ -15,7 +16,7 @@ export async function deliverPurchaseEmail(stripe: Stripe, paymentId: string) {
 
   const spins = Number(payment.metadata.spins);
   if (!payment.metadata.userId || payment.status !== "succeeded" || payment.currency !== "usd" ||
-      !Number.isInteger(spins) || spins < 1 || spins > 100 || payment.amount_received !== spins * 1800) {
+      !Number.isInteger(spins) || spins < 1 || spins > 100 || !isValidSpinPayment(payment.metadata, payment.amount_received)) {
     throw new Error("Invalid completed purchase for confirmation email");
   }
 

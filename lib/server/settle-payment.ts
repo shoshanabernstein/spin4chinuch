@@ -1,12 +1,13 @@
 import type Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/server/supabase";
+import { isValidSpinPayment } from "@/lib/spin-pricing";
 
 // Both the webhook and the return page must make the same settlement decision.
 export async function settlePayment(stripe: Stripe, payment: Stripe.PaymentIntent) {
   const spins = Number(payment.metadata.spins);
   if (!payment.metadata.userId || !Number.isInteger(spins) || spins < 1 || spins > 100 ||
       payment.status !== "succeeded" || payment.currency !== "usd" ||
-      payment.amount_received !== spins * 1800) {
+      !isValidSpinPayment(payment.metadata, payment.amount_received)) {
     throw new Error("Invalid payment details");
   }
 
