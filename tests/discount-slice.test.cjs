@@ -106,3 +106,17 @@ test('overlapping discounted quotes cannot spend the same credit twice or exceed
   }
  }finally{await db.close();}
 });
+
+test('500-spin cap applies to paid and free discount checkout',async()=>{
+ const db=await fixture();try{
+  await db.exec(fs.readFileSync('supabase/campaign-500-spin-limit.sql','utf8'));
+  await db.exec(`insert into payment_logs values('historical','${user}',499,1)`);
+  const paid=await quote(db,user);await complete(db,paid);await complete(db,paid);
+  await db.exec(`update profiles set discount_balance_cents=1800 where id='${user}'`);
+  const free=await quote(db,user);assert.equal(free.amount,0);
+  await assert.rejects(complete(db,free),/500 spin limit/);
+  assert.equal(await scalar(db,'select sum(spins)::integer from payment_logs'),500);
+  assert.equal(await scalar(db,'select discount_balance_cents from profiles where id=$1',[user]),1800);
+  assert.equal((await scalar(db,'select fixed_pool_status()')).limit,500);
+ }finally{await db.close();}
+});

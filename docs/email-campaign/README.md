@@ -27,6 +27,16 @@ The layout fills the email's available width on desktop, with headline/steps and
 wheel side by side. Below 700px it stacks for phones. Email applications control
 the available reading-pane width; the HTML does not impose a 600px card limit.
 
+## Newspaper ad
+
+- `newspaper-ad.html`: print-ready 8.5-inch square layout using the campaign
+  logo, simplified vector wheel, and message.
+- `newspaper-ad-wheel.svg`: print-specific vector wheel artwork, retaining the
+  campaign wheel design without its extra text or orbital decoration.
+- `spin-for-chinuch-newspaper-ad.pdf`: exported one-page PDF. The printed
+  website address links to `https://spinforchinuchyehudi.com`.
+- `spin-for-chinuch-newspaper-ad.png`: 2550-pixel square, 300-dpi artwork.
+
 Test recipient: **shoshanbernstein@gmail.com**. The latest test uses the full-width
 navy landscape layout and updated subject. Send receipts are
 stored in the ignored `.local/email-campaign/` directory. No website deployment

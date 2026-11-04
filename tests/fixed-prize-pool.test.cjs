@@ -118,3 +118,26 @@ test('installation rejects oversized stock and ambiguous prize outcomes without 
     assert.equal((await db.query("select to_regnamespace('campaign_pool') as n")).rows[0].n,null);
   }finally{await db.close();}
 });
+
+test('500-spin adjustment preserves used results and prizes and is safe to rerun', async () => {
+  const db = await fixture();
+  try {
+    await db.exec(install);
+    await db.exec(`create table payment_logs(spins integer);
+      create function credit_completed_payment(text,uuid,integer,integer) returns boolean language sql as 'select true';
+      update campaign_pool.entries set remaining=remaining-1 where outcome_id=3;
+      update campaign_pool.state set remaining=remaining-1;`);
+    const adjustment=fs.readFileSync('supabase/campaign-500-spin-limit.sql','utf8');
+    await db.exec(adjustment);
+    await db.exec(adjustment);
+    const status=(await db.query('select fixed_pool_status() as s')).rows[0].s;
+    assert.equal(status.limit,500);
+    assert.equal(status.remaining,499);
+    assert.equal((await db.query('select sum(initial_count)::integer n from campaign_pool.entries')).rows[0].n,500);
+    assert.equal((await db.query('select sum(remaining)::integer n from campaign_pool.entries where prize_id is not null')).rows[0].n,3);
+    await db.exec('insert into payment_logs values(501)');
+    await assert.rejects(db.exec(adjustment),/already sold/);
+    await db.exec('rollback');
+    assert.equal((await db.query('select remaining from campaign_pool.state')).rows[0].remaining,499);
+  } finally { await db.close(); }
+});

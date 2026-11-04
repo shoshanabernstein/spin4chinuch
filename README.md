@@ -66,8 +66,8 @@ confirm `fixed_pool_status()` returns the expected remaining counts as postgres.
 
 ## Checkout sales-cap recovery
 
-The campaign sales cap is 1,100 spins. Apply `supabase/campaign-1100-spin-limit.sql`
-after deploying the app to update the database's transactional limit. The spin page
+The campaign sales cap is 500 spins. Apply `supabase/campaign-500-spin-limit.sql`
+after deploying the app to update both payment paths and shrink an installed fixed pool to 500 results. This preserves prizes, purchases, balances, and used results; it removes only unconsumed Try Again results. It aborts if sales already exceed 500 or the pool cannot safely shrink. For a fresh setup, install the fixed pool and discount scripts first, then apply the 500-spin script last. The spin page
 and checkout refresh availability and block new purchases when sold out; already
 purchased spins remain usable. Overlapping checkouts can finish
 payment after the cap is reached. Both the Stripe webhook and payment return

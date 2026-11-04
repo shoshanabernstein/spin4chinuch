@@ -31,13 +31,13 @@ test('all package payments credit the actual discounted amount and excess-sale r
     const credited = setup();
     assert.equal((await credited.settle(p)).spins, spins);
     assert.equal(credited.calls[0][2].p_amount, amount);
-    const capped = setup({ code: 'P0001', message: 'The 1100 spin limit has been reached' });
+    const capped = setup({ code: 'P0001', message: 'The 500 spin limit has been reached' });
     assert.equal((await capped.settle(p)).status, 'refunded');
     assert.equal(capped.calls[1][1].amount, amount);
   }
 });
 test('losing checkout at the sales cap requests a full refund with stable key', async () => {
-  const { settle, calls } = setup({ code: 'P0001', message: 'The 1100 spin limit has been reached' });
+  const { settle, calls } = setup({ code: 'P0001', message: 'The 500 spin limit has been reached' });
   assert.equal((await settle()).status, 'refunded');
   assert.equal(calls[1][1].amount, 3600);
   assert.equal(calls[1][2].idempotencyKey, 'spin-limit-refund/pi_test');

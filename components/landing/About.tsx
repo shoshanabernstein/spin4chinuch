@@ -1,3 +1,5 @@
+import AboutVideo from "./AboutVideo";
+
 export default function About() {
   return (
     <section data-landing="about"
@@ -29,30 +31,7 @@ export default function About() {
 
         </div>
 
-        {/* Right */}
-
-        <div className="relative min-w-0">
-          <h3 className="mx-auto mb-4 max-w-lg text-balance text-center text-base font-semibold leading-6 text-[#243E61] sm:text-lg sm:leading-7">
-            Rav Sholom Kamenetzky&apos;s Recent Trip to Florida
-            <span className="mt-1 block text-sm font-normal text-[#61728A]">On behalf of Chinuch Yehudi</span>
-          </h3>
-          <div className="relative overflow-hidden rounded-[20px] border border-[#DCE5F1] bg-white shadow-[0_8px_24px_rgba(20,42,82,.07)]">
-            <video
-              className="aspect-video w-full bg-[#071628] object-contain"
-              controls
-              playsInline
-              preload="metadata"
-              aria-label="Chinuch Yehudi in action"
-            >
-              <source src="/app_video.mp4" type="video/mp4" />
-              Your browser does not support embedded video.
-            </video>
-
-
-
-          </div>
-
-        </div>
+        <AboutVideo />
 
       </div>
     </section>

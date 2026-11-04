@@ -53,10 +53,6 @@
 .page [data-landing="about"] > :last-child > :first-child { border-left: 3px solid #9cbcd9; padding: 0 0 0 28px; }
 .page [data-landing="about"] > :last-child > :first-child > div { display: none; }
 .page [data-landing="about"] > :last-child > :first-child > p:last-child { margin-top: 22px; }
-.page [data-landing="about"] > :last-child > :last-child { padding: 24px; background: #edf2f7; border-radius: 16px; }
-.page [data-landing="about"] h3 { text-align: left; margin-left: 0; }
-.page [data-landing="about"] video { border-radius: 8px; }
-
 /* Four connected steps on a single navy field. */
 .page > div:has([data-landing="steps"]) { background: var(--ink); border: 0; }
 .page [data-landing="steps"] { padding-block: 82px; max-width: 1360px; }
@@ -104,7 +100,7 @@
   .page [data-landing="hero"] > :last-child { padding-block: 48px 42px; gap: 28px; }
   .page [data-landing="hero"] h1 { font-size: clamp(3.2rem, 12vw, 4rem); }
   .page [data-landing="about"], .page [data-landing="steps"], .page [data-landing="actions"] { padding-block: 58px; }
-  .page [data-landing="about"] > :last-child > :last-child { padding: 16px; }
+
   .page [data-landing="actions"] > :last-child > a { padding: 26px; }
   .page [data-landing="contact"] { padding-bottom: 50px; }
   .page [data-landing="contact"] a { padding-left: 74px; padding-right: 14px; }

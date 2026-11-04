@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spin for Chinuch - Newspaper Ad</title>
+<style>
+@page {
+  size: 8.5in 8.5in;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 8.5in;
+  height: 8.5in;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #102A52;
+  background: #FAF8F3;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.page {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1.15in 5.35in 2in;
+  width: 8.5in;
+  height: 8.5in;
+  overflow: hidden;
+  background: #FAF8F3;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1in 0.5in;
+  border-bottom: 0.035in solid #E7C96D;
+  background: #102A52;
+}
+
+.logo {
+  display: block;
+  width: 4.65in;
+  height: auto;
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #FAF8F3;
+}
+
+.spin-trails {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wheel {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 5.18in;
+  height: 5.18in;
+  object-fit: contain;
+}
+
+.price-bubble {
+  position: absolute;
+  z-index: 2;
+  top: 0.35in;
+  right: 0.55in;
+  display: flex;
+  width: 1.62in;
+  height: 1.62in;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 0.06in solid #FAF8F3;
+  border-radius: 50%;
+  outline: 0.025in solid #102A52;
+  color: #102A52;
+  background: #E7C96D;
+  box-shadow: 0.075in 0.085in 0 #A88839;
+  text-align: center;
+  transform: rotate(8deg);
+}
+
+.price-bubble::after {
+  position: absolute;
+  inset: 0.08in;
+  border: 1px solid rgba(16, 42, 82, 0.28);
+  border-radius: 50%;
+  content: "";
+}
+
+.amount {
+  font-size: 35pt;
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -1.5pt;
+}
+
+.per-spin {
+  margin-top: 0.055in;
+  font-size: 10pt;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 1pt;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.13in;
+  border-top: 0.1in solid #E7C96D;
+  background: #102A52;
+  text-align: center;
+}
+
+.website {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 7.3in;
+  padding: 0.13in 0.28in;
+  border: 0.035in solid #FAF8F3;
+  border-radius: 0.12in;
+  color: #102A52;
+  background: #E7C96D;
+  box-shadow: 0 0.06in 0 #A88839;
+  font-size: 21pt;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.3pt;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.presented {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: 11pt;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.4pt;
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="header">
+    <img class="logo" src="campaign-logo.png" alt="Spin for Chinuch - Chinuch Yehudi">
+  </header>
+
+  <section class="hero">
+    <svg class="spin-trails" viewBox="0 0 850 535" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M153 365c-45-35-70-83-70-138 0-36 11-71 32-100" fill="none" stroke="#649CD3" stroke-width="5" stroke-linecap="round"/>
+      <path d="M126 394c-29-25-49-54-61-88" fill="none" stroke="#E7C96D" stroke-width="9" stroke-linecap="round"/>
+      <path d="M697 104c35 28 58 67 65 112" fill="none" stroke="#649CD3" stroke-width="5" stroke-linecap="round"/>
+      <path d="M727 382c31-28 51-61 61-99" fill="none" stroke="#467EB3" stroke-width="8" stroke-linecap="round"/>
+      <path d="m188 114 13 8m455 294 13-9" fill="none" stroke="#E7C96D" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="92" cy="210" r="6" fill="#E7C96D"/>
+      <circle cx="755" cy="290" r="6" fill="#649CD3"/>
+      <circle cx="180" cy="430" r="4" fill="#467EB3"/>
+      <circle cx="679" cy="78" r="4" fill="#E7C96D"/>
+    </svg>
+    <img class="wheel" src="newspaper-ad-wheel.svg" alt="Prize wheel">
+    <div class="price-bubble" aria-label="$18 PER SPIN">
+      <span class="amount">$18</span>
+      <span class="per-spin">PER SPIN</span>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <a class="website" href="https://spinforchinuchyehudi.com">spinforchinuchyehudi.com</a>
+    <p class="presented">Presented by Chinuch Yehudi</p>
+  </footer>
+</main>
+</body>
+</html>
