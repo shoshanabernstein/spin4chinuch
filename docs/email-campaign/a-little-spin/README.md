@@ -1,12 +1,12 @@
-# A little spin
+﻿# Ready. Set. Spin.
 
-Status: draft awaiting approval. No emails have been sent and no application sending behavior has changed.
+Status: revised landscape draft awaiting approval. The earlier story draft was test-sent; this revision has not been sent. Application sending behavior is unchanged.
 
-Subject: **A little spin. A world of possibility.**
+Subject: **Ready. Set. Spin.**
 
-Preheader: A chance to win something wonderful. A way to help a child’s future. Meet Spin for Chinuch.
+Preheader: Your next spin could be a winner. Every spin supports Jewish education.
 
-Open `preview.html` for the responsive browser preview. Desktop and mobile screenshots are included. The design follows the current cream, navy, blue, and gold landing page, with the existing campaign logo and a new vector illustration connecting its wheel to an open book. Copy describes the organization's work without presenting a fictional beneficiary as a real person. Prizes are described as a chance to win.
+Open `preview.html` for the revised landscape design: a short headline beside a large wheel, one purchase button, pricing, and one impact line. The two columns remain side by side on phones. The design follows the current cream, navy, blue, and gold landing page.
 
 ## Files
 
@@ -14,7 +14,7 @@ Open `preview.html` for the responsive browser preview. Desktop and mobile scree
 - `email.txt`: equivalent plain-text content.
 - `draft.json`: subject, preheader, reply address, and image attachment manifest. This is draft metadata, not a Resend API request.
 - `campaign-logo.png`: existing campaign branding.
-- `spin-to-possibility.svg` and `.png`: editable graphic and email image.
+- `spin-wheel.svg` and `.png`: campaign wheel graphic used by this revision. The earlier spin-to-possibility artwork remains as an unused prior draft asset.
 - `preview.html`, `preview-desktop.png`, and `preview-mobile.png`: review artifacts.
 
 ## Sending after approval
@@ -25,4 +25,5 @@ For an inline-image send, read each PNG as a Buffer and use its `contentId` from
 
 Before sending, replace `{{unsubscribe_url}}` with the recipient's working unsubscribe link (or the appropriate Resend Broadcast unsubscribe variable), and `{{mailing_address}}` with the organization's mailing address in both HTML and text. The browser preview omits the address and uses an email unsubscribe link solely for visual review. Apply recipient exclusions and unsubscribe suppression when the approved contact list is supplied. Do not send literal placeholders.
 
-Verified locally in headless Edge at 800px and 390px: images load, no horizontal overflow, and CTA links target the campaign's purchase page. Screenshots were visually reviewed. Actual inbox rendering and a Resend test delivery remain for the approved sending stage.
+Verified locally in headless Edge at 1100px and 390px: images load, no horizontal overflow, and CTA links target the campaign's purchase page. Screenshots were visually reviewed. Actual inbox rendering and a Resend test delivery of this revision remain for the sending stage.
+

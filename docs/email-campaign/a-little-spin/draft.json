@@ -1,7 +1,7 @@
 {
   "status": "draft-awaiting-approval",
-  "subject": "A little spin. A world of possibility.",
-  "preheader": "A chance to win something wonderful. A way to help a child’s future. Meet Spin for Chinuch.",
+  "subject": "Ready. Set. Spin.",
+  "preheader": "Your next spin could be a winner. Every spin supports Jewish education.",
   "fromName": "Spin for Chinuch",
   "replyTo": "spinforchinuchyehudi@gmail.com",
   "html": "email.html",
@@ -13,8 +13,8 @@
       "contentType": "image/png"
     },
     {
-      "filename": "spin-to-possibility.png",
-      "contentId": "spin-to-possibility",
+      "filename": "spin-wheel.png",
+      "contentId": "spin-wheel",
       "contentType": "image/png"
     }
   ]
