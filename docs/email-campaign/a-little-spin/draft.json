@@ -1,0 +1,21 @@
+{
+  "status": "draft-awaiting-approval",
+  "subject": "A little spin. A world of possibility.",
+  "preheader": "A chance to win something wonderful. A way to help a child’s future. Meet Spin for Chinuch.",
+  "fromName": "Spin for Chinuch",
+  "replyTo": "spinforchinuchyehudi@gmail.com",
+  "html": "email.html",
+  "text": "email.txt",
+  "attachments": [
+    {
+      "filename": "campaign-logo.png",
+      "contentId": "campaign-logo",
+      "contentType": "image/png"
+    },
+    {
+      "filename": "spin-to-possibility.png",
+      "contentId": "spin-to-possibility",
+      "contentType": "image/png"
+    }
+  ]
+}

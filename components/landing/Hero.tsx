@@ -37,13 +37,12 @@ export default function Hero() {
         <div className="w-full min-w-0 max-w-2xl">
 
           <h1 className="text-5xl font-black leading-[1.04] tracking-[-0.045em] text-white sm:text-6xl lg:text-7xl">
-            <span className="block">Take a Spin.</span>
-            <span className="mt-2 block text-[#F0D47F]">Win a Prize.</span>
+            <span className="block whitespace-nowrap">Take a Spin.</span>{" "}
+            <span className="mt-2 block whitespace-nowrap text-[#F0D47F]">Win a Prize.</span>
           </h1>
 
           <p className="mt-6 max-w-xl text-lg leading-8 text-blue-100">
-            Support Jewish education while entering for incredible prize
-            drawings.
+            Support Jewish Education
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-6">

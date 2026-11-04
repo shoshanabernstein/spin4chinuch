@@ -7,7 +7,6 @@ import { X } from "lucide-react";
 import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import toast from "react-hot-toast";
 
-import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSpinAvailability } from "@/components/useSpinAvailability";
 import { supabase } from "@/lib/supabase";
 import BuySpinsHero from "@/components/buy-spins/BuySpinsHero";
@@ -86,7 +85,7 @@ export default function BuySpinsPage() {
       } = await supabase.auth.getSession();
 
       if (!user || !session) {
-        throw new Error("Please log in again before checking out.");
+        router.push("/login?redirect=%2Fbuy-spins");
         return;
       }
 
@@ -134,7 +133,6 @@ export default function BuySpinsPage() {
   }
 
   return (
-    <ProtectedRoute>
       <div className="app-page">
 
         {/* Background (matches Dashboard) */}
@@ -263,6 +261,5 @@ export default function BuySpinsPage() {
         )}
 
       </div>
-    </ProtectedRoute>
   );
 }

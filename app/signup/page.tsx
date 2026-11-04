@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { US_STATES, COUNTRIES } from "@/lib/locations";
 import toast from "react-hot-toast";
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<main className="app-page" />}>
+      <SignupForm />
+    </Suspense>
+  );
+}
 
 function getStrength(password: string) {
   if (password.length < 6)
@@ -30,7 +38,7 @@ function getStrength(password: string) {
   };
 }
 
-export default function SignupPage() {
+function SignupForm() {
 
   function formatPhone(value: string) {
     const cleaned = value.replace(/\D/g, "").slice(0, 10);
@@ -47,6 +55,11 @@ export default function SignupPage() {
   }
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedRedirect = searchParams.get("redirect");
+  const redirectTo = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//") && !requestedRedirect.includes("\\")
+    ? requestedRedirect : "/dashboard";
+  const loginHref = `/login?redirect=${encodeURIComponent(redirectTo)}`;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -131,10 +144,10 @@ export default function SignupPage() {
 
     if (!data.session) {
       toast.success("Account created. Check your email to confirm your address.");
-      router.replace("/login");
+      router.replace(loginHref);
     } else {
       toast.success("Account created successfully!");
-      router.replace("/dashboard");
+      router.replace(redirectTo);
     }
 
 
@@ -394,7 +407,7 @@ export default function SignupPage() {
           <p className="text-slate-500">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={loginHref}
               className="font-semibold text-[#0D2C6C] hover:underline"
             >
               Login

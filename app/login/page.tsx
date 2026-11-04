@@ -13,8 +13,9 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const redirectTo =
-    searchParams.get("redirect") || "/dashboard";
+  const requestedRedirect = searchParams.get("redirect");
+  const redirectTo = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//") && !requestedRedirect.includes("\\")
+    ? requestedRedirect : "/dashboard";
 
   const { user, loading: authLoading } = useAuth();
 
@@ -230,7 +231,7 @@ function LoginForm() {
       {/* Create Account */}
 
       <Link
-        href="/signup"
+        href={`/signup?redirect=${encodeURIComponent(redirectTo)}`}
         className="block w-full rounded-full border-2 border-[#0D2C6C] py-3 text-center font-semibold text-[#0D2C6C] transition hover:bg-[#0D2C6C] hover:text-white"
       >
         Create Account

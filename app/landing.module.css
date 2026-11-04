@@ -24,14 +24,24 @@
 }
 .page [data-landing="hero"] h1 {
   color: var(--ink);
-  font-size: clamp(3.5rem, 6.6vw, 7rem);
+  font-size: clamp(3.25rem, 5.5vw, 5.75rem);
   font-weight: 600;
-  line-height: .99;
-  letter-spacing: -.065em;
+  line-height: 1.06;
+  letter-spacing: -.05em;
 }
-.page [data-landing="hero"] h1 > :last-child { color: #467eb3; margin-top: 12px; }
-.page [data-landing="hero"] h1 + p { color: #52657b; max-width: 440px; margin-top: 30px; }
-.page [data-landing="hero"] h1 + p + div { margin-top: 24px; gap: 24px; }
+.page [data-landing="hero"] h1 > :last-child { color: #467eb3; margin-top: 6px; }
+.page [data-landing="hero"] h1 + p {
+  color: var(--ink);
+  max-width: 440px;
+  margin-top: 28px;
+  border-left: 3px solid #e7c96d;
+  padding-left: 16px;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+.page [data-landing="hero"] h1 + p + div { margin-top: 32px; gap: 24px; }
 .page [data-landing="hero"] a[href="/spin"] {
   background: #e7c96d; color: var(--ink); padding-inline: 28px;
   border-radius: 8px; box-shadow: 0 4px 12px #c9a44d15;
@@ -40,19 +50,15 @@
 .page [data-landing="hero"] a[href="#about"] { color: var(--ink); }
 /* Editorial story layout and a framed, fully functional video. */
 .page [data-landing="about"] { max-width: 1360px; padding-block: 100px; }
-.page [data-landing="about"] > :first-child { max-width: none; text-align: left; margin-bottom: 45px; }
-.page [data-landing="about"] > :first-child > p,
+.page [data-about-copy] { text-align: left; }
+.page [data-about-heading] > p,
 .page [data-landing="steps"] > :first-child > span,
 .page [data-landing="actions"] > :first-child > span,
 .page [data-landing="contact"] > div:last-child > div > span {
   background: transparent; border-radius: 0; padding: 0;
   color: #527ca4; font-size: 11px; letter-spacing: .2em;
 }
-.page [data-landing="about"] h2 { margin-left: 0; max-width: 660px; font-size: clamp(2rem, 3.5vw, 3.25rem); }
-.page [data-landing="about"] > :last-child { background: transparent; border: 0; padding: 0; border-radius: 0; gap: 65px; }
-.page [data-landing="about"] > :last-child > :first-child { border-left: 3px solid #9cbcd9; padding: 0 0 0 28px; }
-.page [data-landing="about"] > :last-child > :first-child > div { display: none; }
-.page [data-landing="about"] > :last-child > :first-child > p:last-child { margin-top: 22px; }
+.page [data-landing="about"] h2 { margin-left: 0; max-width: none; font-size: clamp(2rem, 3.3vw, 3rem); }
 /* Four connected steps on a single navy field. */
 .page > div:has([data-landing="steps"]) { background: var(--ink); border: 0; }
 .page [data-landing="steps"] { padding-block: 82px; max-width: 1360px; }
@@ -94,11 +100,11 @@
 
 @media (max-width: 1023px) {
   .page [data-landing="hero"] > :last-child { padding-block: 64px; gap: 60px; }
-  .page [data-landing="about"] > :last-child { gap: 35px; }
+  .page [data-about-layout] { gap: 35px; }
 }
 @media (max-width: 639px) {
   .page [data-landing="hero"] > :last-child { padding-block: 48px 42px; gap: 28px; }
-  .page [data-landing="hero"] h1 { font-size: clamp(3.2rem, 12vw, 4rem); }
+  .page [data-landing="hero"] h1 { font-size: clamp(2.5rem, 10vw, 4rem); }
   .page [data-landing="about"], .page [data-landing="steps"], .page [data-landing="actions"] { padding-block: 58px; }
 
   .page [data-landing="actions"] > :last-child > a { padding: 26px; }

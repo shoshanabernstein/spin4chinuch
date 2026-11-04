@@ -29,8 +29,8 @@ export default function AboutVideo() {
 
   return (
     <>
-      <button type="button" data-about-film onClick={openVideo} className="group flex w-full items-stretch gap-5 overflow-hidden rounded-2xl border border-[#dbe2e9] bg-white p-3 text-left shadow-[0_8px_30px_rgba(16,42,82,0.04)] transition hover:border-[#9cbcd9] hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#467eb3] sm:gap-7 sm:p-4">
-        <span className="relative block w-24 shrink-0 self-center overflow-hidden rounded-xl bg-[#102a52] sm:w-32">
+      <button type="button" data-about-film onClick={openVideo} className="group flex w-full max-w-xl items-stretch gap-4 justify-self-start overflow-hidden rounded-2xl border border-[#e1dfd6] bg-[#f5f2ea] p-4 text-left transition hover:border-[#9cbcd9] hover:bg-[#f1eee5] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#467eb3] sm:gap-6 sm:p-5 lg:justify-self-end">
+        <span className="relative block w-24 shrink-0 self-center overflow-hidden rounded-lg bg-[#102a52] sm:w-32">
           {/* A still preview keeps the popup as the only media player. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/about-video-poster.jpg" width={360} height={640} alt="" className="pointer-events-none block aspect-[9/16] w-full object-cover" />
@@ -38,12 +38,13 @@ export default function AboutVideo() {
             <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/95 text-[#102a52] shadow-lg transition group-hover:scale-110"><Play size={20} fill="currentColor" aria-hidden="true" /></span>
           </span>
         </span>
-        <span className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-2 sm:pr-4">
-          <span className="block text-lg font-semibold leading-tight tracking-[-0.025em] text-[#243E61] sm:text-2xl">Rav Sholom Kamenetzky</span>
-          <span className="mt-2 block text-sm font-medium leading-6 text-[#42658a] sm:text-base">Recent trip to Florida</span>
+        <span className="flex min-w-0 flex-1 flex-col justify-center py-2 sm:py-3">
+          <span className="block text-lg font-semibold leading-[1.2] tracking-[-0.025em] text-[#243E61] sm:text-[22px]">Rav Sholom Kamenetzky</span>
+          <span className="mt-2 block text-sm font-medium leading-6 text-[#42658a] sm:text-base">Recent Trip to Florida</span>
           <span className="mt-1 block text-xs leading-5 text-[#61728A] sm:text-sm">On behalf of Chinuch Yehudi</span>
-          <span className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#e6ecf2] pt-4">
+          <span className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-[#dfddd4] pt-4">
             <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#467eb3]"><Play size={14} fill="currentColor" aria-hidden="true" />Watch video</span>
+            <span aria-hidden="true" className="text-xs text-[#61728A]">·</span>
             <span className="text-xs tabular-nums text-[#61728A]">1:21</span>
           </span>
         </span>
