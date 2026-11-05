@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CircleDashed, Gift, Shield, Ticket, Trophy, Users } from "lucide-react";
+import { CircleDashed, DollarSign, Gift, Shield, Ticket, Trophy, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ActionCard from "@/components/ui/ActionCard";
 import StatCard from "@/components/ui/StatCard";
@@ -9,42 +9,46 @@ import StatCard from "@/components/ui/StatCard";
 type AdminStats = {
   users: number;
   purchasedSpins: number | null;
+  totalSpentCents: number | null;
   activePrizes: number;
   winners: number;
 };
 
-async function loadPurchasedSpins() {
+async function loadPaymentTotals() {
   const pageSize = 1000;
   let total = 0;
+  let totalSpentCents = 0;
   // Read every payment, including purchases beyond Supabase's row limit.
   for (let offset = 0; ;) {
     const { data, error, count } = await supabase
       .from("payment_logs")
-      .select("spins", { count: "exact" })
+      .select("spins,amount", { count: "exact" })
       .order("payment_intent_id")
       .range(offset, offset + pageSize - 1);
     if (error) throw error;
     total += (data ?? []).reduce((sum, payment) => sum + payment.spins, 0);
+    totalSpentCents += (data ?? []).reduce((sum, payment) => sum + payment.amount, 0);
     offset += data?.length ?? 0;
-    if (!data?.length || (count !== null && offset >= count)) return total;
+    if (!data?.length || (count !== null && offset >= count)) return { purchasedSpins: total, totalSpentCents };
   }
 }
 
 export default function AdminPage() {
-  const [stats, setStats] = useState<AdminStats>({ users: 0, purchasedSpins: 0, activePrizes: 0, winners: 0 });
+  const [stats, setStats] = useState<AdminStats>({ users: 0, purchasedSpins: 0, totalSpentCents: 0, activePrizes: 0, winners: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
-      const [users, purchasedSpins, activePrizes, winners] = await Promise.all([
+      const [users, paymentTotals, activePrizes, winners] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
-        loadPurchasedSpins().catch(() => null),
+        loadPaymentTotals().catch(() => null),
         supabase.from("prizes").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("wins").select("id", { count: "exact", head: true }),
       ]);
       setStats({
         users: users.count ?? 0,
-        purchasedSpins,
+        purchasedSpins: paymentTotals?.purchasedSpins ?? null,
+        totalSpentCents: paymentTotals?.totalSpentCents ?? null,
         activePrizes: activePrizes.count ?? 0,
         winners: winners.count ?? 0,
       });
@@ -69,9 +73,10 @@ export default function AdminPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-busy={loading}>
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5" aria-busy={loading}>
           <StatCard label="Registered Users" value={loading ? "—" : stats.users} icon={<Users />} />
           <StatCard label="Spins Purchased" value={loading ? "—" : stats.purchasedSpins ?? "Unavailable"} icon={<Ticket />} />
+          <StatCard label="Total Spent" value={loading ? "—" : stats.totalSpentCents === null ? "Unavailable" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(stats.totalSpentCents / 100)} icon={<DollarSign />} />
           <StatCard label="Active Prizes" value={loading ? "—" : stats.activePrizes} icon={<Trophy />} />
           <StatCard label="Recorded Wins" value={loading ? "—" : stats.winners} icon={<Ticket />} />
         </section>

@@ -1,7 +1,7 @@
 {
   "status": "draft-awaiting-approval",
-  "subject": "Ready. Set. Spin.",
-  "preheader": "Your next spin could be a winner. Every spin supports Jewish education.",
+  "subject": "Spin For Chinuch",
+  "preheader": "Buy a spin. Reveal your result. Every spin supports Jewish education.",
   "fromName": "Spin for Chinuch",
   "replyTo": "spinforchinuchyehudi@gmail.com",
   "html": "email.html",
@@ -13,8 +13,23 @@
       "contentType": "image/png"
     },
     {
-      "filename": "spin-wheel.png",
+      "filename": "spin-wheel.gif",
       "contentId": "spin-wheel",
+      "contentType": "image/gif"
+    },
+    {
+      "filename": "step-buy.png",
+      "contentId": "step-buy",
+      "contentType": "image/png"
+    },
+    {
+      "filename": "step-spin.png",
+      "contentId": "step-spin",
+      "contentType": "image/png"
+    },
+    {
+      "filename": "step-win.png",
+      "contentId": "step-win",
       "contentType": "image/png"
     }
   ]
