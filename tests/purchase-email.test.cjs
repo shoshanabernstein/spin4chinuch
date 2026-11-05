@@ -33,28 +33,25 @@ function mailer(response = { data: { id: 'email-receipt' }, error: null }) {
   return { ...exports, calls };
 }
 
-test('chosen navy email uses exact subject, actual purchase values, and all six inline graphics', async () => {
+test('compact receipt uses actual purchase values without images or attachments', async () => {
   const { sendPurchaseConfirmation, calls } = mailer();
   assert.equal(await sendPurchaseConfirmation('buyer@example.invalid', { id: 'pi_test', spins: 3, amount: 5400 }), 'email-receipt');
   const [email, options] = calls[0];
-  assert.equal(email.subject, 'Your Purchase is Confirmed');
+  assert.equal(email.subject, 'Your Spin for Chinuch receipt');
   assert.equal(email.to, 'buyer@example.invalid');
   assert.equal(email.from, 'Spin for Chinuch <prizes@example.invalid>');
   assert.equal(email.replyTo, 'spinforchinuchyehudi@gmail.com');
-  assert.match(email.html, />3<\/p>/);
+  assert.match(email.html, />3<\/td>/);
   assert.match(email.html, /\$54\.00/);
-  assert.match(email.html, /background-color:#102A52/);
+  assert.match(email.html, /Your purchase receipt/);
   assert.match(email.html, /https:\/\/www\.spinforchinuchyehudi\.com\/spin/);
   assert.doesNotMatch(email.html, /\{\{|Your payment went through/);
   assert.match(email.text, /Spins purchased: 3\nTotal paid: \$54\.00/);
   assert.equal(options.idempotencyKey, 'purchase-confirmation/pi_test');
-  const ids = new Set([...email.html.matchAll(/cid:([^"\s]+)/g)].map(match => match[1]));
-  assert.equal(ids.size, 6);
-  assert.deepEqual(new Set(email.attachments.map(attachment => attachment.contentId)), ids);
-  for (const attachment of email.attachments) {
-    assert.equal(attachment.contentType, 'image/png');
-    assert.equal(attachment.content.subarray(1, 4).toString(), 'PNG');
-  }
+  assert.equal(email.attachments, undefined);
+  assert.doesNotMatch(email.html, /<img|cid:|\{\{/);
+  assert.doesNotMatch(email.text, /\{\{/);
+
 });
 
 test('invalid email/amount cannot send; provider rejection or missing receipt must retry', async () => {

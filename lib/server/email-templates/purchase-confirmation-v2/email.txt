@@ -1,0 +1,17 @@
+Spin for Chinuch
+Presented by Chinuch Yehudi
+
+Your purchase receipt
+
+Thank you for your purchase. Your spins have been added to your account.
+
+Spins purchased: {{spins}}
+Total paid: {{amount}}
+
+The total reflects any package savings and discounts applied at checkout.
+
+Use your spins: https://www.spinforchinuchyehudi.com/spin
+
+Thank you for supporting Jewish education.
+
+Questions about your purchase? Reply to this email or contact spinforchinuchyehudi@gmail.com.

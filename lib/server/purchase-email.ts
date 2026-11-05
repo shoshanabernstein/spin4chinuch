@@ -3,33 +3,15 @@ import path from "node:path";
 import { Resend } from "resend";
 import { isSupportedSpinAmount } from "@/lib/spin-pricing";
 
-export const PURCHASE_EMAIL_SUBJECT = "Your Purchase is Confirmed";
-
-const SITE_URL = "https://www.spinforchinuchyehudi.com";
-const ASSETS = [
-  "campaign-logo",
-  "purchase-confirmed-orbit-navy",
-  "purchase-spins-icon",
-  "purchase-paid-icon",
-  "purchase-education-navy",
-  "purchase-orbit-trails",
-] as const;
+export const PURCHASE_EMAIL_SUBJECT = "Your Spin for Chinuch receipt";
 
 async function loadTemplate() {
-  const directory = path.join(process.cwd(), "lib/server/email-templates/purchase-confirmation-v1");
-  const [html, ...images] = await Promise.all([
+  const directory = path.join(process.cwd(), "lib/server/email-templates/purchase-confirmation-v2");
+  const [html, text] = await Promise.all([
     readFile(path.join(directory, "email.html"), "utf8"),
-    ...ASSETS.map(name => readFile(path.join(directory, `${name}.png`))),
+    readFile(path.join(directory, "email.txt"), "utf8"),
   ]);
-  return {
-    html: html as string,
-    attachments: ASSETS.map((name, index) => ({
-      filename: `${name}.png`,
-      content: images[index] as Buffer,
-      contentType: "image/png",
-      contentId: name,
-    })),
-  };
+  return { html, text };
 }
 
 let template: ReturnType<typeof loadTemplate> | undefined;
@@ -55,15 +37,14 @@ export async function sendPurchaseConfirmation(
   const amount = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
     .format(purchase.amount / 100);
   template ??= loadTemplate();
-  const { html, attachments } = await template;
+  const { html, text } = await template;
   const { data, error } = await new Resend(apiKey).emails.send({
     from: `Spin for Chinuch <${fromAddress}>`,
     to: email,
     replyTo: "spinforchinuchyehudi@gmail.com",
     subject: PURCHASE_EMAIL_SUBJECT,
     html: html.replaceAll("{{spins}}", String(purchase.spins)).replaceAll("{{amount}}", amount),
-    text: `You're ready to spin!\n\nSpins purchased: ${purchase.spins}\nTotal paid: ${amount}\n\nSpin the Wheel: ${SITE_URL}/spin\n\nEvery spin supports Jewish education. Thank you for supporting Chinuch Yehudi: https://chinuchyehudiusa.org/\n\nSpin for Chinuch - Presented by Chinuch Yehudi\nQuestions? Reply to this email or contact spinforchinuchyehudi@gmail.com.`,
-    attachments,
+    text: text.replaceAll("{{spins}}", String(purchase.spins)).replaceAll("{{amount}}", amount),
   }, { idempotencyKey: `purchase-confirmation/${purchase.id}` });
 
   if (error || !data?.id) throw new Error("Purchase confirmation email was not accepted by the email service");

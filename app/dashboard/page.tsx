@@ -20,6 +20,7 @@ import {
   Ticket,
   CircleDashed,
   Trophy,
+  Tag,
 } from "lucide-react";
 
 type Win = {
@@ -162,9 +163,31 @@ export default function DashboardPage() {
             <StatCard label="Spins Purchased" value={spinsPurchased} icon={<Ticket />} />
             <StatCard label="Spins Left" value={spinsLeft} icon={<CircleDashed />} />
             <StatCard label="Wins" value={wins.length} icon={<Trophy />} />
-            {discounts.enabled && <StatCard label="Discount available" value={discounts.error ? "Unavailable" : `$${(discounts.balanceCents / 100).toFixed(2)}`} icon={<DollarSign />} />}
-
           </div>
+
+          {discounts.enabled && (
+            <section aria-label="Available discount" className="flex flex-col gap-5 rounded-3xl border border-amber-200 bg-gradient-to-r from-amber-50 to-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="flex items-center gap-4">
+                <div aria-hidden="true" className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+                  <Tag className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-amber-800">Discount available</p>
+                  <p className="mt-1 text-3xl font-black tracking-tight text-[#142A52]">
+                    {discounts.error ? "Unavailable" : `$${(discounts.balanceCents / 100).toFixed(2)}`}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {discounts.error ? "Your discount balance could not be loaded." : discounts.balanceCents > 0 ? "Use your discount toward your next spin purchase." : "Discounts you win on the wheel will appear here."}
+                  </p>
+                </div>
+              </div>
+              {!discounts.error && discounts.balanceCents > 0 && (
+                <Button href="/buy-spins" variant="primary">
+                  Use Discount <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </section>
+          )}
 
           {/* Primary Actions */}
           <div className="grid gap-5 lg:grid-cols-2">
