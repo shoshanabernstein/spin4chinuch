@@ -31,6 +31,23 @@ export async function GET(req: Request) {
   }
 
   const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+  const spendingByUser = new Map<string, number>();
+  // Page through the ledger so totals aren't truncated by the API row limit.
+  const pageSize = 500;
+  for (let offset = 0; ; offset += pageSize) {
+    const { data: payments, error } = await supabaseAdmin
+      .from("payment_logs")
+      .select("user_id,amount")
+      .order("payment_intent_id")
+      .range(offset, offset + pageSize - 1);
+    if (error) {
+      return NextResponse.json({ error: "Unable to load user spending." }, { status: 500 });
+    }
+    for (const payment of payments ?? []) {
+      spendingByUser.set(payment.user_id, (spendingByUser.get(payment.user_id) ?? 0) + payment.amount);
+    }
+    if (!payments || payments.length < pageSize) break;
+  }
   const users = authData.users.map((user) => {
     const profile = profilesById.get(user.id);
     const bannedUntil = user.banned_until ? new Date(user.banned_until) : null;
@@ -44,6 +61,7 @@ export async function GET(req: Request) {
       role: profile?.role ?? "user",
       remainingSpins: profile?.remaining_spins ?? 0,
       totalSpins: profile?.total_spins ?? 0,
+      totalSpentCents: spendingByUser.get(user.id) ?? 0,
       active: !bannedUntil || bannedUntil <= new Date(),
       createdAt: user.created_at,
       lastSignInAt: user.last_sign_in_at ?? null,

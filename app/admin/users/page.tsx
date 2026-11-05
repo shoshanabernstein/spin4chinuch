@@ -18,6 +18,7 @@ type ManagedUser = {
   role: "admin" | "user";
   remainingSpins: number;
   totalSpins: number;
+  totalSpentCents: number;
   active: boolean;
   createdAt: string;
   lastSignInAt: string | null;
@@ -115,6 +116,9 @@ export default function AdminUsersPage() {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="truncate text-lg font-bold">{[user.firstName, user.lastName].filter(Boolean).join(" ") || "Unnamed user"}</h2>
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700" title="Total completed purchases">
+                    {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(user.totalSpentCents / 100)} spent
+                  </span>
                   {!user.active && <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">Deactivated</span>}
                   {user.isCurrentAdmin && <span className="rounded-full bg-blue-100 px-2.5 py-1 text-xs font-bold text-blue-700">You</span>}
                 </div>
