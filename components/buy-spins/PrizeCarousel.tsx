@@ -19,13 +19,9 @@ interface PrizeCarouselProps { prizes: Prize[]; }
 
 export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const interactionUntil = useRef(0);
-  const hovering = useRef(false);
-  const focused = useRef(false);
   useEffect(() => {
     const container = containerRef.current;
     if (!container || prizes.length === 0) return;
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     let previousTime = 0;
     let position = container.scrollLeft;
@@ -34,8 +30,9 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
       const elapsed = previousTime ? Math.min(time - previousTime, 40) : 0;
       previousTime = time;
       const maximum = container!.scrollWidth - container!.clientWidth;
-      if (!reducedMotion.matches && !document.hidden &&
-          !hovering.current && !focused.current && time > interactionUntil.current && maximum > 1) {
+      if (maximum > 1) {
+        // Pick up manual scrolling without interrupting automatic movement.
+        if (Math.abs(container!.scrollLeft - position) > 2) position = container!.scrollLeft;
         // Keep fractional pixels for consistent motion at every frame rate.
         position += direction * elapsed * 0.026;
         if (position >= maximum) { position = maximum; direction = -1; }
@@ -50,29 +47,20 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
     return () => cancelAnimationFrame(frame);
   }, [prizes]);
 
-  function pauseForInteraction() {
-    interactionUntil.current = performance.now() + 5000;
-  }
-
   function browse(direction: number) {
     const container = containerRef.current;
     if (!container) return;
-    pauseForInteraction();
     const card = container.firstElementChild as HTMLElement | null;
     const step = card ? card.offsetWidth + 20 : container.clientWidth;
     container.scrollBy({
       left: direction * step,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      behavior: "instant",
     });
   }
 
 
   return (
     <section
-      onPointerEnter={event => { if (event.pointerType === "mouse") hovering.current = true; }}
-      onPointerLeave={() => { hovering.current = false; }}
-      onFocusCapture={() => { focused.current = true; }}
-      onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) focused.current = false; }}
       aria-labelledby="purchase-prizes-title" className="min-w-0 overflow-hidden rounded-[28px] border border-[#DFE7F2] bg-white shadow-[0_12px_40px_rgba(20,42,82,.07)] sm:rounded-[32px]">
       <div className="relative isolate overflow-hidden border-b border-[#E7EDF5] bg-gradient-to-r from-white via-[#FCFCFA] to-[#FAF6EB] px-6 py-5 sm:px-8 sm:py-6">
         <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-24 h-56 w-56 rounded-full border-[24px] border-[#C9A44D]/[.055]" />
@@ -98,9 +86,6 @@ export default function PrizeCarousel({ prizes }: PrizeCarouselProps) {
         <>
           <div
             ref={containerRef}
-            onTouchStart={pauseForInteraction}
-            onTouchMove={pauseForInteraction}
-            onWheel={pauseForInteraction}
             role="region"
             aria-label="Browse donated prizes"
             tabIndex={0}
