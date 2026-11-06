@@ -11,6 +11,7 @@ type AdminStats = {
   purchasedSpins: number | null;
   totalSpentCents: number | null;
   activePrizes: number;
+  remainingPrizes: number | null;
   winners: number;
 };
 
@@ -34,22 +35,28 @@ async function loadPaymentTotals() {
 }
 
 export default function AdminPage() {
-  const [stats, setStats] = useState<AdminStats>({ users: 0, purchasedSpins: 0, totalSpentCents: 0, activePrizes: 0, winners: 0 });
+  const [stats, setStats] = useState<AdminStats>({ users: 0, purchasedSpins: 0, totalSpentCents: 0, activePrizes: 0, remainingPrizes: null, winners: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
-      const [users, paymentTotals, activePrizes, winners] = await Promise.all([
+      const [users, paymentTotals, activePrizes, winners, remainingPrizes] = await Promise.all([
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         loadPaymentTotals().catch(() => null),
         supabase.from("prizes").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("wins").select("id", { count: "exact", head: true }),
+        fetch("/api/prizes", { cache: "no-store" }).then(async (response) => {
+          if (!response.ok) throw new Error("Unable to load remaining prizes");
+          const data: { prizes: { quantity: number }[] } = await response.json();
+          return data.prizes.reduce((sum, prize) => sum + Math.max(0, prize.quantity), 0);
+        }).catch(() => null),
       ]);
       setStats({
         users: users.count ?? 0,
         purchasedSpins: paymentTotals?.purchasedSpins ?? null,
         totalSpentCents: paymentTotals?.totalSpentCents ?? null,
         activePrizes: activePrizes.count ?? 0,
+        remainingPrizes,
         winners: winners.count ?? 0,
       });
       setLoading(false);
@@ -73,11 +80,12 @@ export default function AdminPage() {
           </div>
         </section>
 
-        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5" aria-busy={loading}>
+        <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3" aria-busy={loading}>
           <StatCard label="Registered Users" value={loading ? "—" : stats.users} icon={<Users />} />
           <StatCard label="Spins Purchased" value={loading ? "—" : stats.purchasedSpins ?? "Unavailable"} icon={<Ticket />} />
           <StatCard label="Total Spent" value={loading ? "—" : stats.totalSpentCents === null ? "Unavailable" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(stats.totalSpentCents / 100)} icon={<DollarSign />} />
           <StatCard label="Active Prizes" value={loading ? "—" : stats.activePrizes} icon={<Trophy />} />
+          <StatCard label="Prizes Left" value={loading ? "—" : stats.remainingPrizes ?? "Unavailable"} icon={<Gift />} />
           <StatCard label="Recorded Wins" value={loading ? "—" : stats.winners} icon={<Ticket />} />
         </section>
 
