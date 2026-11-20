@@ -56,7 +56,20 @@ export default function AdminWinnersPage() {
     setWins((current) => current.map((win) => win.id === id ? { ...win, status } : win));
   }
 
-  const sortedWins = [...wins].sort((a, b) => Number(a.status === "Fulfilled") - Number(b.status === "Fulfilled"));
+  // Fulfilled wins stay below the rest; within each section, wins for the same prize sit together,
+  // with the prize that was won most recently first.
+  const isFulfilled = (win: Win) => win.status === "Fulfilled";
+  const groupKey = (win: Win) => `${isFulfilled(win)}|${win.prize}`;
+  const newestInGroup = new Map<string, number>();
+  for (const win of wins) {
+    const time = new Date(win.created_at).getTime();
+    newestInGroup.set(groupKey(win), Math.max(newestInGroup.get(groupKey(win)) ?? 0, time));
+  }
+  const sortedWins = [...wins].sort((a, b) =>
+    Number(isFulfilled(a)) - Number(isFulfilled(b))
+    || newestInGroup.get(groupKey(b))! - newestInGroup.get(groupKey(a))!
+    || a.prize.localeCompare(b.prize)
+    || new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   return (
     <main className="app-page">
