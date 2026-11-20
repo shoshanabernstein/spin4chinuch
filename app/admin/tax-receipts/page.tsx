@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CircleCheck, FileText, Send, Store, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
+import UserReceipts from "@/components/admin/UserTaxReceipts";
 
 type VendorPrize = { id: number; name: string; quantity: number; addedOn: string };
 type Vendor = {
@@ -65,13 +66,7 @@ export default function TaxReceiptsPage() {
           ))}
         </div>
 
-        {tab === "vendors" ? <VendorReceipts /> : (
-          <section className="rounded-3xl border border-blue-100 bg-white p-10 text-center shadow-lg">
-            <Users className="mx-auto h-10 w-10 text-[#4267A8]" aria-hidden="true" />
-            <h2 className="mt-4 text-2xl font-black">User receipts</h2>
-            <p className="mt-2 text-slate-500">Coming soon.</p>
-          </section>
-        )}
+        {tab === "vendors" ? <VendorReceipts /> : <UserReceipts />}
       </div>
     </main>
   );

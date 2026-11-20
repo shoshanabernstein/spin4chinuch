@@ -1,13 +1,13 @@
 import { PDFDocument, PDFFont, StandardFonts, rgb } from "pdf-lib";
 import { Resend } from "resend";
 
-const REPLY_TO_EMAIL = "spinforchinuchyehudi@gmail.com";
-const SENDER_NAME = "Spin for Chinuch Yehudi";
+export const REPLY_TO_EMAIL = "spinforchinuchyehudi@gmail.com";
+export const SENDER_NAME = "Spin for Chinuch Yehudi";
 // Receipts send from info@ on the verified Resend domain (winner emails keep using WIN_EMAIL_FROM).
-const SENDER_ADDRESS = "info@spinforchinuchyehudi.com";
-const ORG_LINE = "Chinuch Yehudi USA Inc. · 135 Cables Ave, Waterbury, CT 06710 · info@chinuchyehudiusa.org";
-const TAX_LINE = "Chinuch Yehudi USA Inc. is a U.S. tax-exempt 501(c)(3) organization (Tax ID # 99-4711564).";
-const MISSION_LINE = "Your generosity directly supports our mission of giving Jewish children the opportunity to receive a quality Jewish education.";
+export const SENDER_ADDRESS = "info@spinforchinuchyehudi.com";
+export const ORG_LINE = "Chinuch Yehudi USA Inc. · 135 Cables Ave, Waterbury, CT 06710 · info@chinuchyehudiusa.org";
+export const TAX_LINE = "Chinuch Yehudi USA Inc. is a U.S. tax-exempt 501(c)(3) organization (Tax ID # 99-4711564).";
+export const MISSION_LINE = "Your generosity directly supports our mission of giving Jewish children the opportunity to receive a quality Jewish education.";
 const FINE_PRINT = "In accordance with IRS guidelines, Chinuch Yehudi USA Inc. does not assign a value to donated items. The donor is responsible for determining the fair market value of the donation for tax purposes. Please keep this receipt for your tax records.";
 
 export type VendorReceipt = {
@@ -22,7 +22,7 @@ export type VendorReceipt = {
   description: string;
 };
 
-const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+export const EMAIL_PATTERN = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
 export function validateVendorReceipt(input: unknown): VendorReceipt | string {
   if (!input || typeof input !== "object") return "Missing receipt details";
@@ -51,7 +51,7 @@ function onBehalfOf(receipt: VendorReceipt) {
   return business && business.toLowerCase() !== receipt.donorName.trim().toLowerCase() ? `, on behalf of ${business},` : "";
 }
 
-function firstName(name: string) {
+export function firstName(name: string) {
   return name.trim().split(/\s+/)[0] || name.trim();
 }
 
@@ -60,13 +60,27 @@ export function receiptFileName(receipt: VendorReceipt) {
   return `Donation Receipt - ${label || "Chinuch Yehudi"}.pdf`;
 }
 
-type Run = { text: string; font: PDFFont };
+export type Run = { text: string; font: PDFFont };
 
 /** Lays out runs of text (each with its own font) as wrapped lines. */
-function wrapRuns(runs: Run[], size: number, maxWidth: number) {
+/** Replaces characters the standard PDF fonts can't draw (e.g. Hebrew, emoji) so a receipt never fails to build. */
+export function printable(font: PDFFont, text: string) {
+  let result = "";
+  for (const character of text.normalize("NFC")) {
+    try {
+      font.widthOfTextAtSize(character, 12);
+      result += character;
+    } catch {
+      result += character === "−" ? "-" : "?";
+    }
+  }
+  return result;
+}
+
+export function wrapRuns(runs: Run[], size: number, maxWidth: number) {
   const words: Run[] = [];
   for (const run of runs) {
-    for (const piece of run.text.split(/(\s+)/)) if (piece) words.push({ text: piece, font: run.font });
+    for (const piece of printable(run.font, run.text).split(/(\s+)/)) if (piece) words.push({ text: piece, font: run.font });
   }
   const lines: Run[][] = [];
   let line: Run[] = [];
