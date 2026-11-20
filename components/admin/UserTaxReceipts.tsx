@@ -157,11 +157,6 @@ export default function UserTaxReceipts() {
                 <h2 className="text-xl font-black">{user.donorName || user.email || "Unnamed user"}</h2>
                 <p className="text-sm text-slate-500">{user.purchases} purchase{user.purchases === 1 ? "" : "s"} · {user.spins} spins · {user.period}</p>
               </div>
-              {last ? (
-                <span className="flex items-center gap-1.5 self-start rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700"><CircleCheck size={16} aria-hidden="true" /> Sent {formatSentDate(last.sentAt)} to {last.email}</span>
-              ) : (
-                <span className="self-start rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">Not sent yet</span>
-              )}
             </div>
             <dl className="mt-4 grid gap-1 text-sm">
               <div className="flex justify-between gap-4"><dt>Total contributed</dt><dd className="tabular-nums">{money(user.totalCents)}</dd></div>
@@ -174,13 +169,18 @@ export default function UserTaxReceipts() {
               <div><label className={label} htmlFor={`uname-${user.userId}`}>Dear …</label><input id={`uname-${user.userId}`} className={field} value={draft.donorName} onChange={(event) => setDraft(user.userId, "donorName", event.target.value)} /></div>
               <div><label className={label} htmlFor={`uemail-${user.userId}`}>Email</label><input id={`uemail-${user.userId}`} type="email" className={field} value={draft.email} onChange={(event) => setDraft(user.userId, "email", event.target.value)} /></div>
             </div>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap items-center gap-3">
               <button type="button" disabled={busy !== null || !ready(user)} onClick={() => void preview(user.userId)} className="flex items-center gap-2 rounded-full border border-slate-200 px-5 py-2.5 font-bold shadow-sm transition hover:bg-slate-50 disabled:opacity-50">
                 <FileText size={18} aria-hidden="true" /> Preview receipt
               </button>
               <button type="button" disabled={busy !== null || !ready(user)} onClick={() => void send(user)} className="flex items-center gap-2 rounded-full bg-[#2F6ED8] px-5 py-2.5 font-bold text-white shadow transition hover:bg-[#255bb5] disabled:opacity-50">
                 <Send size={18} aria-hidden="true" /> {busy === user.userId ? "Working…" : "Send"}
               </button>
+              {last ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1.5 text-xs font-bold text-green-700"><CircleCheck size={16} aria-hidden="true" /> Sent {formatSentDate(last.sentAt)} to {last.email}</span>
+              ) : (
+                <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-500">Not sent yet</span>
+              )}
             </div>
           </article>
         );

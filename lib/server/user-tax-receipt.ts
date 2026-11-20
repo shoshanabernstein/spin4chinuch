@@ -48,6 +48,13 @@ function toCents(value: unknown) {
   return Number.isFinite(dollars) && dollars > 0 ? Math.round(dollars * 100) : null;
 }
 
+/** A gift card is worth its face value, e.g. "$5 CVS Gift Card" -> 500 cents. */
+export function giftCardValue(prizeName: string) {
+  if (!/gift\s*card/i.test(prizeName)) return null;
+  const match = prizeName.match(/\$\s*(\d{1,6}(?:\.\d{1,2})?)/);
+  return match ? toCents(match[1]) : null;
+}
+
 /** Every purchasing user's totals (payment_logs ledger, in cents) less the value of prizes they won. */
 export async function loadUserReceipts(onlyUserId?: string): Promise<UserReceipt[]> {
   type Payment = { user_id: string | null; amount: number; spins: number; created_at: string };
@@ -78,7 +85,7 @@ export async function loadUserReceipts(onlyUserId?: string): Promise<UserReceipt
   const winsByUser = new Map<string, UserReceiptPrize[]>();
   for (const win of wins) {
     if (!win.user_id) continue;
-    const valueCents = toCents(win.retail_value) ?? (win.prize_id ? prizeValues.get(win.prize_id) ?? null : null);
+    const valueCents = toCents(win.retail_value) ?? (win.prize_id ? prizeValues.get(win.prize_id) ?? null : null) ?? giftCardValue(win.prize);
     winsByUser.set(win.user_id, [...(winsByUser.get(win.user_id) ?? []), { name: win.prize, valueCents }]);
   }
 
