@@ -12,7 +12,6 @@ export default function WinnersFeed({ className = "" }: { className?: string }) 
   const [winners, setWinners] = useState<Winner[]>([]);
   const [reduceMotion, setReduceMotion] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const paused = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +50,7 @@ export default function WinnersFeed({ className = "" }: { className?: string }) 
       const elapsed = previous ? Math.min(time - previous, 40) : 0;
       previous = time;
       const loopHeight = scroller!.scrollHeight / 2;
-      if (!paused.current && loopHeight > scroller!.clientHeight) {
+      if (loopHeight > scroller!.clientHeight) {
         position += elapsed * SPEED_PX_PER_MS;
         if (position >= loopHeight) position -= loopHeight;
         scroller!.scrollTop = position;
@@ -69,12 +68,6 @@ export default function WinnersFeed({ className = "" }: { className?: string }) 
   const loop = !reduceMotion && winners.length >= 2;
   const rows = loop ? [...winners, ...winners] : winners;
 
-  const pauseHandlers = {
-    onMouseEnter: () => { paused.current = true; },
-    onMouseLeave: () => { paused.current = false; },
-    onFocus: () => { paused.current = true; },
-    onBlur: () => { paused.current = false; },
-  };
 
   // A long, narrow strip of separate winner cards gliding past.
   return (
@@ -86,7 +79,6 @@ export default function WinnersFeed({ className = "" }: { className?: string }) 
       </div>
       <div
         ref={scrollerRef}
-        {...pauseHandlers}
         className={`relative min-h-0 w-full flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${loop ? "overflow-hidden" : "overflow-y-auto"} [mask-image:linear-gradient(to_bottom,transparent,black_10%,black_90%,transparent)]`}
       >
         <ul>
