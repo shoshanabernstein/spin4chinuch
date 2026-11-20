@@ -135,14 +135,16 @@ test('sponsor email uses requested copy, escapes winner details, and has no PDF'
   const calls = [];
   class Resend { emails = { send: async (...args) => { calls.push(args); return { data: { id: 'receipt' } }; } }; }
   const { sendSponsorWinEmail } = load('lib/server/win-email.ts', { resend: { Resend } }, { RESEND_API_KEY: 'fake', WIN_EMAIL_FROM: 'test@example.invalid' });
-  await sendSponsorWinEmail('sponsor@example.invalid', '<Winner>', 'winner@example.invalid', 'Prize <A>', 42);
+  await sendSponsorWinEmail('sponsor@example.invalid', '<Winner>', 'winner@example.invalid', 'Prize <A>', 42, '+1 <555> 123-4567');
   const [message, options] = calls[0];
   assert.equal(message.to, 'sponsor@example.invalid');
-  assert.equal(message.subject, 'Chinuch Yehudi Campaign – Winner Prize Delivery');
+  assert.equal(message.subject, 'Chinuch Yehudi – Contact info for your donated gift');
   assert.match(message.html, /&lt;Winner&gt;/);
   assert.match(message.html, /&lt;A&gt;/);
-  assert.match(message.text, /Please email the prize directly to the winner/);
+  assert.match(message.text, /Please reach out to the winner directly to send the gift card or arrange the service/);
   assert.match(message.text, /winner@example.invalid/);
+  assert.match(message.text, /Phone Number: \+1 <555> 123-4567/);
+  assert.match(message.html, /Phone Number:<\/strong> \+1 &lt;555&gt; 123-4567/);
   assert.equal(message.attachments, undefined);
   assert.equal(options.idempotencyKey, 'sponsor-win/42');
 });
@@ -150,7 +152,7 @@ test('sponsor email uses requested copy, escapes winner details, and has no PDF'
 test('sponsor notifications are opt-in and use the profile name', async () => {
   const calls = [];
   let address = null;
-  const client = { from(table) { return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { notification_email: address } }), single: async () => ({ data: { first_name: 'First', last_name: 'Last' } }) }; } };
+  const client = { from(table) { return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: { notification_email: address } }), single: async () => ({ data: { first_name: 'First', last_name: 'Last', phone: '555-123-4567' } }) }; } };
   const { notifyPrizeSponsor } = load('lib/server/sponsor-notification.ts', {
     '@/lib/server/supabase': { supabaseAdmin: client },
     '@/lib/server/win-email': { sendSponsorWinEmail: async (...args) => calls.push(args) },
@@ -161,6 +163,7 @@ test('sponsor notifications are opt-in and use the profile name', async () => {
   await notifyPrizeSponsor(1, 'user', 'winner@example.invalid', 'Prize', 42);
   assert.equal(calls[0][1], 'First Last');
   assert.equal(calls[0][2], 'winner@example.invalid');
+  assert.equal(calls[0][5], '555-123-4567');
 });
 
 
