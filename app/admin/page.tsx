@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CircleDashed, DollarSign, Gift, Shield, Ticket, Trophy, Users } from "lucide-react";
+import { CircleDashed, DollarSign, FileText, Gift, Shield, Ticket, Trophy, Users } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import ActionCard from "@/components/ui/ActionCard";
 import StatCard from "@/components/ui/StatCard";
@@ -94,6 +94,7 @@ export default function AdminPage() {
           <ActionCard title="Prizes" description="Create, edit, archive, and restore fundraiser prizes." buttonText="Manage Prizes" href="/admin/prizes" icon={<Gift size={28} />} />
           <ActionCard title="Wheel Outcomes" description="Control wheel labels, prize links, weights, and availability." buttonText="Manage Outcomes" href="/admin/outcomes" icon={<CircleDashed size={28} />} />
           <ActionCard title="Winners" description="Review winner history and fulfillment information." buttonText="View Winners" href="/admin/winners" icon={<Trophy size={28} />} />
+          <ActionCard title="Tax Receipts" description="Send donation receipts to prize vendors and supporters." buttonText="Tax Receipts" href="/admin/tax-receipts" icon={<FileText size={28} />} />
         </section>
       </div>
     </main>
