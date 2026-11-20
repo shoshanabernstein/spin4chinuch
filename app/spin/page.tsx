@@ -19,6 +19,7 @@ import {
 
 import { useAuth } from "@/components/AuthProvider";
 import PrizeWheel from "@/components/PrizeWheel/PrizeWheel";
+import WinnersFeed from "@/components/spin/WinnersFeed";
 import { supabase } from "@/lib/supabase";
 
 type Outcome = {
@@ -409,6 +410,10 @@ export default function SpinPage() {
 
 
           <section className="relative mx-auto flex w-full flex-col items-center xl:grid xl:grid-cols-[minmax(240px,1fr)_minmax(0,min(1100px,calc(100dvh-136px)))_minmax(240px,1fr)] xl:gap-10 2xl:gap-14">
+            <div className="hidden xl:col-start-1 xl:row-start-1 xl:flex xl:h-[calc(100dvh-170px)] xl:w-[190px] xl:self-center xl:justify-self-center">
+              <WinnersFeed className="h-full w-full" />
+            </div>
+
             <div className="relative flex w-full min-w-0 flex-col items-center justify-center px-0 pb-3 sm:px-6 sm:pb-4 xl:col-start-2 xl:px-0 xl:pb-0">
               <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,.4),transparent_65%)]" />
 
@@ -503,7 +508,6 @@ export default function SpinPage() {
                 </div>
               ))}
               </dl>
-
             </aside>
 
           </section>
