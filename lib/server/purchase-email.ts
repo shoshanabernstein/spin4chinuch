@@ -3,7 +3,9 @@ import path from "node:path";
 import { Resend } from "resend";
 import { isSupportedSpinAmount } from "@/lib/spin-pricing";
 
-export const PURCHASE_EMAIL_SUBJECT = "Your Spin for Chinuch receipt";
+export const PURCHASE_EMAIL_SUBJECT = "Thank you for your purchase";
+// Receipts come from info@ (not prizes@) to look less like prize/lottery mail to spam filters.
+export const PURCHASE_EMAIL_FROM = "Spin for Chinuch Yehudi <info@spinforchinuchyehudi.com>";
 
 async function loadTemplate() {
   const directory = path.join(process.cwd(), "lib/server/email-templates/purchase-confirmation-v2");
@@ -30,16 +32,14 @@ export async function sendPurchaseConfirmation(
     throw new Error("Invalid purchase email details");
   }
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.WIN_EMAIL_FROM;
-  if (!apiKey || !from) throw new Error("Purchase confirmation email is not configured");
+  if (!apiKey) throw new Error("Purchase confirmation email is not configured");
 
-  const fromAddress = (from.match(/<([^>]+)>/)?.[1] ?? from).trim();
   const amount = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
     .format(purchase.amount / 100);
   template ??= loadTemplate();
   const { html, text } = await template;
   const { data, error } = await new Resend(apiKey).emails.send({
-    from: `Spin for Chinuch <${fromAddress}>`,
+    from: PURCHASE_EMAIL_FROM,
     to: email,
     replyTo: "spinforchinuchyehudi@gmail.com",
     subject: PURCHASE_EMAIL_SUBJECT,

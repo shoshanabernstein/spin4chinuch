@@ -37,9 +37,9 @@ test('compact receipt uses actual purchase values without images or attachments'
   const { sendPurchaseConfirmation, calls } = mailer();
   assert.equal(await sendPurchaseConfirmation('buyer@example.invalid', { id: 'pi_test', spins: 3, amount: 5400 }), 'email-receipt');
   const [email, options] = calls[0];
-  assert.equal(email.subject, 'Your Spin for Chinuch receipt');
+  assert.equal(email.subject, 'Thank you for your purchase');
   assert.equal(email.to, 'buyer@example.invalid');
-  assert.equal(email.from, 'Spin for Chinuch <prizes@example.invalid>');
+  assert.equal(email.from, 'Spin for Chinuch Yehudi <info@spinforchinuchyehudi.com>');
   assert.equal(email.replyTo, 'spinforchinuchyehudi@gmail.com');
   assert.match(email.html, />3<\/td>/);
   assert.match(email.html, /\$54\.00/);
