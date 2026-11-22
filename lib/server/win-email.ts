@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const REPLY_TO_EMAIL = "spinforchinuchyehudi@gmail.com";
+const SPONSOR_EMAIL_FROM = "Spin for Chinuch Yehudi <info@spinforchinuchyehudi.com>";
 const DEFAULT_SITE_URL = "https://spinforchinuchyehudi.com";
 const ASSET_BASE_URL = "https://spin4chinuch.vercel.app";
 
@@ -124,10 +125,8 @@ export async function sendWinEmail(email: string, prize: string, prizeImageUrl?:
 
 export async function sendSponsorWinEmail(email: string, winnerName: string, winnerEmail: string, prize: string, winId?: number | null, winnerPhone?: string | null, giftCardSent = false) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.WIN_EMAIL_FROM;
-  if (!apiKey || !from) throw new Error("Sponsor email is not configured");
+  if (!apiKey) throw new Error("Sponsor email is not configured");
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) throw new Error("Invalid sponsor notification address");
-  const fromAddress = from.match(/<([^>]+)>/)?.[1] ?? from;
   const phone = winnerPhone?.trim() || "Not provided";
   // When the winner already received a PDF gift card, the vendor is only told who won.
   const intro = giftCardSent
@@ -150,10 +149,11 @@ Chinuch Yehudi
 Please feel free to reach out to us at ${REPLY_TO_EMAIL}.`;
   const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>${escapeHtml(intro)}</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Phone Number:</strong> ${escapeHtml(phone)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>${escapeHtml(action)}</p><p>Thank You.</p><p>Chinuch Yehudi<br>Please feel free to reach out to us at <a href="mailto:${REPLY_TO_EMAIL}">${REPLY_TO_EMAIL}</a>.</p>`;
   const { data, error } = await new Resend(apiKey).emails.send({
-    from: `Spin for Chinuch <${fromAddress.trim()}>`,
+    // info@ (not prizes@) and a direct subject so it reads like a personal note, not a promotion.
+    from: SPONSOR_EMAIL_FROM,
     to: email,
     replyTo: REPLY_TO_EMAIL,
-    subject: "Chinuch Yehudi – Contact info for your donated gift",
+    subject: `Winner of your ${prize.replace(/[\r\n]+/g, " ").trim()}`,
     text,
     html,
   }, winId ? { idempotencyKey: `sponsor-win/${winId}` } : undefined);

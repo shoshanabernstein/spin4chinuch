@@ -138,7 +138,8 @@ test('sponsor email uses requested copy, escapes winner details, and has no PDF'
   await sendSponsorWinEmail('sponsor@example.invalid', '<Winner>', 'winner@example.invalid', 'Prize <A>', 42, '+1 <555> 123-4567');
   const [message, options] = calls[0];
   assert.equal(message.to, 'sponsor@example.invalid');
-  assert.equal(message.subject, 'Chinuch Yehudi – Contact info for your donated gift');
+  assert.equal(message.subject, 'Winner of your Prize <A>');
+  assert.equal(message.from, 'Spin for Chinuch Yehudi <info@spinforchinuchyehudi.com>');
   assert.match(message.html, /&lt;Winner&gt;/);
   assert.match(message.html, /&lt;A&gt;/);
   assert.match(message.text, /Please reach out to the winner directly to send the gift card or arrange the service/);
