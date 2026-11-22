@@ -58,6 +58,7 @@ function checkout({ available = 1100, authenticated = true } = {}) {
     'next/server': { NextResponse: Response }, stripe: Stripe,
     '@/lib/server/supabase': { getRequestUser: async () => authenticated ? { id: 'user' } : null, supabaseAdmin: { rpc: async name => name === 'create_discount_quote' ? ({ data: null, error: { code: 'PGRST202' } }) : ({ data: 1100 - available, error: null }) } },
     '@/lib/spin-sales': { remainingSpinsForSale: sold => 1100 - sold, SOLD_OUT_MESSAGE: 'Sold out' },
+    '@/lib/server/spin-limit': { readSpinLimit: async () => 1100 },
   });
   return { calls, run: body => POST(new Request('https://example.invalid/api/create-payment-intent', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })) };
 }

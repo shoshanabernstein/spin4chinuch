@@ -27,6 +27,8 @@ export default function OutcomesAdminPage() {
   const [probability, setProbability] = useState(1);
   const [pool, setPool] = useState<Pool | null>(null);
   const [poolChecked, setPoolChecked] = useState(false);
+  const [totalDraft, setTotalDraft] = useState<string | null>(null);
+  const [savingAdjust, setSavingAdjust] = useState(false);
 
   async function load() {
     setPoolChecked(false);
@@ -53,6 +55,39 @@ export default function OutcomesAdminPage() {
   }
 
   useEffect(() => { void load(); }, []);
+
+  async function saveTotal() {
+    if (totalDraft === null || !pool) return;
+    const total = Number(totalDraft);
+    if (totalDraft.trim() === "" || !Number.isInteger(total) || total < 0) {
+      toast.error("Enter a whole number of 0 or more.");
+      return;
+    }
+    const delta = total - pool.limit;
+    if (delta === 0) { setTotalDraft(null); return; }
+    const effect = delta > 0
+      ? `This adds ${delta} "Try Again" results, so prizes come up a little less often per spin.`
+      : `This removes ${-delta} "Try Again" results, so prizes come up a little more often per spin.`;
+    if (!window.confirm(`Change the total spins for the campaign from ${pool.limit} to ${total}?\n\n${effect} The number of prizes stays the same.`)) return;
+    setSavingAdjust(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch("/api/admin/spin-pool", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session?.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ total }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to change the total.");
+      toast.success(`Total spins for the campaign: ${data.pool.limit}`);
+      setTotalDraft(null);
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to change the total.");
+    } finally {
+      setSavingAdjust(false);
+    }
+  }
 
   async function createOutcome() {
     if (!poolChecked || pool) return;
@@ -119,7 +154,25 @@ export default function OutcomesAdminPage() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[.24em] text-[#4267A8]">Administration</p>
             <h1 className="mt-2 text-4xl font-black">Wheel outcomes</h1>
-            <p className="mt-2 text-slate-500">{pool ? `Fixed pool: ${pool.remaining} of ${pool.limit} results remain. Each draw removes one result; inventory and weights are locked.` : "Weights are relative. A weight of 2 is twice as likely as 1."}</p>
+            <p className="mt-2 text-slate-500">{pool ? `${pool.remaining} of ${pool.limit} spins left in the campaign. Each spin uses one result.` : "Weights are relative. A weight of 2 is twice as likely as 1."}</p>
+            {pool && (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-blue-100 bg-white px-4 py-3">
+                <span className="font-bold text-[#142A52]">Total spins for sale:</span>
+                {totalDraft === null ? (
+                  <>
+                    <span className="text-lg font-black text-[#2F6ED8]">{pool.limit}</span>
+                    <button type="button" onClick={() => setTotalDraft(String(pool.limit))} className="rounded-full border border-[#2F6ED8] px-4 py-1 text-sm font-bold text-[#2F6ED8] hover:bg-blue-50">Adjust</button>
+                  </>
+                ) : (
+                  <>
+                    <input autoFocus type="number" min={0} step={1} value={totalDraft} onChange={(event) => setTotalDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void saveTotal(); if (event.key === "Escape") setTotalDraft(null); }} className="w-28 rounded-lg border border-slate-300 px-3 py-1.5" aria-label="Total spins for sale" />
+                    <button type="button" disabled={savingAdjust} onClick={() => void saveTotal()} className="rounded-full bg-[#2F6ED8] px-4 py-1.5 text-sm font-bold text-white disabled:opacity-50">{savingAdjust ? "Saving…" : "Save"}</button>
+                    <button type="button" disabled={savingAdjust} onClick={() => setTotalDraft(null)} className="text-sm font-bold text-slate-500 underline">Cancel</button>
+                  </>
+                )}
+                <span className="w-full text-xs text-slate-500">Changing this adds or removes &quot;Try Again&quot; results. Prize amounts stay the same.</span>
+              </div>
+            )}
           </div>
           <Link href="/admin" className="rounded-full border border-slate-200 bg-white px-5 py-3 font-bold">Back to admin</Link>
           <button type="button" onClick={() => void load()} className="rounded-full border border-slate-200 bg-white px-5 py-3 font-bold">Refresh counts</button>

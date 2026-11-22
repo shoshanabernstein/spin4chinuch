@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/server/supabase";
-import { remainingSpinsForSale, TOTAL_SPIN_LIMIT } from "@/lib/spin-sales";
+import { remainingSpinsForSale } from "@/lib/spin-sales";
+import { readSpinLimit } from "@/lib/server/spin-limit";
 
 export async function GET() {
   try {
-    const { data, error } = await supabaseAdmin.rpc("sold_spin_count");
+    const [{ data, error }, limit] = await Promise.all([supabaseAdmin.rpc("sold_spin_count"), readSpinLimit()]);
     if (error) throw error;
     return NextResponse.json(
-      { remaining: remainingSpinsForSale(data), limit: TOTAL_SPIN_LIMIT },
+      { remaining: remainingSpinsForSale(data, limit), limit },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch {

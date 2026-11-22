@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getRequestUser, supabaseAdmin } from "@/lib/server/supabase";
 import { remainingSpinsForSale, SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
+import { readSpinLimit } from "@/lib/server/spin-limit";
 import { getSpinOrderAmount, SPIN_PRICING_VERSION } from "@/lib/spin-pricing";
 import { randomUUID } from "node:crypto";
 import { deliverFreePurchaseEmail } from "@/lib/server/free-purchase-email";
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     const { data: soldSpins, error: soldSpinsError } = await supabaseAdmin.rpc("sold_spin_count");
     if (soldSpinsError) throw soldSpinsError;
-    const spinsRemaining = remainingSpinsForSale(soldSpins);
+    const spinsRemaining = remainingSpinsForSale(soldSpins, await readSpinLimit());
 
     const requestId = body.checkoutRequestId ?? randomUUID();
     if (typeof requestId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)) {

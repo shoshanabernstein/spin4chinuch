@@ -21,6 +21,7 @@ function checkout({free=false,completed=false,stock=1100,creditError=null,quoteE
   'next/server':{NextResponse:Response},stripe:Stripe,
   '@/lib/server/free-purchase-email':{deliverFreePurchaseEmail:async()=>{calls.push(['email']);if(emailFailure)throw new Error('Email failed');}},
   '@/lib/spin-sales':{remainingSpinsForSale:sold=>1100-sold,SOLD_OUT_MESSAGE:'Sold out'},
+  '@/lib/server/spin-limit':{readSpinLimit:async()=>1100},
   '@/lib/server/supabase':{getRequestUser:async()=>({id:'user',email:'buyer@example.invalid'}),supabaseAdmin:{rpc:async(name,args)=>{
     calls.push([name,args]);
     if(name==='sold_spin_count')return{data:1100-stock,error:null};
