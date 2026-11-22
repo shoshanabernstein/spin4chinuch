@@ -146,9 +146,9 @@ Prize: ${prize}
 ${action}
 Thank You.
 
-Shoshana Bernstein
-Please feel free to reach out to me at ${REPLY_TO_EMAIL} or call 475-559-1044.`;
-  const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>${escapeHtml(intro)}</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Phone Number:</strong> ${escapeHtml(phone)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>${escapeHtml(action)}</p><p>Thank You.</p><p>Shoshana Bernstein<br>Please feel free to reach out to me at <a href="mailto:${REPLY_TO_EMAIL}">${REPLY_TO_EMAIL}</a> or call <a href="tel:+14755591044">475-559-1044</a>.</p>`;
+Chinuch Yehudi
+Please feel free to reach out to us at ${REPLY_TO_EMAIL}.`;
+  const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>${escapeHtml(intro)}</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Phone Number:</strong> ${escapeHtml(phone)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>${escapeHtml(action)}</p><p>Thank You.</p><p>Chinuch Yehudi<br>Please feel free to reach out to us at <a href="mailto:${REPLY_TO_EMAIL}">${REPLY_TO_EMAIL}</a>.</p>`;
   const { data, error } = await new Resend(apiKey).emails.send({
     from: `Spin for Chinuch <${fromAddress.trim()}>`,
     to: email,
