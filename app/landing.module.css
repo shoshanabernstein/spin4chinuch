@@ -12,8 +12,8 @@
 
 /* A spacious opening paired with the campaign wheel illustration. */
 .page [data-landing="hero"] {
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, #10274a 0%, #17355f 55%, #1f4478 100%);
+  border-bottom: 0;
 }
 .page [data-landing="hero"] > :nth-child(-n+3) { display: none; }
 .page [data-landing="hero"] > :last-child {
@@ -23,15 +23,15 @@
   gap: 72px;
 }
 .page [data-landing="hero"] h1 {
-  color: var(--ink);
+  color: #ffffff;
   font-size: clamp(3.25rem, 5.5vw, 5.75rem);
   font-weight: 600;
   line-height: 1.06;
   letter-spacing: -.05em;
 }
-.page [data-landing="hero"] h1 > :last-child { color: #467eb3; margin-top: 6px; }
+.page [data-landing="hero"] h1 > :last-child { color: #f0d47f; margin-top: 6px; }
 .page [data-landing="hero"] h1 + p {
-  color: var(--ink);
+  color: #dbe7f5;
   max-width: 440px;
   margin-top: 28px;
   border-left: 3px solid #e7c96d;
@@ -47,7 +47,8 @@
   border-radius: 8px; box-shadow: 0 4px 12px #c9a44d15;
 }
 .page [data-landing="hero"] a[href="/spin"]:hover { background: #f0d580; }
-.page [data-landing="hero"] a[href="#about"] { color: var(--ink); }
+.page [data-landing="hero"] a[href="#about"] { color: #ffffff; }
+.page [data-landing="hero"] a[href="#about"]:hover { color: #f0d47f; }
 /* Editorial story layout and a framed, fully functional video. */
 .page [data-landing="about"] { max-width: 1360px; padding-block: 100px; }
 .page [data-about-copy] { text-align: left; }
