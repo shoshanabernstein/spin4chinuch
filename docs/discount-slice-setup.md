@@ -9,7 +9,7 @@ database is busy, the entire installation rolls back and can be retried.
 
 The active `?` slice is a non-prize result. The fixed pool still makes the prize
 draw and consumes its original result. Each non-prize draw then has an independent
-two-thirds chance of being shown as `?`. Discount amounts are $1 (40%), $2 (30%),
+three-quarters chance of being shown as `?`. Discount amounts are $1 (40%), $2 (30%),
 $3 (20%), or $4 (10%). The server awards the balance in the same transaction as
 the spin. Request replay never awards twice. There is no win record, winner email,
 sponsor email, or gift-card delivery for a discount. A notification appears after

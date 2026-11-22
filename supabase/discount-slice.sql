@@ -42,7 +42,7 @@ alter table campaign_discounts.awards enable row level security;
 revoke all on all tables in schema campaign_discounts from public, anon, authenticated, service_role;
 
 -- Add a visible slice with zero pool slots. Actual prize draws still consume
--- the original pool; a conditional 2/3 of loss results become discount results.
+-- the original pool; a conditional 3/4 of loss results become discount results.
 drop trigger fixed_pool_outcome_guard on public.wheel_outcomes;
 with added as (
   insert into public.wheel_outcomes(label,type,prize_id,active,probability)
@@ -191,7 +191,7 @@ begin
   select * into outcome from public.wheel_outcomes where id = chosen;
   update campaign_pool.entries set remaining=remaining-1 where outcome_id=chosen;
   update campaign_pool.state set remaining=remaining-1 where singleton;
-  if outcome.prize_id is null and random() < (2.0/3.0) then
+  if outcome.prize_id is null and random() < (3.0/4.0) then
     roll := floor(random()*10)::integer;
     discount_award := case when roll<4 then 100 when roll<7 then 200 when roll<9 then 300 else 400 end;
     select * into strict outcome from public.wheel_outcomes
