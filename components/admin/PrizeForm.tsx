@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabase";
 import { giftCardRequest } from "@/components/admin/GiftCards";
 import PrizeLogoUpload from "@/components/admin/PrizeLogoUpload";
+import { getPrizeDisplay } from "@/lib/prize-display";
 
 export type PrizeFormValues = {
   name: string;
@@ -36,10 +37,30 @@ const emptyPrize: PrizeFormValues = {
   notification_email: "",
 };
 
-export default function PrizeForm({ prizeId, initialValues = emptyPrize, notificationsReady }: { prizeId?: number; initialValues?: PrizeFormValues; notificationsReady?: boolean }) {
+/** Builds the stored prize name from its two display parts, matching how getPrizeDisplay splits names. */
+export function composePrizeName(title: string, provider: string) {
+  const what = title.trim().replace(/\s+/g, " ");
+  const from = provider.trim().replace(/\s+/g, " ");
+  if (!from) return what;
+  const giftCard = what.match(/^(\$[\d,.]+)\s+gift cards?$/i);
+  if (giftCard) return `${giftCard[1]} ${from} Gift Card`;
+  return `${what} by ${from}`;
+}
+
+export default function PrizeForm({ prizeId, initialValues = emptyPrize, notificationsReady, awarded = 0 }: { prizeId?: number; initialValues?: PrizeFormValues; notificationsReady?: boolean; awarded?: number }) {
   const router = useRouter();
   const [values, setValues] = useState(() => ({ ...emptyPrize, ...initialValues, notification_email: initialValues.notification_email ?? "" }));
   const [loading, setLoading] = useState(false);
+  const [nameParts, setNameParts] = useState(() => {
+    const parts = getPrizeDisplay(initialValues.name ?? "", initialValues.sponsor_name);
+    const fromName = parts.provider && (initialValues.name ?? "").toLowerCase().includes(parts.provider.toLowerCase());
+    return { title: initialValues.name ? parts.title : "", provider: fromName ? parts.provider ?? "" : "" };
+  });
+  function updateNamePart(part: "title" | "provider", value: string) {
+    const next = { ...nameParts, [part]: value };
+    setNameParts(next);
+    setValues((current) => ({ ...current, name: composePrizeName(next.title, next.provider) }));
+  }
   const [detectedNotifications, setDetectedNotifications] = useState(false);
   const notificationSupported = notificationsReady ?? detectedNotifications;
   useEffect(() => {
@@ -167,61 +188,130 @@ export default function PrizeForm({ prizeId, initialValues = emptyPrize, notific
     }
   }
 
-  const inputClass = "mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100";
+  const inputClass = "mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal outline-none focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100";
+  const label = "block text-sm font-semibold text-slate-700";
+  const hint = "mt-1 block text-xs font-normal text-slate-500";
+  const won = prizeId ? awarded : 0;
+  const left = Math.max(0, (Number.isFinite(values.quantity) ? values.quantity : 0) - won);
+  const box = "rounded-2xl border border-slate-200 p-5";
+  const boxTitle = "mb-3 text-base font-black text-[#142A52]";
   return (
-    <form onSubmit={savePrize} className="rounded-3xl border border-blue-100 bg-white p-6 shadow-lg sm:p-8">
-      <fieldset disabled={loading} className="min-w-0 border-0 p-0">
-      <div className="grid gap-6 md:grid-cols-2">
-        <label className="font-semibold md:col-span-2">Prize Name<input required value={values.name} onChange={(event) => update("name", event.target.value)} className={inputClass} placeholder="Amazon Gift Card" /></label>
-        <label className="font-semibold">Original Quantity<input required type="number" min={0} step={1} value={values.quantity} onChange={(event) => update("quantity", Number(event.target.value))} className={inputClass} /><span className="mt-2 block text-sm font-normal text-slate-500">Total prizes offered, including those already won.</span></label>
-        <label className="font-semibold">Retail Value<input type="number" min={0} step="0.01" value={values.retail_value ?? ""} onChange={(event) => update("retail_value", event.target.value === "" ? null : Number(event.target.value))} className={inputClass} placeholder="Optional" /></label>
-        <label className="font-semibold">Sponsor Name<input value={values.sponsor_name} onChange={(event) => update("sponsor_name", event.target.value)} className={inputClass} placeholder="Optional" /></label>
-        <div className="font-semibold">
-          <label>Prize Picture<input type="text" value={values.image_url} onChange={(event) => update("image_url", event.target.value)} className={inputClass} placeholder="/prizes/photo.jpg or https://…" /></label>
-          {prizeId ? <>
-            <div className="relative mt-3 h-64 overflow-hidden rounded-2xl bg-slate-100">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              {values.image_url && <img src={values.image_url} alt="Current prize logo" className="h-full w-full object-contain p-4" />}
-              <PrizeLogoUpload prizeId={prizeId} name={values.name} onUploaded={url => update("image_url", url)} />
+    <form onSubmit={savePrize} className="rounded-3xl border border-blue-100 bg-white p-5 shadow-lg sm:p-6">
+      <fieldset disabled={loading} className="min-w-0 space-y-5 border-0 p-0">
+
+        <div className="grid gap-5 lg:grid-cols-[1fr_220px]">
+          <section className={box}>
+            <h2 className={boxTitle}>Prize</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:col-span-2">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-500">Prize <span className="font-normal text-slate-400">(for example: $5 Gift Card, Massage, Full Face)</span></span>
+                  <input required value={nameParts.title} onChange={(event) => updateNamePart("title", event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-lg font-bold text-[#142A52] outline-none focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100" placeholder="e.g. $5 Gift Card" />
+                </label>
+                <span aria-hidden="true" className="my-3 block h-0.5 w-10 rounded-full bg-[#C9A44D]" />
+                <label className="block">
+                  <span className="mb-1 block text-xs font-semibold text-slate-500">From <span className="font-normal text-slate-400">(for example: Target, Marcys, Piccolino)</span></span>
+                  <input value={nameParts.provider} onChange={(event) => updateNamePart("provider", event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-600 outline-none focus:border-[#2F6ED8] focus:ring-4 focus:ring-blue-100" placeholder="e.g. Target" />
+                </label>
+                <p className={hint}>Full name: <b className="text-slate-700">{values.name || "—"}</b></p>
+              </div>
+              <label className={label}>Donated by<input value={values.sponsor_name} onChange={(event) => update("sponsor_name", event.target.value)} className={inputClass} placeholder="Sponsor name (optional)" /></label>
+              <label className={label}>Value
+                <span className="relative block">
+                  <span className="pointer-events-none absolute left-3 top-1/2 mt-[3px] -translate-y-1/2 font-normal text-slate-400">$</span>
+                  <input type="number" min={0} step="0.01" value={values.retail_value ?? ""} onChange={(event) => update("retail_value", event.target.value === "" ? null : Number(event.target.value))} className={`${inputClass} pl-7`} placeholder="Optional" />
+                </span>
+              </label>
+              <label className={label}>Total being given away<input required type="number" min={0} step={1} value={values.quantity} onChange={(event) => update("quantity", Number(event.target.value))} className={inputClass} />
+                {prizeId ? <span className={hint}><b className="text-slate-700">{won}</b> won · <b className="text-[#2F6ED8]">{left}</b> still available</span> : <span className={hint}>Including any already won.</span>}
+              </label>
+              <div className={label}>On the site
+                <label className={`mt-1.5 flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-bold ${values.active ? "border-green-200 bg-green-50 text-green-700" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
+                  <input type="checkbox" checked={values.active} onChange={(event) => update("active", event.target.checked)} className="h-4 w-4 accent-green-600" />
+                  {values.active ? "Showing" : "Hidden"}
+                </label>
+              </div>
             </div>
-            <p className="mt-2 text-sm font-normal text-slate-500">Dropped logos save immediately.</p>
-          </> : <div className="mt-3 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 p-4"
-            onDragOver={event => event.preventDefault()}
-            onDrop={event => { event.preventDefault(); chooseLogo(Array.from(event.dataTransfer.files)); }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            {logoPreview && <img src={logoPreview} alt="Selected prize picture" className="mb-3 h-40 w-full object-contain" />}
-            <label className="block text-sm">Drop a picture here or choose a file
-              <input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" className="mt-3 block w-full" onChange={event => { chooseLogo(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
-            </label>
-            {logo && <button type="button" onClick={() => { setLogo(null); setLogoPreview(""); }} className="mt-2 text-sm underline">Remove {logo.name}</button>}
-            <p className="mt-2 text-sm font-normal text-slate-500">PNG/JPG up to 3 MB. Uploads when you create the prize.</p>
-          </div>}
+          </section>
+
+          <section className={box}>
+            <h2 className={boxTitle}>Picture</h2>
+            {prizeId ? <>
+              <div className="relative h-40 overflow-hidden rounded-xl bg-slate-100">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {values.image_url && <img src={values.image_url} alt="Current prize logo" className="h-full w-full object-contain p-3" />}
+                <PrizeLogoUpload prizeId={prizeId} name={values.name} onUploaded={url => update("image_url", url)} />
+              </div>
+              <p className={hint}>Drop a new picture on it to replace. Saves right away.</p>
+            </> : <div className="rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 p-3 text-sm"
+              onDragOver={event => event.preventDefault()}
+              onDrop={event => { event.preventDefault(); chooseLogo(Array.from(event.dataTransfer.files)); }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {logoPreview && <img src={logoPreview} alt="Selected prize picture" className="mb-2 h-28 w-full object-contain" />}
+              <label className="block">Drop a picture or choose a file
+                <input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" className="mt-2 block w-full text-xs" onChange={event => { chooseLogo(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+              </label>
+              {logo && <button type="button" onClick={() => { setLogo(null); setLogoPreview(""); }} className="mt-2 underline">Remove {logo.name}</button>}
+              <p className={hint}>PNG or JPG, up to 3 MB.</p>
+            </div>}
+            <details className="mt-2 text-xs">
+              <summary className="cursor-pointer text-slate-500">Use a web address instead</summary>
+              <input type="text" value={values.image_url} onChange={(event) => update("image_url", event.target.value)} className={inputClass} placeholder="https://…" />
+            </details>
+          </section>
         </div>
-        <label className="font-semibold">Delivery Type<input value={values.delivery_type} onChange={(event) => update("delivery_type", event.target.value)} className={inputClass} placeholder="Pickup, email, shipping…" /></label>
-        <label className="font-semibold md:col-span-2">Delivery Instructions<textarea value={values.delivery_instructions} onChange={(event) => update("delivery_instructions", event.target.value)} className={`${inputClass} min-h-28 resize-y`} placeholder="Internal fulfillment notes" /></label>
-        <div className="md:col-span-2 rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
-          <p className="font-bold text-[#142A52]">Private prize contact</p>
-          <p className="mt-1 text-sm text-slate-500">Only administrators can view this information.</p>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <label className="font-semibold">Contact Name<input value={values.contact_name} onChange={(event) => update("contact_name", event.target.value)} className={inputClass} placeholder="Optional" /></label>
-            <label className="font-semibold">Contact Email<input type="email" value={values.contact_email} onChange={(event) => update("contact_email", event.target.value)} className={inputClass} placeholder="Optional" /></label>
-            <label className="font-semibold md:col-span-2">Sponsor notification email<input disabled={!notificationSupported} type="email" value={values.notification_email ?? ""} onChange={(event) => update("notification_email", event.target.value)} className={inputClass} placeholder="Optional sponsor email address" /><span className="mt-2 block text-sm font-normal text-slate-500">{!notificationSupported && "Sponsor notifications require database setup. "}For wins without an attached PDF, send this address the winner name, email, and prize so the sponsor can deliver it directly. The winner still receives the usual email. Leave blank to disable.</span></label>
+
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
+          <h2 className="text-base font-black text-[#142A52]">How does the winner get this prize?</h2>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div className="rounded-xl bg-white p-4 text-sm">
+              <p className="font-bold text-[#2F6ED8]">Option 1 · We send the gift card</p>
+              <p className="mt-1 text-slate-600">Upload the actual gift card PDFs {prizeId ? "in the \"E-gift card PDFs\" box below" : "in the box at the bottom"}. Each winner is emailed one PDF automatically.</p>
+            </div>
+            <div className="rounded-xl bg-white p-4 text-sm">
+              <p className="flex items-center justify-between gap-2 font-bold text-[#2F6ED8]">Option 2 · The vendor delivers it
+                <span className={`rounded-full px-2 py-0.5 text-xs ${(values.notification_email ?? "").trim() ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-500"}`}>{(values.notification_email ?? "").trim() ? "On" : "Off"}</span>
+              </p>
+              <p className="mt-1 text-slate-600">Fill in &quot;Email the vendor when someone wins&quot; below. The winner is told we&apos;ll be in touch, and the vendor gets the winner&apos;s name, email and phone to deliver it.</p>
+            </div>
           </div>
+        </section>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <section className={box}>
+            <h2 className={boxTitle}>Delivery <span className="text-xs font-normal text-slate-500">(private)</span></h2>
+            <div className="grid gap-4">
+              <label className={label}>How it&apos;s delivered<input list="delivery-types" value={values.delivery_type} onChange={(event) => update("delivery_type", event.target.value)} className={inputClass} placeholder="Pick or type" />
+                <datalist id="delivery-types"><option value="Email" /><option value="E-gift card PDF" /><option value="Vendor contacts winner" /><option value="Pickup" /><option value="Shipping" /></datalist>
+              </label>
+              <label className={label}>Notes<textarea value={values.delivery_instructions} onChange={(event) => update("delivery_instructions", event.target.value)} className={`${inputClass} min-h-20 resize-y`} placeholder="Optional" /></label>
+            </div>
+          </section>
+
+          <section className={`${box} border-blue-100 bg-blue-50/50`}>
+            <h2 className={boxTitle}>Vendor contact <span className="text-xs font-normal text-slate-500">(private)</span></h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className={label}>Name<input value={values.contact_name} onChange={(event) => update("contact_name", event.target.value)} className={inputClass} placeholder="Optional" /></label>
+              <label className={label}>Email<input type="email" value={values.contact_email} onChange={(event) => update("contact_email", event.target.value)} className={inputClass} placeholder="For tax receipts" /></label>
+              <label className={`${label} sm:col-span-2`}><span className="mr-1 text-xs font-bold uppercase tracking-wide text-[#2F6ED8]">Option 2 ·</span>Email the vendor when someone wins<input disabled={!notificationSupported} type="email" value={values.notification_email ?? ""} onChange={(event) => update("notification_email", event.target.value)} className={inputClass} placeholder="Leave blank to turn off" />
+                <span className={hint}>{!notificationSupported && "Needs database setup first. "}The vendor gets the winner&apos;s name, email and phone. If the winner already got a PDF gift card, the email tells the vendor there&apos;s nothing to send.</span>
+              </label>
+            </div>
+          </section>
         </div>
-      </div>
-      {!prizeId && <section className="mt-6 rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 p-5"
-        onDragOver={event => event.preventDefault()}
-        onDrop={event => { event.preventDefault(); choosePdfs(Array.from(event.dataTransfer.files)); }}>
-        <h2 className="font-bold">E-gift card PDFs</h2>
-        <p className="mt-2 text-sm text-slate-600">Drop PDFs here or choose files. Use a different redeemable card for each winner, up to 3 MB per PDF. Files upload when you create the prize.</p>
-        <input type="file" multiple accept="application/pdf,.pdf" aria-label="Gift card PDFs" className="mt-3 block w-full" onChange={event => { choosePdfs(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
-        <ul className="mt-3 space-y-2">{pdfs.map((file, index) => <li key={index} className="flex items-center justify-between gap-3 text-sm"><span className="break-all">{file.name}</span><button type="button" onClick={() => setPdfs(current => current.filter((_, i) => i !== index))} className="shrink-0 underline">Remove</button></li>)}</ul>
-      </section>}
-      <label className="mt-6 flex items-center gap-3 rounded-2xl bg-slate-50 p-4 font-semibold"><input type="checkbox" checked={values.active} onChange={(event) => update("active", event.target.checked)} className="h-5 w-5" /> Prize is active</label>
+
+        {!prizeId && <section className="rounded-2xl border-2 border-dashed border-blue-300 bg-blue-50 p-5"
+          onDragOver={event => event.preventDefault()}
+          onDrop={event => { event.preventDefault(); choosePdfs(Array.from(event.dataTransfer.files)); }}>
+          <h2 className={boxTitle}><span className="mr-1 text-xs font-bold uppercase tracking-wide text-[#2F6ED8]">Option 1 ·</span>E-gift card PDFs (the actual gift cards)</h2>
+          <p className="text-sm text-slate-600">Drop PDFs here or choose files. A different card for each winner, up to 3 MB each. They upload when you create the prize.</p>
+          <input type="file" multiple accept="application/pdf,.pdf" aria-label="Gift card PDFs" className="mt-3 block w-full" onChange={event => { choosePdfs(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
+          <ul className="mt-3 space-y-2">{pdfs.map((file, index) => <li key={index} className="flex items-center justify-between gap-3 text-sm"><span className="break-all">{file.name}</span><button type="button" onClick={() => setPdfs(current => current.filter((_, i) => i !== index))} className="shrink-0 underline">Remove</button></li>)}</ul>
+        </section>}
       </fieldset>
-      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <Link href="/admin/prizes" className="rounded-full border border-slate-200 px-6 py-3 text-center font-bold">Cancel</Link>
-        <button disabled={loading} type="submit" className="rounded-full bg-[#2F6ED8] px-7 py-3 font-bold text-white shadow-lg disabled:opacity-50">{loading ? "Saving…" : prizeId ? "Save Changes" : "Create Prize"}</button>
+      <div className="sticky bottom-4 z-10 mt-6 flex flex-col-reverse gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-end">
+        <Link href="/admin/prizes" className="rounded-full border border-slate-200 px-6 py-2.5 text-center font-bold">Cancel</Link>
+        <button disabled={loading} type="submit" className="rounded-full bg-[#2F6ED8] px-7 py-2.5 font-bold text-white shadow-lg disabled:opacity-50">{loading ? "Saving…" : prizeId ? "Save Changes" : "Create Prize"}</button>
       </div>
     </form>
   );

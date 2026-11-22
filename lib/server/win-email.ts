@@ -122,26 +122,33 @@ export async function sendWinEmail(email: string, prize: string, prizeImageUrl?:
   return data.id;
 }
 
-export async function sendSponsorWinEmail(email: string, winnerName: string, winnerEmail: string, prize: string, winId?: number | null, winnerPhone?: string | null) {
+export async function sendSponsorWinEmail(email: string, winnerName: string, winnerEmail: string, prize: string, winId?: number | null, winnerPhone?: string | null, giftCardSent = false) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WIN_EMAIL_FROM;
   if (!apiKey || !from) throw new Error("Sponsor email is not configured");
   if (!/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email)) throw new Error("Invalid sponsor notification address");
   const fromAddress = from.match(/<([^>]+)>/)?.[1] ?? from;
   const phone = winnerPhone?.trim() || "Not provided";
+  // When the winner already received a PDF gift card, the vendor is only told who won.
+  const intro = giftCardSent
+    ? "Your prize was just won! The winner has already been emailed their e-gift card, so there is nothing you need to send."
+    : "Below is the winner’s information so you can contact them directly about their prize.";
+  const action = giftCardSent
+    ? "This email is just to let you know who won."
+    : "Please reach out to the winner directly to send the gift card or arrange the service.";
   const text = `Hi,
 Thank you for sponsoring a prize for our Chinuch Yehudi campaign!
-Below is the winner’s information so you can contact them directly about their prize.
+${intro}
 Winner’s Name: ${winnerName}
 Email Address: ${winnerEmail}
 Phone Number: ${phone}
 Prize: ${prize}
-Please reach out to the winner directly to send the gift card or arrange the service.
+${action}
 Thank You.
 
 Shoshana Bernstein
 Please feel free to reach out to me at ${REPLY_TO_EMAIL} or call 475-559-1044.`;
-  const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>Below is the winner’s information so you can contact them directly about their prize.</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Phone Number:</strong> ${escapeHtml(phone)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>Please reach out to the winner directly to send the gift card or arrange the service.</p><p>Thank You.</p><p>Shoshana Bernstein<br>Please feel free to reach out to me at <a href="mailto:${REPLY_TO_EMAIL}">${REPLY_TO_EMAIL}</a> or call <a href="tel:+14755591044">475-559-1044</a>.</p>`;
+  const html = `<p>Hi,</p><p>Thank you for sponsoring a prize for our Chinuch Yehudi campaign!</p><p>${escapeHtml(intro)}</p><p><strong>Winner’s Name:</strong> ${escapeHtml(winnerName)}<br><strong>Email Address:</strong> ${escapeHtml(winnerEmail)}<br><strong>Phone Number:</strong> ${escapeHtml(phone)}<br><strong>Prize:</strong> ${escapeHtml(prize)}</p><p>${escapeHtml(action)}</p><p>Thank You.</p><p>Shoshana Bernstein<br>Please feel free to reach out to me at <a href="mailto:${REPLY_TO_EMAIL}">${REPLY_TO_EMAIL}</a> or call <a href="tel:+14755591044">475-559-1044</a>.</p>`;
   const { data, error } = await new Resend(apiKey).emails.send({
     from: `Spin for Chinuch <${fromAddress.trim()}>`,
     to: email,

@@ -13,6 +13,7 @@ export default function EditPrizePage() {
   const [prize, setPrize] = useState<PrizeFormValues | null>(null);
   const [failed, setFailed] = useState(false);
   const [notificationsReady, setNotificationsReady] = useState(false);
+  const [awarded, setAwarded] = useState(0);
 
   useEffect(() => {
     async function loadPrize() {
@@ -28,6 +29,7 @@ export default function EditPrizePage() {
         const check = await supabase.from("prize_contacts").select("notification_email").limit(0);
         setNotificationsReady(!check.error);
       }
+      setAwarded(data.wins[0]?.count ?? 0);
       setPrize({
         name: data.name,
         quantity: data.original_quantity ?? data.quantity + (data.wins[0]?.count ?? 0),
@@ -51,9 +53,9 @@ export default function EditPrizePage() {
         <section className="page-hero">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[#4267A8]">Prize Management</p>
           <h1 className="mt-1 text-4xl font-black">Edit Prize</h1>
-          <p className="mt-2 text-slate-500">Update inventory, presentation, and fulfillment details.</p>
+          <p className="mt-2 text-slate-500">Change the prize details, how many are left, its picture, and who to contact.</p>
         </section>
-        {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} notificationsReady={notificationsReady} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
+        {failed ? <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">This prize could not be loaded.</div> : prize ? <PrizeForm prizeId={prizeId} initialValues={prize} notificationsReady={notificationsReady} awarded={awarded} /> : <div className="rounded-3xl bg-white py-16 text-center text-slate-500 shadow-lg">Loading prize…</div>}
         {prize && <GiftCards prizeId={prizeId} />}
       </div>
     </main>

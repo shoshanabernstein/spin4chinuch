@@ -167,7 +167,7 @@ test('sponsor notifications are opt-in and use the profile name', async () => {
 });
 
 
-test('spin notifies sponsors only for standard delivery, never assigned or failed PDF delivery', async () => {
+test('spin notifies sponsors for standard and sent PDF delivery, never failed PDF delivery', async () => {
   for (const delivery of ['standard', 'pdf', 'failed']) {
     let winnerEmails = 0;
     let sponsorEmails = 0;
@@ -187,6 +187,17 @@ test('spin notifies sponsors only for standard delivery, never assigned or faile
     const response = await routes.POST({ json: async () => ({ requestId: '11111111-1111-4111-8111-111111111111' }) });
     assert.equal(response.success, true);
     assert.equal(winnerEmails, delivery === 'standard' ? 1 : 0);
-    assert.equal(sponsorEmails, delivery === 'standard' ? 1 : 0);
+    assert.equal(sponsorEmails, delivery === 'failed' ? 0 : 1);
   }
+});
+
+test('sponsor email after a PDF gift card says nothing needs to be sent', async () => {
+  const calls = [];
+  class Resend { emails = { send: async (...args) => { calls.push(args); return { data: { id: 'receipt' } }; } }; }
+  const { sendSponsorWinEmail } = load('lib/server/win-email.ts', { resend: { Resend } }, { RESEND_API_KEY: 'fake', WIN_EMAIL_FROM: 'test@example.invalid' });
+  await sendSponsorWinEmail('sponsor@example.invalid', 'Winner', 'winner@example.invalid', 'Prize', 7, null, true);
+  const [message] = calls[0];
+  assert.match(message.text, /already been emailed their e-gift card/);
+  assert.match(message.html, /just to let you know who won/);
+  assert.doesNotMatch(message.text, /send the gift card or arrange the service/);
 });

@@ -57,10 +57,12 @@ export async function POST(req: Request) {
   const result = data as SpinResult;
   if (!result.replayed && result.won && result.prize?.name && user.email) {
     let useStandardEmail = !useGiftCards;
+    let giftCardSent = false;
     if (useGiftCards) {
       try {
         if (!result.winId) throw new Error("Missing win ID for gift card delivery");
-        useStandardEmail = !(await deliverGiftCard(result.winId));
+        giftCardSent = await deliverGiftCard(result.winId);
+        useStandardEmail = !giftCardSent;
       } catch (emailError) {
         console.error("Gift card delivery requires administrator review", emailError);
       }
@@ -80,6 +82,11 @@ export async function POST(req: Request) {
         console.error("Win email failed", emailError);
       });
       await notifyPrizeSponsor(result.prize.id, user.id, user.email, result.prize.name, result.winId).catch((emailError) => {
+        console.error("Sponsor notification failed", emailError);
+      });
+    } else if (giftCardSent) {
+      // The winner already has their PDF gift card; let the vendor know who won.
+      await notifyPrizeSponsor(result.prize.id, user.id, user.email, result.prize.name, result.winId, true).catch((emailError) => {
         console.error("Sponsor notification failed", emailError);
       });
     }

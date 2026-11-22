@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/server/supabase";
 import { sendSponsorWinEmail } from "@/lib/server/win-email";
 
-export async function notifyPrizeSponsor(prizeId: number, userId: string, winnerEmail: string, prizeName: string, winId?: number | null) {
+export async function notifyPrizeSponsor(prizeId: number, userId: string, winnerEmail: string, prizeName: string, winId?: number | null, giftCardSent = false) {
   const { data: contact, error } = await supabaseAdmin.from("prize_contacts")
     .select("*").eq("prize_id", prizeId).maybeSingle();
   if (error) throw new Error("Could not load sponsor notification settings");
@@ -11,5 +11,5 @@ export async function notifyPrizeSponsor(prizeId: number, userId: string, winner
     .select("first_name,last_name,phone").eq("id", userId).single();
   if (profileError) throw new Error("Could not load the winner name for sponsor notification");
   const name = [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() || "Name not provided";
-  await sendSponsorWinEmail(email, name, winnerEmail, prizeName, winId, profile.phone);
+  await sendSponsorWinEmail(email, name, winnerEmail, prizeName, winId, profile.phone, giftCardSent);
 }

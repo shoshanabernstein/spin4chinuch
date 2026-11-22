@@ -83,8 +83,9 @@ export default function GiftCards({ prizeId }: { prizeId: number }) {
   }
 
   return <section className="mt-6 rounded-3xl border border-blue-100 bg-white p-6 shadow-lg sm:p-8">
-    <h2 className="text-xl font-bold">E-gift card PDFs</h2>
-    <p className="mt-2 text-sm text-slate-600">Upload a separate PDF for each individual gift card. Each PDF goes to one future winner only. If no unused PDF is available, the usual prize email is sent. Uploads are saved immediately.</p>
+    <p className="text-xs font-bold uppercase tracking-wide text-[#2F6ED8]">Option 1 · We send the gift card</p>
+    <h2 className="mt-1 text-xl font-bold">E-gift card PDFs (the actual gift cards)</h2>
+    <p className="mt-2 text-sm text-slate-600">Upload the real gift card files here, one PDF per card. Each winner of this prize is automatically emailed one PDF. If the vendor email (Option 2) is filled in, the vendor is also told who won. When none are left, the vendor delivers the prize instead. Uploads save right away.</p>
     <p className="mt-2 text-sm text-slate-600">Each PDF must contain a different redeemable card. Uploading a re-saved copy of the same card could give two winners the same redemption code.</p>
     {loaded && !enabled && <p className="mt-4 rounded-xl bg-amber-50 p-4 text-sm">PDF delivery is awaiting database setup. Existing prize emails are unchanged.</p>}
     {enabled && <>
