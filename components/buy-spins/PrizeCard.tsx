@@ -34,7 +34,7 @@ export default function PrizeCard({
       </div>
 
       <div className={styles["prize-card-artwork"]} style={logo ? { background: logo.background } : undefined}>
-        {hasQuantity && <span className={styles["carousel-count"]}>{originalQuantity.toLocaleString()} {originalQuantity === 1 ? "prize" : "prizes"}</span>}
+        {hasQuantity && <span className={styles["carousel-count"]}>{originalQuantity.toLocaleString()} {originalQuantity === 1 ? "winner" : "winners"}</span>}
         {logo ? (
           <div className="flex h-full w-full items-center justify-center" style={{ padding: logo.padding }}>
             <img src={logo.src} alt={display.provider ? `${display.provider} logo` : name}
