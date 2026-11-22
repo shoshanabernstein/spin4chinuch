@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SOLD_OUT_MESSAGE } from "@/lib/spin-sales";
 import { useRouter } from "next/navigation";
-import { useSpinAvailability } from "@/components/useSpinAvailability";
 import { useDiscountBalance } from "@/components/useDiscountBalance";
 import Confetti from "react-confetti";
 import toast from "react-hot-toast";
@@ -48,7 +46,6 @@ type SpinResponse = {
 
 export default function SpinPage() {
   const router = useRouter();
-  const sales = useSpinAvailability();
   const discounts = useDiscountBalance();
   const { user, loading: loadingAuth } = useAuth();
   const inFlight = useRef(false);
@@ -378,12 +375,9 @@ export default function SpinPage() {
     setShowConfetti(false);
   }
 
-  async function buySpins(event: React.MouseEvent<HTMLAnchorElement>) {
+  function buySpins(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault();
-    const remaining = await sales.check();
-    if (remaining === null) toast.error("Unable to check availability. Please try again.");
-    else if (remaining === 0) toast(SOLD_OUT_MESSAGE);
-    else router.push("/buy-spins");
+    router.push("/buy-spins");
   }
 
   return (
@@ -445,7 +439,7 @@ export default function SpinPage() {
                     spinPhase={spinPhase}
                     prizes={outcomes}
                     canSpin={readyToSpin}
-                    purchaseBlockedLabel={sales.remaining === 0 ? "Sold out" : sales.remaining === null ? (sales.unavailable ? "Sales unavailable" : "Checking availability…") : undefined}
+                    purchaseBlockedLabel={undefined}
                     onBuySpins={buySpins}
                     showBuySpins={!loadingAuth && !spinning && (!user || (!loadingStats && remainingSpins <= 0 && !hasPendingSpin))}
                     onSpin={requestSpin}
@@ -460,7 +454,7 @@ export default function SpinPage() {
                 </div>
               )}
               {outcomes.length > 0 && !loadingPrizes && <p role="status" className="relative mt-1 px-2 text-center text-xs sm:text-sm font-medium text-[#AFC3DD]">
-                {sales.remaining === 0 ? SOLD_OUT_MESSAGE : loadingStats ? "Loading your spins..." : ""}
+                {loadingStats ? "Loading your spins..." : ""}
               </p>}
             </div>
 
@@ -593,10 +587,10 @@ export default function SpinPage() {
                     <Link
                       href="/buy-spins"
                       onClick={buySpins}
-                      aria-disabled={sales.remaining === 0}
+                      
                       className="flex min-h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#D8B34F] to-[#F3D77E] px-3 py-3 text-sm font-bold text-[#102743] shadow-[inset_0_1px_0_rgba(255,255,255,.5),0_5px_16px_rgba(216,179,79,.12)] transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D47F]"
                     >
-                      {sales.remaining === 0 ? "Sold out" : "Buy spins"}
+                      Buy spins
                     </Link>
                   )}
 
