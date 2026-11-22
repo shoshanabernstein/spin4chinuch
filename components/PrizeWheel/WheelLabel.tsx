@@ -37,7 +37,9 @@ export default function WheelLabel({ label, provider, angle, sliceAngle }: {
 
   const radius = (innerRadius + outerRadius) / 2;
   const radians = (angle - 90) * Math.PI / 180;
-  const rotation = angle > 180 ? angle + 90 : angle - 90;
+  // The "?" discount label is turned the other way from the regular labels.
+  const flip = /^\?+$/.test(label) ? 180 : 0;
+  const rotation = (angle > 180 ? angle + 90 : angle - 90) + flip;
 
   return (
     <g transform={`translate(${450 + radius * Math.cos(radians)} ${450 + radius * Math.sin(radians)}) rotate(${rotation})`}>
